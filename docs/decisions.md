@@ -41,3 +41,9 @@ Every design decision for MemRev, newest round last. Each entry lists the questi
 | V28 | LLM failures | LLM calls retry with backoff; successful outputs are cached. Persistent failures count as "extraction failed", separate from uncheckable assumptions. |
 | V29 | Constructed lessons: review and blinding | Matched controls are drafted the same way as constructed stale lessons; both go through the same CSV review and label sign-off. The variant bank uses opaque ids, the same schema and no provenance field; only the scorer holds the mapping. |
 | V30 | Nothing to flip | When the S..T diff yields no stale-lesson candidate, the pair is recorded with reason "no behaviour change found", reported next to the drop counts. |
+
+## Pilot B — review, 2026-10-19
+
+| # | Topic | Decision |
+|---|-------|----------|
+| V32 | Uncheckable assumptions in lesson labels | Uncheckable assumptions are ignored when a lesson label is aggregated: V22's "all" ranges over the lesson's checkable assumptions. A lesson with none is counted and not scored, as V22 says. Clarified during review 2026-10-19. |

@@ -3,7 +3,7 @@
 **Status:** ready-for-agent
 **Date:** 19-10-2026
 
-Terms follow [GLOSSARY.md](../../GLOSSARY.md); decisions V1–V30 are in [docs/decisions.md](../../docs/decisions.md); data source per [ADR 0001](../../docs/adr/0001-own-revision-pairs-from-swe-bench-verified.md).
+Terms follow [GLOSSARY.md](../../GLOSSARY.md); decisions V1–V32 are in [docs/decisions.md](../../docs/decisions.md); data source per [ADR 0001](../../docs/adr/0001-own-revision-pairs-from-swe-bench-verified.md).
 
 ## Problem
 
@@ -98,6 +98,7 @@ Roles: **researcher** runs the pipeline; **reviewer** reviews assumptions and si
   - *Harness*: mechanism interface (bank, pair, repository access → decision per lesson); it never loads labels or the constructed-case mapping.
   - *Scorer*: the only component that reads labels and the mapping; produces metrics with natural and constructed reported separately.
 - **Lesson-bank JSONL schema** (contract with Pilot A): one object per line with lesson id, lesson text, task id (SWE-bench instance id), repository, source revision (commit SHA), trajectory pointer (path or URL, may be empty for fixtures). Documented in the repo; extra fields are ignored.
+- **Lesson-label aggregation:** uncheckable assumptions are ignored when aggregating a lesson label; V22's "all" ranges over the lesson's checkable assumptions (V32).
 - **Assumption record:** statement, assumption type (one of five, or uncheckable), scope, supporting code pointers, check (command plus asserted target), content hash over these fields.
 - **Exclusion reason codes:** invalid lesson input, no target, ancestry failed, cross-version, environment unavailable, extraction failed, uncheckable, invalid at S, out of scope at T, no behaviour change found, drafting failed, gate failed (constructed), no matched control.
 - **Run isolation:** each run has its own database and work directory outside any repository checkout.
