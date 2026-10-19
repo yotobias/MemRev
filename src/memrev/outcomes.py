@@ -4,11 +4,17 @@ Two kinds of check command:
 - django's `runtests.py`: the test statuses are parsed (a small copy of SWE-bench's
   `parse_log_django`). A failing named test is a fail on the asserted target; a named test that
   does not exist at the revision, or a run where every test is skipped, is out of scope; a test
-  erroring on its environment (database, file system) is a harness error.
+  erroring on its environment (database, file system) is a harness error. Any other erroring test
+  (ERROR, not FAIL) is a fail on the asserted target only if its traceback or test id names the
+  target; otherwise it is a harness error.
 - anything else (e.g. a `python -c` probe): exit 0 is a pass. A traceback is a fail on the
   asserted target if it is an AssertionError or its message names the target; a missing database
   driver or library is out of scope; any other exception is a harness error. A non-zero exit
-  without a traceback is a fail on the target (the check "exits 0 if and only if it holds").
+  without a traceback is a fail on the target (the check "exits 0 if and only if it holds"),
+  except for recognised harness conditions: pytest (recognised by the command) exiting 2, 3 or 4
+  (interrupted, internal error, usage error) is a harness error and exiting 5 (no tests collected)
+  is out of scope; "command not found" or "No such file or directory" about the command's own
+  program or script is a harness error.
 Timeouts (exit 124), missing commands (126/127), signals (>128) and no exit at all are harness
 errors in both kinds.
 """
@@ -45,6 +51,11 @@ _RAN = re.compile(r"^Ran (\d+) tests? in ", re.M)
 _SEPARATOR = re.compile(r"^(=|-){20,}$", re.M)
 _IDENTIFIER = re.compile(r"[A-Za-z_]\w*")
 
+# pytest's own exit statuses that are no verdict on the check.
+_PYTEST_HARNESS_EXITS = {2: "interrupted", 3: "internal error", 4: "usage error"}
+_PYTEST_NO_TESTS = 5
+_MISSING_COMMAND = re.compile(r"command not found|No such file or directory|: not found")
+
 
 def classify(command: str, asserted_target: str, exit_status: int | None, output: str) -> tuple[Outcome, str]:
     """The outcome of one execution of `command`, and a one-line reason for it."""
@@ -56,7 +67,7 @@ def classify(command: str, asserted_target: str, exit_status: int | None, output
         return Outcome.HARNESS_ERROR, f"exit {exit_status}: killed by signal {exit_status - 128}"
     if "runtests.py" in command:
         return _classify_runtests(command, asserted_target, exit_status, output)
-    return _classify_command(asserted_target, exit_status, output)
+    return _classify_command(command, asserted_target, exit_status, output)
 
 
 # Generic commands ---------------------------------------------------------
@@ -114,23 +125,72 @@ def _classify_exception(exc: _Exception, asserted_target: str) -> tuple[Outcome,
     return Outcome.HARNESS_ERROR, f"error away from the asserted target: {exc.line}"
 
 
-def _classify_command(asserted_target: str, exit_status: int, output: str) -> tuple[Outcome, str]:
+def _classify_command(command: str, asserted_target: str, exit_status: int, output: str) -> tuple[Outcome, str]:
     if exit_status == 0:
         return Outcome.PASS, ""
     exc = _last_exception(output)
-    if exc is None:
-        return Outcome.FAIL_ON_TARGET, f"exit {exit_status}"
-    return _classify_exception(exc, asserted_target)
+    if exc is not None:
+        return _classify_exception(exc, asserted_target)
+    program, args = _program(_words(command))
+    if _is_pytest(program, args):
+        if exit_status in _PYTEST_HARNESS_EXITS:
+            return Outcome.HARNESS_ERROR, f"pytest exit {exit_status}: {_PYTEST_HARNESS_EXITS[exit_status]}"
+        if exit_status == _PYTEST_NO_TESTS:
+            return Outcome.OUT_OF_SCOPE, f"pytest exit {exit_status}: no tests collected"
+    missing = _missing_command(program, args, output)
+    if missing:
+        return Outcome.HARNESS_ERROR, f"exit {exit_status}: {missing}"
+    return Outcome.FAIL_ON_TARGET, f"exit {exit_status}"
+
+
+def _words(command: str) -> list[str]:
+    try:
+        return shlex.split(command)
+    except ValueError:
+        return command.split()
+
+
+def _program(words: list[str]) -> tuple[str, list[str]]:
+    """The command's program name (after `VAR=value` assignments, without its directory) and its arguments."""
+    rest = list(words)
+    while rest and re.fullmatch(r"\w+=.*", rest[0]):
+        rest.pop(0)
+    if not rest:
+        return "", []
+    return rest[0].rsplit("/", 1)[-1], rest[1:]
+
+
+def _is_interpreter(program: str) -> bool:
+    return program in ("sh", "bash") or re.fullmatch(r"python[\d.]*", program) is not None
+
+
+def _is_pytest(program: str, args: list[str]) -> bool:
+    return program in ("pytest", "py.test") or (_is_interpreter(program) and args[:2] == ["-m", "pytest"])
+
+
+def _missing_command(program: str, args: list[str], output: str) -> str:
+    """The output line saying that the command's own program, or the script an interpreter runs, does
+    not exist; "" if there is none. A missing file the check itself reports is no such line."""
+    names = {program}
+    if _is_interpreter(program) and args and not args[0].startswith("-"):
+        names.add(args[0].rsplit("/", 1)[-1])
+    for line in output.splitlines():
+        # "cat: x: No such file or directory": the reporter before the first colon is not what is missing.
+        about = line.split(":", 1)[1] if ":" in line else line
+        if _MISSING_COMMAND.search(line) and any(_names_word(about, name) for name in names if name):
+            return line.strip()
+    return ""
+
+
+def _names_word(line: str, name: str) -> bool:
+    return re.search(rf"(?<![\w.-]){re.escape(name)}(?![\w.-])", line) is not None
 
 
 # django runtests.py -------------------------------------------------------
 
 
 def _labels(command: str) -> list[str]:
-    try:
-        words = shlex.split(command)
-    except ValueError:
-        words = command.split()
+    words = _words(command)
     after = next((i for i, w in enumerate(words) if w.endswith("runtests.py")), len(words))
     labels, skip = [], False
     for word in words[after + 1:]:
@@ -215,8 +275,10 @@ def _classify_runtests(command: str, asserted_target: str, exit_status: int, out
             missing.append(f"{test_id}: {exc.line}")
         elif exc is not None and exc.name in _ENVIRONMENT_ERRORS:
             harness.append(f"{test_id}: {exc.line}")
-        else:
+        elif _mentions(f"{test_id}\n{body}", _target_names(asserted_target)):
             failed.append(f"{test_id} ERROR" + (f": {exc.line}" if exc else ""))
+        else:
+            harness.append(f"{test_id}: error away from the asserted target" + (f": {exc.line}" if exc else ""))
     statuses = _statuses(output)
     failed += [f"{test_id} unexpected success" for test_id, s in statuses.items() if s == "unexpected success"]
     if harness:

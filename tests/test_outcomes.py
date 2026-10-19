@@ -255,3 +255,88 @@ def test_timeouts_missing_commands_and_signals_are_harness_errors():
     assert classify("python -c 'x'", "x", 139, "")[0] is Outcome.HARNESS_ERROR  # segfault under emulation
     assert classify("python -c 'x'", "x", None, "")[0] is Outcome.HARNESS_ERROR
     assert classify(f"{RUNTESTS} utils_tests", "x", 124, HEADER)[0] is Outcome.HARNESS_ERROR
+
+
+# Errors away from the target, pytest exit codes, a missing command (review 2026-10-19) ----------
+
+
+def test_a_test_erroring_away_from_the_asserted_target_is_a_harness_error():
+    output = HEADER + (
+        "test_a (utils_tests.test_text.TestUtilsText) ... ERROR\n"
+        "\n======================================================================\n"
+        "ERROR: test_a (utils_tests.test_text.TestUtilsText)\n"
+        "----------------------------------------------------------------------\n"
+        "Traceback (most recent call last):\n"
+        '  File "/testbed/tests/utils_tests/test_text.py", line 12, in setUp\n'
+        "KeyError: 'LANG'\n"
+        "\n----------------------------------------------------------------------\n"
+        "Ran 1 test in 0.001s\n\nFAILED (errors=1)\n"
+    )
+
+    outcome, detail = classify(f"{RUNTESTS} utils_tests.test_text", "django.utils.text.wrap", 1, output)
+
+    assert outcome is Outcome.HARNESS_ERROR
+    assert "KeyError" in detail
+
+
+def test_a_test_whose_id_names_the_asserted_target_erroring_is_a_fail_on_the_target():
+    output = HEADER + (
+        "test_wrap (utils_tests.test_text.TestUtilsText) ... ERROR\n"
+        "\n======================================================================\n"
+        "ERROR: test_wrap (utils_tests.test_text.TestUtilsText)\n"
+        "----------------------------------------------------------------------\n"
+        "Traceback (most recent call last):\n"
+        '  File "/testbed/tests/utils_tests/test_text.py", line 12, in setUp\n'
+        "KeyError: 'width'\n"
+        "\n----------------------------------------------------------------------\n"
+        "Ran 1 test in 0.001s\n\nFAILED (errors=1)\n"
+    )
+    target = "utils_tests.test_text.TestUtilsText.test_wrap"
+
+    outcome, _ = classify(f"{RUNTESTS} utils_tests.test_text", target, 1, output)
+
+    assert outcome is Outcome.FAIL_ON_TARGET
+
+
+def test_pytest_interrupted_internal_error_and_usage_error_are_harness_errors():
+    for exit_status, output in (
+        (2, "Interrupted: 1 error during collection"),
+        (3, "INTERNALERROR> Traceback ..."),
+        (4, "ERROR: usage: pytest [options] [file_or_dir]\npytest: error: unrecognized arguments: --nope"),
+    ):
+        outcome, detail = classify("python -m pytest tests/test_text.py::test_wrap", "wrap", exit_status, output)
+        assert outcome is Outcome.HARNESS_ERROR, exit_status
+        assert f"pytest exit {exit_status}" in detail
+
+
+def test_pytest_collecting_no_tests_is_out_of_scope():
+    outcome, _ = classify("pytest -k test_wrap tests/test_text.py", "wrap", 5, "collected 0 items\n\nno tests ran")
+
+    assert outcome is Outcome.OUT_OF_SCOPE
+
+
+def test_pytest_failing_a_test_is_still_a_fail_on_the_target():
+    output = "tests/test_text.py F\n\nE       assert 1 == 2\n1 failed in 0.01s\n"
+
+    outcome, _ = classify("pytest tests/test_text.py::test_wrap", "wrap", 1, output)
+
+    assert outcome is Outcome.FAIL_ON_TARGET
+
+
+def test_the_same_exit_codes_from_a_command_that_is_not_pytest_stay_a_fail_on_the_target():
+    for exit_status in (2, 3, 4, 5):
+        assert classify("./check_wrap.sh", "wrap", exit_status, "")[0] is Outcome.FAIL_ON_TARGET
+
+
+def test_a_missing_command_or_script_is_a_harness_error():
+    missing_script = "python: can't open file '/testbed/probe_wrap.py': [Errno 2] No such file or directory"
+    missing_program = "sh: 1: nosuchtool: command not found"
+
+    assert classify("python probe_wrap.py", "wrap", 2, missing_script)[0] is Outcome.HARNESS_ERROR
+    assert classify("nosuchtool --check wrap", "wrap", 1, missing_program)[0] is Outcome.HARNESS_ERROR
+
+
+def test_a_missing_file_that_the_check_itself_reports_stays_a_fail_on_the_target():
+    output = "cat: django/utils/wrap.txt: No such file or directory"
+
+    assert classify("cat django/utils/wrap.txt", "wrap", 1, output)[0] is Outcome.FAIL_ON_TARGET
