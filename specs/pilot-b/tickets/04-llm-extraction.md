@@ -49,3 +49,5 @@ Built by an AI agent (Claude Code), test-first on seam N1 with the fake LLM only
 - "Extraction failed" is recorded as an exclusion `(stage "extract", subject "lesson <id>", reason "extraction failed")` with the last error as detail, and cleared when a later run succeeds. Uncheckable assumptions are not written as exclusions: they are assumptions with type `uncheckable` (ticket 10 can count them from the assumptions table, which also reflects reviewer edits).
 - Retry policy: 3 attempts in our client on top of the SDK's 4 transport retries. A 400 (`BadRequestError`) is not retried. An auth or permission error aborts the stage (exit 2) instead of marking every lesson failed.
 - The prompt gives the repository, source revision, task id and lesson text only. The model does not see the code. Code pointers and checks are its proposals, which the reviewer fixes in the CSV.
+
+**Review 2026-10-19:** `make_llm(model)` now lives in `memrev.llm` and stages call `llm.make_llm`, so tests monkeypatch `llm.make_llm` once (for `extract` and `construct` alike).

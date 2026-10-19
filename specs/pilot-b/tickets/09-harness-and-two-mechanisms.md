@@ -57,3 +57,4 @@ Built by an AI agent (Claude Code), test-first on seam N1 (`tests/test_harness.p
 
 **After 08 (variant bank)**: `_build_view` should accept the bank to run over (original or variant) and read only the bank's lesson fields, never the constructed-case mapping.
 
+**Review 2026-10-19:** `harness.RevisionPair` is renamed `harness.PairKey` (no more name clash; `store.RevisionPair` is imported under its own name). `recorded_decisions`, `recorded_cost` and the new `recorded_checked` take a `RecordedRun(mechanism, repository, S, T, bank="original")` instead of five loose arguments; `RecordedRun.of(mechanism, pair_key, bank)` builds one. `CostMeter.count_checks(n, lesson_id=None)` can name the lesson whose check the mechanism ran; it is stored as `mechanism_decisions.checked` so the scorer charges no extra recheck cost for it (ticket 10). Old tables get the column on first use.
