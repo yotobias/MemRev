@@ -52,3 +52,13 @@ def target_label(outcomes: Sequence[Outcome]) -> tuple[Label, str]:
     if only is Outcome.FAIL_ON_TARGET:
         return Label.CONTRADICTED, ""
     return Label.INCONCLUSIVE, OUT_OF_SCOPE_AT_T
+
+
+def lesson_label(assumption_labels: Sequence[str]) -> Label:
+    """V22: contradicted if any assumption is contradicted, supported within scope only if all are,
+    otherwise inconclusive. An assumption invalid at S is neither, so pass it as inconclusive."""
+    if Label.CONTRADICTED in assumption_labels:
+        return Label.CONTRADICTED
+    if assumption_labels and all(label == Label.SUPPORTED for label in assumption_labels):
+        return Label.SUPPORTED
+    return Label.INCONCLUSIVE

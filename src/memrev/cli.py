@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from memrev import checks, extraction, harness, lesson_bank, pairs, review, swe_bench
+from memrev import checks, extraction, harness, lesson_bank, pairs, review, signoff, swe_bench
 from memrev.repository import Repository
 from memrev.store import RunError, RunStore
 
@@ -54,6 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_parsers(stages)
     extraction.add_parsers(stages)
     checks.add_parsers(stages)
+    signoff.add_parsers(stages)
     return parser
 
 
@@ -116,6 +117,7 @@ COMMANDS = {"init": cmd_init, "import": cmd_import, "pairs": cmd_pairs, "run-mec
 COMMANDS.update(review.COMMANDS)
 COMMANDS.update(extraction.COMMANDS)
 COMMANDS.update(checks.COMMANDS)
+COMMANDS.update(signoff.COMMANDS)
 
 
 def main(argv: list[str] | None = None) -> int:
