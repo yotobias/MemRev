@@ -31,3 +31,10 @@ class Repository:
 
     def has_commit(self, sha: str) -> bool:
         return self._git("cat-file", "-e", f"{sha}^{{commit}}").returncode == 0
+
+    def changed_files(self, source_revision: str, target_revision: str) -> frozenset[str]:
+        """Paths added, modified or deleted between two revisions; a rename counts as both paths."""
+        result = self._git("diff", "--name-only", "--no-renames", source_revision, target_revision)
+        if result.returncode != 0:
+            raise ValueError(f"git diff {source_revision}..{target_revision} failed: {result.stderr.strip()}")
+        return frozenset(line for line in result.stdout.splitlines() if line)
