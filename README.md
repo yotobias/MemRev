@@ -13,9 +13,21 @@ docs/adr/              decisions that are hard to reverse, one file each
 specs/<feature>/       spec.md + tickets/NN-<slug>.md per feature
 specs/_done/           finished specs are moved here
 pilot-a/               Pilot A: experience acquisition (part 1)
+src/memrev/            the Pilot B pipeline (one CLI: `memrev`)
+tests/                 pytest, seam N1 (stages driven through the CLI)
+fixtures/django/       hand-written django fixture memory bank
 ```
 
-Code for the shared pipeline will live in a Python package at the root once the first ticket lands.
+## Running the pipeline
+
+```
+uv sync                                   # install into .venv
+uv run pytest                             # run the tests
+uv run memrev --run ~/memrev-runs/r1 init --repo django/django=/path/to/django-clone
+uv run memrev --run ~/memrev-runs/r1 import fixtures/django/lessons.jsonl
+```
+
+The run directory holds `run.db` (SQLite) and `work/`, and must be outside any repository checkout. The lesson-bank format is in [docs/lesson-bank-schema.md](docs/lesson-bank-schema.md).
 
 ## Workflow
 
