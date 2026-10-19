@@ -121,4 +121,4 @@ After a feature is done, spend ten minutes on what went wrong in the workflow it
 | Feature | Spec | Status |
 |---------|------|--------|
 | Pilot A: experience acquisition | [pilot-a/](pilot-a/) | not started |
-| Pilot B: assumption applicability across revisions | [specs/pilot-b/spec.md](specs/pilot-b/spec.md) | 11 tickets ready, start with 01 |
+| Pilot B: assumption applicability across revisions | [specs/pilot-b/spec.md](specs/pilot-b/spec.md) | 01–06 and 08–10 done; 07 waits for the real-Docker test (N2); 11 waits for Docker and an API key |
