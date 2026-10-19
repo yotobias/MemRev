@@ -1,9 +1,9 @@
 """Check runner: runs one check once at one revision inside a pair's environment.
 
 Every execution in the `drift` and `check` stages goes through `CheckRunner.run`. This module
-ships the interface and a fake runner with scripted outcomes; the real runner (ticket 07) runs
-the check inside the SWE-bench Docker image for the pair's (repository, version) and registers
-itself with `register_runner("docker", factory)`.
+ships the interface and a fake runner with scripted outcomes; the real runner
+(`memrev.docker_runner`) runs the check inside the SWE-bench Docker image for the pair's
+(repository, version) and registers itself with `register_runner("docker", factory)`.
 """
 
 from __future__ import annotations

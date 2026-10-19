@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from memrev import checks, extraction, harness, lesson_bank, pairs, review, swe_bench
+from memrev import checks, docker_runner, extraction, harness, lesson_bank, pairs, review, swe_bench  # noqa: F401  (docker_runner registers "docker")
 from memrev.repository import Repository
 from memrev.store import RunError, RunStore
 
