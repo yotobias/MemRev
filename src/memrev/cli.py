@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from memrev import lesson_bank
+from memrev import harness, lesson_bank
 from memrev.repository import Repository
 from memrev.store import RunError, RunStore
 
@@ -35,6 +35,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     imp = stages.add_parser("import", help="validate a lesson-bank JSONL file into the run")
     imp.add_argument("bank", type=Path, help="lesson-bank JSONL file")
+
+    mech = stages.add_parser("run-mechanism", help="run a maintenance mechanism over a revision pair")
+    mech.add_argument("mechanism", help=f"mechanism name ({', '.join(sorted(harness.MECHANISMS))})")
+    mech.add_argument("--repository", required=True, help="repository name, e.g. django/django")
+    mech.add_argument("--source", required=True, help="source revision S (full SHA)")
+    mech.add_argument("--target", required=True, help="target revision T (full SHA)")
     return parser
 
 
@@ -60,7 +66,21 @@ def cmd_import(args) -> int:
     return 0
 
 
-COMMANDS = {"init": cmd_init, "import": cmd_import}
+def cmd_run_mechanism(args) -> int:
+    store = RunStore.open(args.run.expanduser().resolve())
+    pair = harness.RevisionPair(args.repository, args.source, args.target)
+    run = harness.run_mechanism(store, args.mechanism, pair)
+    print(f"{args.mechanism}: {len(run.decisions)} lessons decided")
+    for decision in harness.Decision:
+        print(f"  {decision}: {sum(1 for d in run.decisions.values() if d == decision)}")
+    print(
+        f"  cost: checks executed: {run.cost.checks_executed}, "
+        f"wall time: {run.cost.wall_time_seconds:.3f}s, tokens: {run.cost.tokens}"
+    )
+    return 0
+
+
+COMMANDS = {"init": cmd_init, "import": cmd_import, "run-mechanism": cmd_run_mechanism}
 
 
 def main(argv: list[str] | None = None) -> int:
