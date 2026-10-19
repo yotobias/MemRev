@@ -26,6 +26,10 @@ uv run pytest                             # run the tests
 uv run memrev --run ~/memrev-runs/r1 init --repo django/django=/path/to/django-clone
 uv run memrev --run ~/memrev-runs/r1 import fixtures/django/lessons.jsonl
 uv run memrev --run ~/memrev-runs/r1 pairs
+uv run memrev --run ~/memrev-runs/r1 seed-assumptions my-seed.csv     # optional, hand-written assumptions
+uv run memrev --run ~/memrev-runs/r1 review-export review.csv
+uv run memrev --run ~/memrev-runs/r1 review-import review.csv --reviewer <your-id>
+uv run memrev --run ~/memrev-runs/r1 run-mechanism file-change-invalidation --repository django/django --source <S> --target <T>
 ```
 
 The run directory holds `run.db` (SQLite) and `work/`, and must be outside any repository checkout. The lesson-bank format is in [docs/lesson-bank-schema.md](docs/lesson-bank-schema.md).

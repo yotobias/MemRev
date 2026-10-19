@@ -44,3 +44,10 @@ class Repository:
         result = self._git("log", "--no-walk=unsorted", "--format=%H %ct", *present)
         result.check_returncode()
         return {sha: int(stamp) for sha, stamp in (line.split() for line in result.stdout.splitlines())}
+
+    def changed_files(self, source_revision: str, target_revision: str) -> frozenset[str]:
+        """Paths added, modified or deleted between two revisions; a rename counts as both paths."""
+        result = self._git("diff", "--name-only", "--no-renames", source_revision, target_revision)
+        if result.returncode != 0:
+            raise ValueError(f"git diff {source_revision}..{target_revision} failed: {result.stderr.strip()}")
+        return frozenset(line for line in result.stdout.splitlines() if line)
