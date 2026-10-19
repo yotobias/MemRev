@@ -19,3 +19,4 @@ Covers stories 9, 10, 11, 12, 13, 40. Decisions V2, V9, V16, V17, V28.
 - [ ] Tests use the fake LLM only.
 
 ## Notes
+- Research: docs/research/anthropic-sdk.md. Sonnet 5.5 returns HTTP 400 for non-default temperature/top_p/top_k, `thinking: disabled`, forced `tool_choice` and assistant prefill; use `messages.parse` with a Pydantic model and `output_config={"effort": "low"}`. Pricing $2 / $10 per MTok in/out, thinking tokens bill as output. The SDK already retries (default 2); add our own backoff on top only for persistent failures.

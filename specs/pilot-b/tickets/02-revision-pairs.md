@@ -17,3 +17,4 @@ Covers stories 4, 5, 6. Decisions V11, V13, V24, ADR 0001.
 - [ ] Tests (seam N1) use a tiny real git repository built in the test with fake instance metadata.
 
 ## Notes
+- Research: docs/research/swe-bench-verified.md and data/swe-bench-verified-meta.jsonl (django/sympy/scikit-learn metadata, 338 rows). `created_at` is the PR opening date, not the base_commit date; order by committer date of base_commit and confirm with `git merge-base --is-ancestor`. Django 1.11 and 2.2 have one instance each, so they never form a pair. Blob:none clone notes: docs/research/django-clone.md.
