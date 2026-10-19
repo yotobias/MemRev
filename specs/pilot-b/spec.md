@@ -99,7 +99,7 @@ Roles: **researcher** runs the pipeline; **reviewer** reviews assumptions and si
   - *Scorer*: the only component that reads labels and the mapping; produces metrics with natural and constructed reported separately.
 - **Lesson-bank JSONL schema** (contract with Pilot A): one object per line with lesson id, lesson text, task id (SWE-bench instance id), repository, source revision (commit SHA), trajectory pointer (path or URL, may be empty for fixtures). Documented in the repo; extra fields are ignored.
 - **Assumption record:** statement, assumption type (one of five, or uncheckable), scope, supporting code pointers, check (command plus asserted target), content hash over these fields.
-- **Exclusion reason codes:** invalid lesson input, no target, ancestry failed, cross-version, environment unavailable, extraction failed, uncheckable, invalid at S, out of scope at T, no behaviour change found, gate failed (constructed), no matched control.
+- **Exclusion reason codes:** invalid lesson input, no target, ancestry failed, cross-version, environment unavailable, extraction failed, uncheckable, invalid at S, out of scope at T, no behaviour change found, drafting failed, gate failed (constructed), no matched control.
 - **Run isolation:** each run has its own database and work directory outside any repository checkout.
 - **Revision-pair source:** SWE-bench Verified only (ADR 0001); django first, then sympy and scikit-learn.
 

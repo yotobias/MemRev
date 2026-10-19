@@ -242,7 +242,6 @@ class _Constructor:
     def __init__(self, store: RunStore, client: LLMClient, runner: CheckRunner):
         self.store, self.client = store, client
         self.checker = _Checker(store, EvidenceStore(store), runner)
-        self.counts = Counter()
 
     def construct_pair(self, pair: RevisionPair) -> None:
         repository = Repository(self.store.repositories()[pair.repository])
@@ -251,8 +250,7 @@ class _Constructor:
         try:
             drafts = self._draft(STALE_SYSTEM, _stale_prompt(pair, diff), STALE_SCHEMA, "candidates", subject)
         except LLMFailure as exc:
-            self.store.record_exclusion(STAGE, subject, ExclusionReason.EXTRACTION_FAILED, f"drafting failed: {exc}")
-            self.counts["drafting failed"] += 1
+            self.store.record_exclusion(STAGE, subject, ExclusionReason.DRAFTING_FAILED, str(exc))
             return
         if not drafts:
             self.store.record_exclusion(
@@ -433,8 +431,8 @@ def cmd_construct(args) -> int:
         f"no matched control: {counts[str(ExclusionReason.NO_MATCHED_CONTROL)]}"
     )
     print(f"  no behaviour change found: {counts[str(ExclusionReason.NO_BEHAVIOUR_CHANGE_FOUND)]}")
-    if counts[str(ExclusionReason.EXTRACTION_FAILED)]:
-        print(f"  drafting failed: {counts[str(ExclusionReason.EXTRACTION_FAILED)]} (rerun to retry)")
+    if counts[str(ExclusionReason.DRAFTING_FAILED)]:
+        print(f"  drafting failed: {counts[str(ExclusionReason.DRAFTING_FAILED)]} (rerun to retry)")
     return 0
 
 

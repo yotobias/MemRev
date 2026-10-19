@@ -56,6 +56,7 @@ class ExclusionReason(StrEnum):
     CROSS_VERSION = "cross-version"
     ENVIRONMENT_UNAVAILABLE = "environment unavailable"
     EXTRACTION_FAILED = "extraction failed"
+    DRAFTING_FAILED = "drafting failed"  # constructed cases: the LLM drafting call failed persistently
     UNCHECKABLE = "uncheckable"
     INVALID_AT_S = "invalid at S"
     OUT_OF_SCOPE_AT_T = "out of scope at T"

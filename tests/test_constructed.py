@@ -232,7 +232,7 @@ def test_persistent_drafting_failures_are_counted_and_retried_on_the_next_run(co
 
     assert failed.exit_code == 0, failed.err
     subject = f"constructed cases for pair {c.pair1}"
-    assert c.exclusions("construct")[subject][0] == "extraction failed"
+    assert c.exclusions("construct")[subject][0] == "drafting failed"
     assert "drafting failed: 1" in failed.out
 
     stale_drafts(c)

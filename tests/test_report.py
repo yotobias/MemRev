@@ -161,6 +161,17 @@ def test_exclusions_are_counted_per_reason_with_natural_and_constructed_apart(ru
     assert "no behaviour change found" not in text.split("## Constructed cases")[0]
 
 
+def test_a_drafting_failure_is_its_own_reason_and_leaves_the_extraction_count_alone(run, fake):
+    fake.answer("Draft constructed stale lessons", LLMError("overloaded"))
+    assert run.construct("--pair", run.pair2).exit_code == 0
+
+    _, data = run.report()
+
+    assert data["constructed"]["exclusions"]["drafting failed"] == 1
+    assert "extraction failed" not in data["constructed"]["exclusions"]
+    assert data["natural"]["extraction"]["extraction failed"] == 1
+
+
 def test_reviewer_agreement_is_reported_and_a_disagreement_is_an_inconclusive_label(run):
     labels = run.tmp / "sample.csv"
     assert run.memrev("label-export", str(labels)).exit_code == 0
