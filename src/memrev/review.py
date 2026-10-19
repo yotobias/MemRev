@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from memrev.assumptions import Assumption, AssumptionContent, Assumptions, AssumptionType, ReviewStatus
-from memrev.store import RunError, RunStore
+from memrev.store import RunError, open_run
 
 CONTENT_COLUMNS = (
     "statement",
@@ -32,9 +32,6 @@ DECISIONS = ("", ACCEPT, REJECT)
 ACCEPTED, EDITED, REJECTED, UNCHANGED = OUTCOMES = ("accepted", "edited", "rejected", "unchanged")
 DECISION_FOR_STATUS = {ReviewStatus.PENDING: "", ReviewStatus.ACCEPTED: ACCEPT, ReviewStatus.REJECTED: REJECT}
 
-
-def _open_store(args) -> RunStore:
-    return RunStore.open(args.run.expanduser().resolve())
 
 
 def _read_csv(path: Path, required: tuple[str, ...]) -> list[dict]:
@@ -80,7 +77,7 @@ def _fail(path: Path, problems: list[str]) -> None:
 
 
 def cmd_seed(args) -> int:
-    store = _open_store(args)
+    store = open_run(args)
     assumptions = Assumptions(store)
     rows = _read_csv(args.seed, SEED_COLUMNS)
     problems, parsed = [], []
@@ -102,7 +99,7 @@ def cmd_seed(args) -> int:
 
 
 def cmd_export(args) -> int:
-    assumptions = Assumptions(_open_store(args))
+    assumptions = Assumptions(open_run(args))
     rows = assumptions.all()
     with args.out.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=REVIEW_COLUMNS)
@@ -190,7 +187,7 @@ def cmd_import(args) -> int:
     reviewer = args.reviewer.strip()
     if not reviewer:
         raise RunError("--reviewer must not be empty")
-    assumptions = Assumptions(_open_store(args))
+    assumptions = Assumptions(open_run(args))
     known = {a.assumption_id: a for a in assumptions.all()}
     reviewed = _validate_review(args.csv, _read_csv(args.csv, IMPORT_COLUMNS), known)
     outcomes = Counter()

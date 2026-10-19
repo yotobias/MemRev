@@ -13,7 +13,7 @@ import json
 
 import pytest
 
-from memrev import extraction, harness, llm
+from memrev import harness, llm
 from memrev.llm import FakeLLM, LLMError
 
 from test_checks import FAIL, PASS, REPO
@@ -58,10 +58,7 @@ class FullRun(Construction):
 @pytest.fixture
 def fake(monkeypatch) -> FakeLLM:
     fake = FakeLLM()
-    from memrev import constructor
-
-    monkeypatch.setattr(extraction, "make_llm", lambda model: fake)
-    monkeypatch.setattr(constructor, "make_llm", lambda model: fake)
+    monkeypatch.setattr(llm, "make_llm", lambda model: fake)
     monkeypatch.setattr(llm, "sleep", lambda seconds: None)
     return fake
 

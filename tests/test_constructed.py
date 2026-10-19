@@ -63,7 +63,7 @@ class Construction(Pipeline):
 @pytest.fixture
 def fake_llm(monkeypatch) -> FakeLLM:
     fake = FakeLLM()
-    monkeypatch.setattr(constructor, "make_llm", lambda model: fake)
+    monkeypatch.setattr(llm, "make_llm", lambda model: fake)
     monkeypatch.setattr(llm, "sleep", lambda seconds: None)
     return fake
 

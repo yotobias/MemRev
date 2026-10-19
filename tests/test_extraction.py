@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from memrev import extraction, llm
+from memrev import llm
 from memrev.assumptions import Assumptions, AssumptionType, ReviewStatus
 from memrev.llm import FakeLLM, LLMError, Usage
 from memrev.store import RunStore
@@ -41,7 +41,7 @@ READABLE = {
 def fake_llm(monkeypatch):
     """Route the extract stage to a fake LLM and make backoff instant (recording the delays)."""
     fake = FakeLLM()
-    monkeypatch.setattr(extraction, "make_llm", lambda model: fake)
+    monkeypatch.setattr(llm, "make_llm", lambda model: fake)
     fake.sleeps = []
     monkeypatch.setattr(llm, "sleep", fake.sleeps.append)
     return fake

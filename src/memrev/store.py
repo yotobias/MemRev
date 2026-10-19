@@ -76,6 +76,11 @@ class RunError(Exception):
     """A run cannot be created or opened; the message is shown to the researcher."""
 
 
+def open_run(args) -> RunStore:
+    """The existing run named by the command line's `--run`."""
+    return RunStore.open(args.run.expanduser().resolve())
+
+
 def _enclosing_checkout(path: Path) -> Path | None:
     for candidate in (path, *path.parents):
         if (candidate / ".git").exists():

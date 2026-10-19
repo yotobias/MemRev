@@ -6,8 +6,9 @@ import argparse
 from dataclasses import dataclass
 
 from memrev.assumptions import AssumptionContent, Assumptions, AssumptionType
-from memrev.llm import DEFAULT_MODEL, LLM, AnthropicLLM, LLMClient, LLMFailure, LLMRequest
-from memrev.store import ExclusionReason, Lesson, RunStore
+from memrev import llm
+from memrev.llm import DEFAULT_MODEL, LLMClient, LLMFailure, LLMRequest
+from memrev.store import ExclusionReason, Lesson, RunStore, open_run
 
 STAGE = ORIGIN = "extract"
 DEFAULT_LESSON_LIMIT = 30
@@ -66,11 +67,6 @@ Empty for uncheckable assumptions.
 List only assumptions the lesson actually relies on; do not invent behaviour the lesson does not \
 mention. Return an empty list if there are none.
 """
-
-
-def make_llm(model: str) -> LLM:
-    """The real LLM for a model id. Tests replace this with a fake."""
-    return AnthropicLLM(model)
 
 
 def lesson_prompt(lesson: Lesson) -> str:
@@ -164,8 +160,8 @@ def _positive_int(value: str) -> int:
 
 
 def cmd_extract(args: argparse.Namespace) -> int:
-    store = RunStore.open(args.run.expanduser().resolve())
-    client = LLMClient(make_llm(args.model), store, STAGE)
+    store = open_run(args)
+    client = LLMClient(llm.make_llm(args.model), store, STAGE)
     summary = extract(store, client, limit=args.limit)
     unpriced = f" (plus {client.unpriced_calls} calls to a model without a price)" if client.unpriced_calls else ""
     print(

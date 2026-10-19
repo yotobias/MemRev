@@ -14,7 +14,7 @@ from memrev.evidence import EvidenceStore, ProposedLabel
 from memrev.labeller import Label
 from memrev.labels import ACCEPTED, DOWNGRADED, LabelStore
 from memrev.review import _fail, _read_csv
-from memrev.store import RunError, RunStore
+from memrev.store import RunError, RunStore, open_run
 
 EXPORT_COLUMNS = (
     "assumption_id", "lesson_id", "pair_id", "target_revision", "statement", "proposed_label", "reason",
@@ -29,9 +29,6 @@ DECISION_FOR_ACTION = {ACCEPTED: ACCEPT, DOWNGRADED: str(Label.INCONCLUSIVE)}
 SENT_BACK, UNCHANGED, NOT_SIGNED = "sent back", "unchanged", "not signed off"
 OUTCOMES = (ACCEPTED, DOWNGRADED, SENT_BACK, UNCHANGED, NOT_SIGNED)
 
-
-def _open_store(args) -> RunStore:
-    return RunStore.open(args.run.expanduser().resolve())
 
 
 @dataclass(frozen=True)
@@ -60,7 +57,7 @@ def _items(store: RunStore) -> dict[tuple[str, str], _Item]:
 
 
 def cmd_export(args) -> int:
-    store = _open_store(args)
+    store = open_run(args)
     evidence, labels = EvidenceStore(store), LabelStore(store)
     items = _items(store)
     with args.out.open("w", newline="", encoding="utf-8") as fh:
@@ -207,7 +204,7 @@ def cmd_import(args) -> int:
     reviewer = args.reviewer.strip()
     if not reviewer:
         raise RunError("--reviewer must not be empty")
-    store = _open_store(args)
+    store = open_run(args)
     rows = _read_csv(args.csv, IMPORT_COLUMNS)
     if args.second:
         return _import_second(args.csv, store, rows, reviewer)
@@ -272,7 +269,7 @@ def _import_second(path: Path, store: RunStore, rows: list[dict], reviewer: str)
 
 
 def cmd_lesson_labels(args) -> int:
-    store = _open_store(args)
+    store = open_run(args)
     report = LabelStore(store).lesson_report()
     counts = Counter(label.label for label in report.labels)
     print(

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from memrev import checks, constructor, docker_runner, extraction, harness, lesson_bank, pairs, report, review, signoff, swe_bench  # noqa: F401  (docker_runner registers "docker")
 from memrev.repository import Repository
-from memrev.store import RunError, RunStore
+from memrev.store import RunError, RunStore, open_run
 
 
 def _parse_repo(value: str) -> tuple[str, Path]:
@@ -78,7 +78,7 @@ def cmd_init(args) -> int:
 
 
 def cmd_import(args) -> int:
-    store = RunStore.open(args.run.expanduser().resolve())
+    store = open_run(args)
     summary = lesson_bank.import_bank(store, args.bank)
     print(f"import: {summary.accepted} accepted ({summary.new} new), {len(summary.rejections)} rejected")
     for reason, count in sorted(summary.rejected_per_reason().items()):
@@ -89,7 +89,7 @@ def cmd_import(args) -> int:
 
 
 def cmd_pairs(args) -> int:
-    store = RunStore.open(args.run.expanduser().resolve())
+    store = open_run(args)
     summary = pairs.build_pairs(store, args.meta)
     noun = "source revision" if summary.sources == 1 else "source revisions"
     print(
@@ -108,7 +108,7 @@ def cmd_run_mechanism(args) -> int:
     by_id = args.pair is not None and not any(revisions)
     if not by_id and (args.pair is not None or not all(revisions)):
         raise RunError("name the revision pair with either --pair or --repository/--source/--target")
-    store = RunStore.open(args.run.expanduser().resolve())
+    store = open_run(args)
     pair = harness.pair_by_id(store, args.pair) if by_id else harness.RevisionPair(*revisions)
     run = harness.run_mechanism(store, args.mechanism, pair, args.bank)
     bank = " (variant bank)" if args.bank == harness.VARIANT else ""

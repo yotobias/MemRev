@@ -23,7 +23,7 @@ from memrev.check_runner import (
 from memrev.constructed_lessons import ConstructedLessons
 from memrev.evidence import DriftRun, Evidence, EvidenceStore, ProposedLabel, SourceVerdict, excerpt
 from memrev.labeller import INVALID_AT_S, VALID, Label, source_verdict, target_label
-from memrev.store import ExclusionReason, RevisionPair, RunError, RunStore
+from memrev.store import ExclusionReason, RevisionPair, RunError, RunStore, open_run
 
 RUNS = 3  # V15: every check runs 3 times at S and 3 times at T
 DRIFT_STAGE = "drift"
@@ -101,7 +101,7 @@ def _guard_pair(store: RunStore, evidence: EvidenceStore, runner: CheckRunner, p
 
 
 def cmd_drift(args) -> int:
-    store = RunStore.open(args.run.expanduser().resolve())
+    store = open_run(args)
     evidence = EvidenceStore(store)
     runner = make_runner(store, args.runner)
     decided = evidence.drift_verdicts()
@@ -199,7 +199,7 @@ def _lesson_and_pairs(store: RunStore, constructed: ConstructedLessons, lesson_i
 
 
 def cmd_check(args) -> int:
-    store = RunStore.open(args.run.expanduser().resolve())
+    store = open_run(args)
     evidence = EvidenceStore(store)
     drift = evidence.drift_verdicts()
     runner = make_runner(store, args.runner)

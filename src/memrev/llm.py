@@ -436,3 +436,8 @@ class AnthropicLLM:
                 stop_reason=resp.stop_reason, request_id=request_id,
             )
         return LLMResponse(data, usage, resp.model, resp.stop_reason, request_id)
+
+
+def make_llm(model: str) -> LLM:
+    """The real LLM for a model id. Stages call it as `llm.make_llm`, so tests replace it once with a fake."""
+    return AnthropicLLM(model)

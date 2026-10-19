@@ -28,7 +28,8 @@ OUT_OF_SCOPE_AT_T = str(ExclusionReason.OUT_OF_SCOPE_AT_T)
 DISAGREEMENT = "check disagrees with itself"
 
 
-def _listing(outcomes: Sequence[Outcome]) -> str:
+def listing(outcomes: Sequence[Outcome]) -> str:
+    """The outcomes of repeated runs as one line, e.g. `pass, pass, harness error`."""
     return ", ".join(str(o) for o in outcomes)
 
 
@@ -36,7 +37,7 @@ def source_verdict(outcomes: Sequence[Outcome]) -> tuple[str, str]:
     """(VALID, "") if every run at S passed, else (INVALID_AT_S, the outcomes)."""
     if outcomes and all(o is Outcome.PASS for o in outcomes):
         return VALID, ""
-    return INVALID_AT_S, f"runs at S: {_listing(outcomes)}"
+    return INVALID_AT_S, f"runs at S: {listing(outcomes)}"
 
 
 def target_label(outcomes: Sequence[Outcome]) -> tuple[Label, str]:

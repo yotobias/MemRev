@@ -16,7 +16,7 @@ from memrev import scorer
 from memrev.evidence import Evidence
 from memrev.labels import FinalLabel
 from memrev.lesson_bank import FIELDS as LESSON_FIELDS
-from memrev.store import RunStore
+from memrev.store import open_run
 
 TITLE = "# MemRev Pilot B report"
 SECTION_TITLES = {
@@ -123,7 +123,7 @@ def render(data: dict, run_dir: Path) -> str:
 
 
 def cmd_report(args) -> int:
-    store = RunStore.open(args.run.expanduser().resolve())
+    store = open_run(args)
     data = scorer.score(store)
     text = render(data, store.run_dir)
     out = args.out or store.run_dir / "report.md"
@@ -166,7 +166,7 @@ EXPORT_COLUMNS = {
 
 
 def cmd_export(args) -> int:
-    store = RunStore.open(args.run.expanduser().resolve())
+    store = open_run(args)
     data = scorer.dataset(store)
     args.out.mkdir(parents=True, exist_ok=True)
     for name, columns in EXPORT_COLUMNS.items():

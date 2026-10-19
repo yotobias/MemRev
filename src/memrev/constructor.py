@@ -32,10 +32,12 @@ from memrev.check_runner import CheckRunner, Outcome, make_runner
 from memrev.checks import KEPT, RUNNER_HELP, _Checker, environment_for
 from memrev.constructed_lessons import ConstructedLessons
 from memrev.evidence import EvidenceStore
+from memrev.labeller import listing
 from memrev.harness import file_part, supporting_files
-from memrev.llm import DEFAULT_MODEL, LLM, AnthropicLLM, LLMClient, LLMFailure, LLMRequest
+from memrev import llm
+from memrev.llm import DEFAULT_MODEL, LLMClient, LLMFailure, LLMRequest
 from memrev.repository import Repository
-from memrev.store import ExclusionReason, Lesson, RevisionPair, RunError, RunStore
+from memrev.store import ExclusionReason, Lesson, RevisionPair, RunError, RunStore, open_run
 from memrev.variant_bank import VariantBank
 
 STAGE = ORIGIN = "construct"
@@ -136,11 +138,6 @@ whose assumption holds both at S and at T: the diff between them does not change
 {_FIELDS_HELP}"""
 
 
-def make_llm(model: str) -> LLM:
-    """The real LLM for a model id. Tests replace this with a fake."""
-    return AnthropicLLM(model)
-
-
 # Records ------------------------------------------------------------------
 
 
@@ -215,10 +212,6 @@ def constructed_lesson_id(case_key: str) -> str:
 def _assumption_id(lesson_id: str) -> str:
     """The id `Assumptions.add` gives the first (and only) assumption of a new lesson."""
     return f"{lesson_id}#1"
-
-
-def _listing(outcomes) -> str:
-    return ", ".join(str(o) for o in outcomes)
 
 
 def _drafts_subject(pair_id: str) -> str:
@@ -317,10 +310,10 @@ class _Constructor:
         env = environment_for(self.store, pair)
         at_s = self.checker.outcomes(a, "S", pair.source_revision, "", env)
         if any(o is not Outcome.PASS for o in at_s):
-            return f"runs at S: {_listing(at_s)}"
+            return f"runs at S: {listing(at_s)}"
         at_t = self.checker.outcomes(a, "T", pair.target_revision, pair.pair_id, env)
         if any(o is not expected_at_t for o in at_t):
-            return f"runs at S: {_listing(at_s)}; runs at T: {_listing(at_t)} (needs 3/3 {expected_at_t})"
+            return f"runs at S: {listing(at_s)}; runs at T: {listing(at_t)} (needs 3/3 {expected_at_t})"
         return ""
 
     def _keep(self, case_key: str, pair: RevisionPair, draft: Draft) -> None:
@@ -414,10 +407,10 @@ def _summary(store: RunStore) -> Counter:
 
 
 def cmd_construct(args) -> int:
-    store = RunStore.open(args.run.expanduser().resolve())
+    store = open_run(args)
     _ensure_schema(store)
     pairs = _pairs_to_construct(store, args.pair)
-    client = LLMClient(make_llm(args.model), store, STAGE)
+    client = LLMClient(llm.make_llm(args.model), store, STAGE)
     runner = make_runner(store, args.runner)
     constructor = _Constructor(store, client, runner)
     try:
@@ -527,7 +520,7 @@ def build_variant_bank(store: RunStore, pair: RevisionPair) -> tuple[int, int] |
 
 
 def cmd_variant_bank(args) -> int:
-    store = RunStore.open(args.run.expanduser().resolve())
+    store = open_run(args)
     wanted = args.pair or list(dict.fromkeys(pid for _, pid in ConstructedLessons(store).all()))
     for pair_id in wanted:
         pair = store.revision_pair(pair_id)
