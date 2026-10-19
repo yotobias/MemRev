@@ -20,11 +20,11 @@ Covers stories 34, 35, 37. Decisions V7.
 Built by an AI agent (Claude Code), test-first on seam N1 (`tests/test_harness.py`).
 
 **Command**
-- `uv run memrev --run <run-dir> run-mechanism <name> --repository django/django --source <S> --target <T>`. Names: `no-maintenance`, `file-change-invalidation`. Prints decision counts per decision and the cost line (checks executed, wall time, tokens). Exit 2 with a message on an unknown mechanism, an unknown repository, S or T not in the clone, or a mechanism answer that is not exactly one valid decision per lesson; nothing is recorded in those cases.
+- `uv run memrev --run <run-dir> run-mechanism <name> --repository django/django --source <S> --target <T>`, or `run-mechanism <name> --pair <pair_id>`. Names: `no-maintenance`, `file-change-invalidation`. Prints decision counts per decision and the cost line (checks executed, wall time, tokens). Exit 2 with a message on an unknown mechanism, a pair that is not recorded, a pair with an exclusion, an unknown repository, S or T not in the clone, or a mechanism answer that is not exactly one valid decision per lesson; nothing is recorded in those cases. Giving both `--pair` and any of the three, or only some of the three, is also exit 2.
 - The memory bank for a run is every imported lesson with that repository and `source_revision == S`.
 
 **Layout**
-- `src/memrev/harness.py`: `Decision`, `RevisionPair`, `MechanismView`, `CostMeter`, `Mechanism` protocol, the two mechanisms, the `MECHANISMS` registry, `run_mechanism`, and the read functions `recorded_decisions` and `recorded_cost`. The harness owns its own `SCHEMA` (tables `mechanism_decisions`, `mechanism_costs`, `lesson_supporting_files`) and applies it itself, so `store.py` is untouched.
+- `src/memrev/harness.py`: `Decision`, `RevisionPair`, `MechanismView`, `CostMeter`, `Mechanism` protocol, the two mechanisms, the `MECHANISMS` registry, `run_mechanism`, and the read functions `recorded_decisions` and `recorded_cost`. The harness owns its own `SCHEMA` (tables `mechanism_decisions`, `mechanism_costs`) and applies it itself, so `store.py` is untouched.
 - `Repository.changed_files(S, T)`: `git diff --name-only --no-renames`, so a rename counts as both the old and the new path.
 - To add a mechanism: write a class with `decide(view) -> {lesson_id: Decision}` and add it to `MECHANISMS`.
 
@@ -42,13 +42,18 @@ Built by an AI agent (Claude Code), test-first on seam N1 (`tests/test_harness.p
 - File-change invalidation answers `flag`, not `withhold`, matching the ticket text.
 - Decisions and costs are keyed by `(mechanism, repository, S, T)`, the natural key of a revision pair, so they do not depend on 02's pair ids.
 
-**To wire after 02 merges (revision pairs)**
-- `run-mechanism` takes the pair as `--repository/--source/--target`. After 02, look the pair up in 02's pair table in `harness._build_view` and refuse a pair that was not recorded (or excluded). Optionally add `--pair <id>` as a shortcut, and an `--all-pairs` loop. Keep the `(repository, S, T)` key in `mechanism_decisions` / `mechanism_costs`, or join it to 02's pair id.
-- If 02 also adds a method to the end of `Repository`, the merge conflict with `changed_files` is just "keep both".
+**Wired to 02 (revision pairs)**, follow-up after 02, 03 and 09 merged
+- `harness._require_runnable` (called first in `_build_view`) finds the `(repository, S, T)` among `store.revision_pairs(repository)` and refuses it if it is missing or if any exclusion, from any stage, has subject `pair <pair_id>` (e.g. the 05 drift guard). The message names the stage, reason and detail.
+- `--pair <pair_id>` resolves through `harness.pair_by_id` (uses `store.revision_pair`). The CLI accepts either `--pair` alone or all three of `--repository/--source/--target`.
+- Name clash: `harness.RevisionPair` is the minimal `(repository, S, T)` value in the view; `store.RevisionPair` (the full recorded row) is imported in `harness.py` as `RecordedPair`. The view still gets only the minimal one, so `version`, instance ids and `target_role` stay out of mechanisms' reach.
+- `mechanism_decisions` / `mechanism_costs` keep the `(mechanism, repository, S, T)` key; no join to `pair_id`. No `--all-pairs` loop yet.
+- Tests record pairs with `RunStore.add_revision_pair` (helper `_record_pair` in `tests/test_harness.py`), since the tiny repo's commits can share a committer timestamp (no "later" target) and the `pairs` stage itself is covered in `tests/test_pairs.py`.
 
-**To wire after 03 merges (assumptions)**
-- Replace the body of `harness._supporting_files` with: for each lesson, the file part of the supporting code pointers of its reviewed assumptions (strip any `::symbol` or `:line` suffix). Then delete `lesson_supporting_files` from the harness schema and `add_supporting_files`, and change the file-change test to seed assumptions through 03's seed CSV instead.
-- Only reviewed assumptions' pointers should feed the view; review state is not a label, so this does not break V7.
+**Wired to 03 (assumptions)**
+- `harness._supporting_files` now reads `Assumptions(store).reviewed()` (status `accepted`) and takes `harness.file_part` of each code pointer: strips a `::symbol` suffix and a `:12` or `:12-20` line suffix. Pending and rejected assumptions don't count; a lesson with no accepted assumptions has no supporting files and is kept. Uncheckable but accepted assumptions do count.
+- The stopgap table `lesson_supporting_files` and `harness.add_supporting_files` are gone. Old run databases may still hold that table; nothing reads it.
+- Tests seed assumptions through `seed-assumptions` and decide them through `review-export` / `review-import` (helper `_review_assumptions`).
+- Review state is not a label, so feeding reviewed pointers into the view does not break V7.
 
 **After 08 (variant bank)**: `_build_view` should accept the bank to run over (original or variant) and read only the bank's lesson fields, never the constructed-case mapping.
 

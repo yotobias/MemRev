@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from memrev import checks, harness, lesson_bank, pairs, review, swe_bench
+from memrev import checks, extraction, harness, lesson_bank, pairs, review, swe_bench
 from memrev.repository import Repository
 from memrev.store import RunError, RunStore
 
@@ -46,11 +46,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     mech = stages.add_parser("run-mechanism", help="run a maintenance mechanism over a revision pair")
     mech.add_argument("mechanism", help=f"mechanism name ({', '.join(sorted(harness.MECHANISMS))})")
-    mech.add_argument("--repository", required=True, help="repository name, e.g. django/django")
-    mech.add_argument("--source", required=True, help="source revision S (full SHA)")
-    mech.add_argument("--target", required=True, help="target revision T (full SHA)")
+    mech.add_argument("--pair", help="pair id of a recorded revision pair (instead of --repository/--source/--target)")
+    mech.add_argument("--repository", help="repository name, e.g. django/django")
+    mech.add_argument("--source", help="source revision S (full SHA)")
+    mech.add_argument("--target", help="target revision T (full SHA)")
 
     review.add_parsers(stages)
+    extraction.add_parsers(stages)
     checks.add_parsers(stages)
     return parser
 
@@ -93,8 +95,12 @@ def cmd_pairs(args) -> int:
 
 
 def cmd_run_mechanism(args) -> int:
+    revisions = (args.repository, args.source, args.target)
+    by_id = args.pair is not None and not any(revisions)
+    if not by_id and (args.pair is not None or not all(revisions)):
+        raise RunError("name the revision pair with either --pair or --repository/--source/--target")
     store = RunStore.open(args.run.expanduser().resolve())
-    pair = harness.RevisionPair(args.repository, args.source, args.target)
+    pair = harness.pair_by_id(store, args.pair) if by_id else harness.RevisionPair(*revisions)
     run = harness.run_mechanism(store, args.mechanism, pair)
     print(f"{args.mechanism}: {len(run.decisions)} lessons decided")
     for decision in harness.Decision:
@@ -108,6 +114,7 @@ def cmd_run_mechanism(args) -> int:
 
 COMMANDS = {"init": cmd_init, "import": cmd_import, "pairs": cmd_pairs, "run-mechanism": cmd_run_mechanism}
 COMMANDS.update(review.COMMANDS)
+COMMANDS.update(extraction.COMMANDS)
 COMMANDS.update(checks.COMMANDS)
 
 
