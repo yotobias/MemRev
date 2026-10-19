@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS mechanism_decisions (
     lesson_id TEXT NOT NULL,
     decision TEXT NOT NULL,
     bank TEXT NOT NULL DEFAULT 'original',  -- original | variant
+    checked INTEGER NOT NULL DEFAULT 0,     -- the mechanism counted a check for this lesson itself
     PRIMARY KEY (mechanism, repository, source_revision, target_revision, bank, lesson_id)
 );
 CREATE TABLE IF NOT EXISTS mechanism_costs (
@@ -75,13 +76,19 @@ class PairKey:
 
 @dataclass
 class CostMeter:
-    """What a mechanism spends beyond wall time; the harness measures wall time itself."""
+    """What a mechanism spends beyond wall time; the harness measures wall time itself.
+
+    A mechanism that runs a lesson's check itself names the lesson, so the scorer does not also
+    charge a recheck decision on it (V23)."""
 
     checks_executed: int = 0
     tokens: int = 0
+    checked_lessons: set[str] = field(default_factory=set)
 
-    def count_checks(self, n: int = 1) -> None:
+    def count_checks(self, n: int = 1, lesson_id: str | None = None) -> None:
         self.checks_executed += n
+        if lesson_id is not None:
+            self.checked_lessons.add(lesson_id)
 
     def count_tokens(self, n: int) -> None:
         self.tokens += n
@@ -139,6 +146,10 @@ def _ensure_schema(store: RunStore) -> None:
     _add_bank_column(store, "mechanism_decisions")
     _add_bank_column(store, "mechanism_costs")
     store.conn.executescript(SCHEMA)
+    columns = [row[1] for row in store.conn.execute("PRAGMA table_info(mechanism_decisions)")]
+    if "checked" not in columns:
+        with store.conn:
+            store.conn.execute("ALTER TABLE mechanism_decisions ADD COLUMN checked INTEGER NOT NULL DEFAULT 0")
 
 
 def _add_bank_column(store: RunStore, table: str) -> None:
@@ -241,7 +252,7 @@ def run_mechanism(store: RunStore, name: str, pair: PairKey, bank: str = ORIGINA
     started = time.perf_counter()
     decisions = _validated(name, view, mechanism.decide(view))
     cost = Cost(view.cost.checks_executed, time.perf_counter() - started, view.cost.tokens)
-    _record(store, RecordedRun.of(name, pair, bank), decisions, cost)
+    _record(store, RecordedRun.of(name, pair, bank), decisions, cost, view.cost.checked_lessons & set(decisions))
     return MechanismRun(decisions, cost)
 
 
@@ -289,14 +300,16 @@ _KEY = "mechanism, repository, source_revision, target_revision, bank"
 _WHERE = "mechanism = ? AND repository = ? AND source_revision = ? AND target_revision = ? AND bank = ?"
 
 
-def _record(store: RunStore, run: RecordedRun, decisions: dict[str, Decision], cost: Cost) -> None:
+def _record(
+    store: RunStore, run: RecordedRun, decisions: dict[str, Decision], cost: Cost, checked: set[str]
+) -> None:
     key = run.values
     _ensure_schema(store)
     with store.conn:
         store.conn.execute(f"DELETE FROM mechanism_decisions WHERE {_WHERE}", key)
         store.conn.executemany(
-            f"INSERT INTO mechanism_decisions ({_KEY}, lesson_id, decision) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [(*key, lesson_id, str(decision)) for lesson_id, decision in decisions.items()],
+            f"INSERT INTO mechanism_decisions ({_KEY}, lesson_id, decision, checked) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [(*key, lesson_id, str(decision), lesson_id in checked) for lesson_id, decision in decisions.items()],
         )
         store.conn.execute(
             f"INSERT OR REPLACE INTO mechanism_costs ({_KEY}, checks_executed, wall_time_seconds, tokens) "
@@ -318,6 +331,13 @@ def recorded_runs(store: RunStore) -> list[RecordedRun]:
     _ensure_schema(store)
     rows = store.conn.execute(f"SELECT {_KEY} FROM mechanism_costs ORDER BY mechanism, rowid")
     return [RecordedRun(*row) for row in rows]
+
+
+def recorded_checked(store: RunStore, run: RecordedRun) -> set[str]:
+    """Lesson ids whose check the mechanism counted itself during the run (opaque ids for a variant bank)."""
+    _ensure_schema(store)
+    rows = store.conn.execute(f"SELECT lesson_id FROM mechanism_decisions WHERE {_WHERE} AND checked = 1", run.values)
+    return {row[0] for row in rows}
 
 
 def recorded_decisions(store: RunStore, run: RecordedRun) -> dict[str, str]:

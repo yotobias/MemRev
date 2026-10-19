@@ -88,7 +88,8 @@ MECHANISM_NOTE = (
     "Lessons scored: lesson labels other than inconclusive. Kept = keep; rejected = flag or withhold; "
     "a recheck is neither and is counted in its own column. Unnecessary rejection: matched controls "
     "rejected, of matched controls supported within scope (constructed cases only). "
-    "Cost: checks are those the mechanism executed plus one per recheck, over the whole run."
+    "Cost: checks the mechanism executed over the whole run, plus one per recheck on the lessons in the "
+    "recheck column whose check the mechanism did not run itself."
 )
 
 

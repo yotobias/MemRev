@@ -164,23 +164,31 @@ class Scorer:
             if run.bank != bank or pair_id is None:
                 continue
             decisions = harness.recorded_decisions(self.store, run)
+            checked = harness.recorded_checked(self.store, run)
             cost = harness.recorded_cost(self.store, run)
+            in_section = self._section_lessons(kind, pair_id, decisions)
             row = rows.setdefault(run.mechanism, _mechanism_row(run.mechanism, kind))
             row["revision pairs"] += 1
-            # A recheck adds to cost (V23); cost covers the whole run.
-            row["cost: checks"] += cost.checks_executed + sum(d == harness.Decision.RECHECK for d in decisions.values())
+            # V23: checks the mechanism ran (whole run), plus one per recheck on the section's lessons, the
+            # same lessons as the recheck column, unless the mechanism counted that lesson's check itself.
+            row["cost: checks"] += cost.checks_executed + sum(
+                decisions[recorded] == harness.Decision.RECHECK and recorded not in checked for recorded in in_section
+            )
             row["wall time (s)"] = round(row["wall time (s)"] + cost.wall_time_seconds, 3)
             row["tokens"] += cost.tokens
-            section = decisions if kind == Section.NATURAL else self._constructed_decisions(pair_id, decisions)
+            section = {lesson_id: decisions[recorded] for recorded, lesson_id in in_section.items()}
             _score_decisions(row, section, {lid: labels.get((lid, pair_id)) for lid in section})
             if kind == Section.CONSTRUCTED:
                 _score_controls(row["unnecessary rejection"], section, labels, pair_id, self._stale_of_control())
         return list(rows.values())
 
-    def _constructed_decisions(self, pair_id: str, decisions: dict[str, str]) -> dict[str, str]:
-        """Variant-bank decisions on constructed lessons, keyed by the constructed lesson id."""
+    def _section_lessons(self, kind: Section, pair_id: str, decisions: dict[str, str]) -> dict[str, str]:
+        """The decided lessons a section scores, as recorded id -> lesson id: every lesson of an original
+        bank; of a variant bank only its kept constructed lessons (recorded under opaque ids)."""
+        if kind == Section.NATURAL:
+            return {lesson_id: lesson_id for lesson_id in decisions}
         return {
-            entry.lesson_id: decisions[entry.variant_lesson_id]
+            entry.variant_lesson_id: entry.lesson_id
             for entry in variant_bank.variant_entries(self.store, pair_id)
             if entry.kind != Role.NATURAL and entry.variant_lesson_id in decisions
             and self.cases.kind.get(entry.lesson_id) == Section.CONSTRUCTED

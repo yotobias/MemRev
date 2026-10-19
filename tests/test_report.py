@@ -294,9 +294,33 @@ def test_a_recheck_is_neither_kept_nor_rejected_has_its_own_column_and_adds_to_c
     constructed = metrics(data, "constructed")["recheck-all"]
     assert [constructed[k] for k in SCORED] == [1, 2, 1, 0, 0, 2]
     assert constructed["unnecessary rejection"] == {"rejected": 0, "matched controls": 1}
-    # Cost is the whole variant-bank run: 3 lessons rechecked plus the one check the mechanism ran.
-    assert constructed["cost: checks"] == 1 + 3
+    # The recheck cost covers the same lessons as the recheck column (the 2 constructed lessons), plus
+    # the one check the mechanism ran itself in the whole variant-bank run.
+    assert constructed["cost: checks"] == 1 + 2
     assert "| recheck-all | 1 | 1 | 1 | 0 | 0 | 3 | n/a | 4 |" in text
+
+
+class RecheckAndRunEach:
+    """Rechecks every lesson and runs each check itself, counting it for that lesson."""
+
+    def decide(self, view):
+        for lesson in view.lessons:
+            view.cost.count_checks(1, lesson_id=lesson.lesson_id)
+        return {lesson.lesson_id: harness.Decision.RECHECK for lesson in view.lessons}
+
+
+def test_a_recheck_whose_check_the_mechanism_counted_itself_is_not_counted_twice(run, monkeypatch):
+    monkeypatch.setitem(harness.MECHANISMS, "recheck-and-run", RecheckAndRunEach())
+    assert run.memrev("run-mechanism", "recheck-and-run", "--pair", run.pair1).exit_code == 0
+    assert run.memrev("run-mechanism", "recheck-and-run", "--pair", run.pair1, "--bank", "variant").exit_code == 0
+
+    _, data = run.report()
+
+    natural = metrics(data, "natural")["recheck-and-run"]
+    assert (natural["recheck"], natural["cost: checks"]) == (3, 3)
+    constructed = metrics(data, "constructed")["recheck-and-run"]
+    # 3 checks run over the whole variant bank (3 lessons); no extra cost for the 2 constructed rechecks.
+    assert (constructed["recheck"], constructed["cost: checks"]) == (2, 3)
 
 
 # Export --------------------------------------------------------------------
