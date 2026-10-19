@@ -10,7 +10,7 @@ from memrev.pairs import pair_id
 from memrev.store import ExclusionReason, RunStore
 from memrev.store import RevisionPair as RecordedPair
 
-from conftest import _git, lesson, write_bank
+from conftest import _git, lesson, memrev_for, write_bank
 
 
 def _run_with_lessons(cli, run_dir, tmp_path, repo_path, revision, n_lessons):
@@ -60,9 +60,7 @@ def _review_assumptions(cli, run_dir, tmp_path, rows):
                 "asserted_target": f"target {n}",
             })
 
-    def memrev(*args):
-        return cli("--run", str(run_dir), *args)
-
+    memrev = memrev_for(cli, run_dir)
     seeded = memrev("seed-assumptions", str(seed))
     assert seeded.exit_code == 0, seeded.err
     review = tmp_path / "review.csv"

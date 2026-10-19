@@ -65,12 +65,8 @@ def read_csv(path: Path) -> list[dict]:
 
 
 @pytest.fixture
-def run(cli, run_dir, tiny_repo, tmp_path):
+def run(memrev, tiny_repo, tmp_path):
     """A run with lessons L1 and L2 imported; returns a helper calling `memrev --run <run_dir> ...`."""
-
-    def memrev(*args: str):
-        return cli("--run", str(run_dir), *args)
-
     assert memrev("init", "--repo", f"tiny/tiny={tiny_repo.path}").exit_code == 0
     bank = write_bank(
         tmp_path / "bank.jsonl",

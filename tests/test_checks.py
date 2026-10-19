@@ -14,7 +14,7 @@ from memrev.assumptions import Assumptions
 from memrev.evidence import EvidenceStore
 from memrev.store import RunStore
 
-from conftest import lesson, write_bank
+from conftest import lesson, memrev_for, write_bank
 from test_pairs import History, instance
 from test_review import read_csv, write_csv
 
@@ -44,6 +44,7 @@ class Pipeline:
 
     def __init__(self, cli, run_dir: Path, tmp_path: Path):
         self.cli, self.run_dir, self.tmp = cli, run_dir, tmp_path
+        self.memrev = memrev_for(cli, run_dir)
         history = History(tmp_path / "checkouts" / "history")
         self.s, self.t1, self.t2 = history.commit(), history.commit(), history.commit()
         meta = tmp_path / "meta.jsonl"
@@ -66,9 +67,6 @@ class Pipeline:
     @property
     def pair2(self) -> str:
         return f"{self.s[:12]}..{self.t2[:12]}"
-
-    def memrev(self, *args: str):
-        return self.cli("--run", str(self.run_dir), *args)
 
     def script(self, checks: dict, unavailable: list[str] = (), default: str | None = PASS) -> None:
         """Script the fake runner: {command: {revision: outcome or [outcome per run]}}."""

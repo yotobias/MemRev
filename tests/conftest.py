@@ -78,6 +78,21 @@ def run_dir(tmp_path: Path) -> Path:
     return tmp_path / "runs" / "run-1"
 
 
+def memrev_for(cli, run_dir: Path):
+    """`memrev(*args)`: the command-line tool on one run, i.e. `memrev --run <run_dir> *args`."""
+
+    def memrev(*args: str) -> CliResult:
+        return cli("--run", str(run_dir), *args)
+
+    return memrev
+
+
+@pytest.fixture
+def memrev(cli, run_dir):
+    """The command-line tool on this test's run directory."""
+    return memrev_for(cli, run_dir)
+
+
 def write_bank(path: Path, lines: list) -> Path:
     """Write a lesson-bank JSONL file; dicts are serialised, strings written as-is."""
     with path.open("w") as fh:
