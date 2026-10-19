@@ -32,6 +32,19 @@ class Repository:
     def has_commit(self, sha: str) -> bool:
         return self._git("cat-file", "-e", f"{sha}^{{commit}}").returncode == 0
 
+    def is_ancestor(self, ancestor: str, descendant: str) -> bool:
+        """True if `ancestor` is reachable from `descendant` (a commit is its own ancestor)."""
+        return self._git("merge-base", "--is-ancestor", ancestor, descendant).returncode == 0
+
+    def commit_times(self, shas: list[str]) -> dict[str, int]:
+        """Committer timestamp per commit; commits missing from the clone are left out."""
+        present = [sha for sha in dict.fromkeys(shas) if self.has_commit(sha)]
+        if not present:
+            return {}
+        result = self._git("log", "--no-walk=unsorted", "--format=%H %ct", *present)
+        result.check_returncode()
+        return {sha: int(stamp) for sha, stamp in (line.split() for line in result.stdout.splitlines())}
+
     def changed_files(self, source_revision: str, target_revision: str) -> frozenset[str]:
         """Paths added, modified or deleted between two revisions; a rename counts as both paths."""
         result = self._git("diff", "--name-only", "--no-renames", source_revision, target_revision)

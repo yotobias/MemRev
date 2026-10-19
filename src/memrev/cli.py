@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from memrev import extraction, harness, lesson_bank, review
+from memrev import extraction, harness, lesson_bank, pairs, review, swe_bench
 from memrev.repository import Repository
 from memrev.store import RunError, RunStore
 
@@ -35,6 +35,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     imp = stages.add_parser("import", help="validate a lesson-bank JSONL file into the run")
     imp.add_argument("bank", type=Path, help="lesson-bank JSONL file")
+
+    prs = stages.add_parser("pairs", help="build revision pairs for the run's source revisions")
+    prs.add_argument(
+        "--meta",
+        type=Path,
+        default=swe_bench.DEFAULT_META,
+        help="SWE-bench Verified metadata JSONL (default: data/swe-bench-verified-meta.jsonl)",
+    )
 
     mech = stages.add_parser("run-mechanism", help="run a maintenance mechanism over a revision pair")
     mech.add_argument("mechanism", help=f"mechanism name ({', '.join(sorted(harness.MECHANISMS))})")
@@ -69,6 +77,21 @@ def cmd_import(args) -> int:
     return 0
 
 
+def cmd_pairs(args) -> int:
+    store = RunStore.open(args.run.expanduser().resolve())
+    summary = pairs.build_pairs(store, args.meta)
+    noun = "source revision" if summary.sources == 1 else "source revisions"
+    print(
+        f"pairs: {summary.pairs} revision pairs from {summary.sources} {noun}, "
+        f"{len(summary.exclusions)} excluded"
+    )
+    for reason, count in sorted(summary.excluded_per_reason().items()):
+        print(f"  {reason}: {count}")
+    for subject, reason, detail in summary.exclusions:
+        print(f"  excluded {subject} ({reason}): {detail}", file=sys.stderr)
+    return 0
+
+
 def cmd_run_mechanism(args) -> int:
     store = RunStore.open(args.run.expanduser().resolve())
     pair = harness.RevisionPair(args.repository, args.source, args.target)
@@ -83,7 +106,7 @@ def cmd_run_mechanism(args) -> int:
     return 0
 
 
-COMMANDS = {"init": cmd_init, "import": cmd_import, "run-mechanism": cmd_run_mechanism}
+COMMANDS = {"init": cmd_init, "import": cmd_import, "pairs": cmd_pairs, "run-mechanism": cmd_run_mechanism}
 COMMANDS.update(review.COMMANDS)
 COMMANDS.update(extraction.COMMANDS)
 

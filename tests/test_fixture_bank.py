@@ -35,3 +35,24 @@ def test_fixture_bank_imports_cleanly_against_a_django_clone(cli, run_dir):
     store = RunStore.open(run_dir)
     assert len(store.lessons()) >= 10
     assert store.exclusions() == []
+
+
+@pytest.mark.skipif(
+    not os.environ.get("MEMREV_DJANGO_REPO"),
+    reason="set MEMREV_DJANGO_REPO to a local django clone to build real revision pairs",
+)
+def test_fixture_bank_sources_get_three_same_version_targets_in_a_django_clone(cli, run_dir):
+    django = os.environ["MEMREV_DJANGO_REPO"]
+    assert cli("--run", str(run_dir), "init", "--repo", f"django/django={django}").exit_code == 0
+    assert cli("--run", str(run_dir), "import", str(FIXTURE_BANK)).exit_code == 0
+
+    result = cli("--run", str(run_dir), "pairs")  # default metadata: data/swe-bench-verified-meta.jsonl
+
+    assert result.exit_code == 0, result.err
+    store = RunStore.open(run_dir)
+    pairs = store.revision_pairs()
+    sources = {l.source_revision for l in store.lessons()}
+    assert {p.source_revision for p in pairs} == sources  # all 12 fixture sources are 4.0 instances
+    assert {p.version for p in pairs} == {"4.0"}
+    assert len(pairs) == 3 * len(sources)  # each fixture source has at least 3 later 4.0 instances
+    assert "ancestry failed" not in result.out

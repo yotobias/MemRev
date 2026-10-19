@@ -25,6 +25,17 @@ CREATE TABLE IF NOT EXISTS lessons (
     imported_from TEXT NOT NULL,
     imported_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS revision_pairs (
+    pair_id TEXT PRIMARY KEY,
+    repository TEXT NOT NULL,
+    version TEXT NOT NULL,
+    source_revision TEXT NOT NULL,
+    target_revision TEXT NOT NULL,
+    source_instance TEXT NOT NULL,
+    target_instance TEXT NOT NULL,
+    target_role TEXT NOT NULL,
+    UNIQUE (repository, source_revision, target_revision)
+);
 CREATE TABLE IF NOT EXISTS exclusions (
     stage TEXT NOT NULL,
     subject TEXT NOT NULL,
@@ -80,6 +91,24 @@ class Lesson:
     repository: str
     source_revision: str
     trajectory_pointer: str
+
+
+@dataclass(frozen=True)
+class RevisionPair:
+    """One (S, T) of the same repository and SWE-bench version, S an ancestor of T.
+
+    The drift guard (ticket 05) may still drop it; that is recorded as an exclusion
+    with subject `pair <pair_id>`.
+    """
+
+    pair_id: str
+    repository: str
+    version: str
+    source_revision: str
+    target_revision: str
+    source_instance: str
+    target_instance: str
+    target_role: str  # "nearest", "middle" or "furthest"
 
 
 class RunStore:
@@ -159,6 +188,53 @@ class RunStore:
             f"SELECT {self._LESSON_COLUMNS} FROM lessons WHERE lesson_id = ?", (lesson_id,)
         ).fetchone()
         return Lesson(*row) if row else None
+
+    # Revision pairs -----------------------------------------------------
+
+    def add_revision_pair(self, pair: RevisionPair) -> None:
+        """Insert or refresh a pair; its `pair_id` is stable across reruns."""
+        with self.conn:
+            self.conn.execute(
+                f"INSERT INTO revision_pairs ({self._PAIR_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(pair_id) DO UPDATE SET version = excluded.version, "
+                "source_instance = excluded.source_instance, target_instance = excluded.target_instance, "
+                "target_role = excluded.target_role",
+                (
+                    pair.pair_id,
+                    pair.repository,
+                    pair.version,
+                    pair.source_revision,
+                    pair.target_revision,
+                    pair.source_instance,
+                    pair.target_instance,
+                    pair.target_role,
+                ),
+            )
+
+    def remove_revision_pair(self, pair_id: str) -> None:
+        with self.conn:
+            self.conn.execute("DELETE FROM revision_pairs WHERE pair_id = ?", (pair_id,))
+
+    _PAIR_COLUMNS = (
+        "pair_id, repository, version, source_revision, target_revision, "
+        "source_instance, target_instance, target_role"
+    )
+
+    def revision_pairs(self, repository: str | None = None) -> list[RevisionPair]:
+        """Pairs that passed the ancestry check, ordered by repository, source and target role."""
+        query = f"SELECT {self._PAIR_COLUMNS} FROM revision_pairs"
+        params: tuple = ()
+        if repository is not None:
+            query += " WHERE repository = ?"
+            params = (repository,)
+        rows = self.conn.execute(query + " ORDER BY rowid", params)
+        return [RevisionPair(*row) for row in rows]
+
+    def revision_pair(self, pair_id: str) -> RevisionPair | None:
+        row = self.conn.execute(
+            f"SELECT {self._PAIR_COLUMNS} FROM revision_pairs WHERE pair_id = ?", (pair_id,)
+        ).fetchone()
+        return RevisionPair(*row) if row else None
 
     # Exclusions ---------------------------------------------------------
 
