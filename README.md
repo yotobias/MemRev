@@ -29,6 +29,8 @@ uv run memrev --run ~/memrev-runs/r1 pairs
 uv run memrev --run ~/memrev-runs/r1 seed-assumptions my-seed.csv     # optional, hand-written assumptions
 uv run memrev --run ~/memrev-runs/r1 review-export review.csv
 uv run memrev --run ~/memrev-runs/r1 review-import review.csv --reviewer <your-id>
+uv run memrev --run ~/memrev-runs/r1 drift --runner fake=script.json    # docker runner arrives with ticket 07
+uv run memrev --run ~/memrev-runs/r1 check --runner fake=script.json
 uv run memrev --run ~/memrev-runs/r1 run-mechanism file-change-invalidation --repository django/django --source <S> --target <T>
 ```
 
