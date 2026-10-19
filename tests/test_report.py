@@ -141,6 +141,7 @@ def test_the_report_gives_extraction_yield_and_llm_cost_per_stage(run):
     assert data["constructed"]["cases"] == {
         "stale candidates drafted": 1, "constructed stale lessons kept": 1, "gate failed": 0,
         "with a matched control": 1, "without a matched control": 0,
+        "control candidates not matched": 0, "control candidates gate failed": 0,
     }
     # FakeLLM: 1000 input and 500 output tokens per call at $2 / $10 per MTok = $0.007 a call.
     cost = {row["stage"]: row for row in data["llm_cost"]}
@@ -155,10 +156,35 @@ def test_exclusions_are_counted_per_reason_with_natural_and_constructed_apart(ru
 
     text, data = run.report()
 
-    assert data["natural"]["exclusions"] == {"extraction failed": 1}
+    assert data["natural"]["exclusions"] == {"extraction failed": 1, "uncheckable": 2}
     assert data["constructed"]["exclusions"] == {"no behaviour change found": 1}
     assert "| no behaviour change found | 1 |" in text.split("## Constructed cases")[1]
     assert "no behaviour change found" not in text.split("## Constructed cases")[0]
+
+
+OUT_OF_SCOPE_CHECK = "python -c 'import module, yaml; assert module.VALUE'"
+
+
+def test_uncheckable_and_out_of_scope_at_T_are_counted_once_in_the_exclusion_table(run):
+    seed = write_csv(run.tmp / "seed.csv", [{
+        "lesson_id": "L2", "statement": "module.VALUE loads with yaml", "assumption_type": "symbol exists",
+        "scope": "module.py", "code_pointers": "module.py:1", "check_command": OUT_OF_SCOPE_CHECK,
+        "asserted_target": "module.VALUE",
+    }])  # fmt: skip
+    assert run.memrev("seed-assumptions", str(seed)).exit_code == 0
+    review_all(run)
+    run.script({OUT_OF_SCOPE_CHECK: {run.s: PASS, run.t1: PASS, run.t2: "out of scope"}})
+    assert run.check().exit_code == 0
+    run.sign_all()
+
+    text, data = run.report()
+
+    # Both are derived (no stage records them as rows): uncheckable per assumption, out of scope per final label.
+    assert data["natural"]["exclusions"] == {"extraction failed": 1, "uncheckable": 2, "out of scope at T": 1}
+    assert data["natural"]["inconclusive_reasons"] == {"out of scope at T": 1}
+    exclusions = text.split("### Exclusions per reason")[1].split("###")[0]
+    assert "| out of scope at T | 1 |" in exclusions and "| uncheckable | 2 |" in exclusions
+    assert "uncheckable" not in data["constructed"]["exclusions"]
 
 
 def test_a_drafting_failure_is_its_own_reason_and_leaves_the_extraction_count_alone(run, fake):

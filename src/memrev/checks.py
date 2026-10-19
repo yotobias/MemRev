@@ -206,6 +206,7 @@ def cmd_check(args) -> int:
     checker = _Checker(store, evidence, runner)
     constructed = ConstructedLessons(store)
     counts = checker.counts
+    changed = 0
     try:
         for a in Assumptions(store).reviewed():
             if not a.content.assumption_type.checkable:
@@ -222,6 +223,10 @@ def cmd_check(args) -> int:
             if checker.check_at_source(a, lesson.source_revision, environment_for(store, kept[0])):
                 for pair in kept:
                     checker.check_at_target(a, pair, environment_for(store, pair))
+        # Edits and rewrites change constructed assumptions too: decide their gates again (V5, V6).
+        from memrev.constructor import redecide_constructed_cases  # constructor builds on this module
+
+        changed = redecide_constructed_cases(store, runner)
     finally:
         runner.close()
     print(
@@ -231,6 +236,8 @@ def cmd_check(args) -> int:
     print(f"  at S: {counts[PASSES_AT_S]} pass 3/3, {counts[INVALID_AT_S]} invalid at S")
     print("  proposed labels: " + ", ".join(f"{label}: {counts[str(label)]}" for label in Label))
     print(f"  reused evidence: {counts['reused S']} at S, {counts['reused T']} at T")
+    if changed:
+        print(f"  constructed cases whose gate or control matching changed after edits: {changed}")
     if counts["not drift-guarded"]:
         skipped = counts["not drift-guarded"]
         print(f"  skipped {skipped} assumption-pair(s) whose pair is not drift-guarded yet: run `drift` first")

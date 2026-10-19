@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass
 from enum import StrEnum
 
 from memrev import constructor, harness, variant_bank
-from memrev.assumptions import Assumption, Assumptions
+from memrev.assumptions import Assumption, Assumptions, ReviewStatus
 from memrev.constructed_lessons import ConstructedLessons
 from memrev.constructor import CaseStatus, Role
 from memrev.evidence import EvidenceStore
@@ -38,7 +38,11 @@ AWAITING = "awaiting check or sign-off"
 
 @dataclass(frozen=True)
 class _Cases:
-    """Which lessons are natural and which are constructed, and where each comes from."""
+    """Which lessons are natural and which are constructed, and where each comes from.
+
+    `kind` holds the lessons that count: natural lessons and the constructed lessons whose case is
+    kept now. A constructed lesson whose gate or control matching failed after an edit is in
+    `lessons` (it has a repository) but counts nowhere."""
 
     lessons: dict[str, Lesson]
     kind: dict[str, Section]
@@ -47,13 +51,19 @@ class _Cases:
     def of(cls, store: RunStore) -> _Cases:
         lessons = {lesson.lesson_id: lesson for lesson in store.lessons()}
         kind = dict.fromkeys(lessons, Section.NATURAL)
+        kept = {r.lesson_id for r in constructor.case_records(store) if r.status == CaseStatus.KEPT}
         for lesson, _pair_id in ConstructedLessons(store).all():
             lessons[lesson.lesson_id] = lesson
-            kind[lesson.lesson_id] = Section.CONSTRUCTED
+            if lesson.lesson_id in kept:
+                kind[lesson.lesson_id] = Section.CONSTRUCTED
         return cls(lessons, kind)
 
     def ids(self, kind: Section) -> list[str]:
         return [lesson_id for lesson_id, k in self.kind.items() if k == kind]
+
+    def counts(self, lesson_id: str) -> bool:
+        """False for a constructed lesson whose case is no longer kept."""
+        return lesson_id in self.kind or lesson_id not in self.lessons
 
 
 class Scorer:
@@ -66,7 +76,7 @@ class Scorer:
     def score(self) -> dict:
         reports = {
             Section.NATURAL: self.labels.lesson_report(),
-            Section.CONSTRUCTED: self.labels.constructed_lesson_report(),
+            Section.CONSTRUCTED: _only(self.labels.constructed_lesson_report(), self.cases.ids(Section.CONSTRUCTED)),
         }
         data = {kind: self._section(kind, reports[kind]) for kind in Section}
         data[Section.NATURAL]["extraction"] = self._extraction_yield()
@@ -92,7 +102,7 @@ class Scorer:
                 "agreeing": sum(final.second_label == final.reviewer_label for final in sampled),
             },
             "mechanisms": self._mechanisms(kind, report),
-            "exclusions": dict(Counter(e.reason for e in self.store.exclusions() if self._exclusion_kind(e) == kind)),
+            "exclusions": self._exclusions(kind, finals),
         }
 
     # Labels ---------------------------------------------------------------
@@ -173,12 +183,16 @@ class Scorer:
             entry.lesson_id: decisions[entry.variant_lesson_id]
             for entry in variant_bank.variant_entries(self.store, pair_id)
             if entry.kind != Role.NATURAL and entry.variant_lesson_id in decisions
+            and self.cases.kind.get(entry.lesson_id) == Section.CONSTRUCTED
         }
 
     def _stale_of_control(self) -> dict[str, str]:
         """Constructed lesson id of each kept matched control -> that of its constructed stale lesson."""
         records = constructor.case_records(self.store)
-        stale = {r.case_key: r.lesson_id for r in records if r.role == Role.CONSTRUCTED_STALE}
+        stale = {
+            r.case_key: r.lesson_id for r in records
+            if r.role == Role.CONSTRUCTED_STALE and r.status == CaseStatus.KEPT
+        }  # fmt: skip
         return {
             r.lesson_id: stale[r.stale_case_key] for r in records
             if r.role == Role.MATCHED_CONTROL and r.status == CaseStatus.KEPT and r.stale_case_key in stale
@@ -199,7 +213,7 @@ class Scorer:
 
         lessons = [
             {**asdict(lesson), "case": case(lesson_id), "pair_id": constructed_pair.get(lesson_id, "")}
-            for lesson_id, lesson in self.cases.lessons.items()
+            for lesson_id, lesson in self.cases.lessons.items() if lesson_id in self.cases.kind
         ]
         assumptions = [_assumption_record(a, case(a.lesson_id)) for a in self.assumptions.all()]
         lesson_of = {a.assumption_id: a.lesson_id for a in self.assumptions.all()}
@@ -226,7 +240,26 @@ class Scorer:
 
     # Yield, exclusions and cost ------------------------------------------
 
-    def _exclusion_kind(self, exclusion: Exclusion) -> Section:
+    def _exclusions(self, kind: Section, finals: list[tuple[Assumption, FinalLabel]]) -> dict[str, int]:
+        """Exclusion rows per reason, plus two reasons that no stage records as a row, derived here so
+        nothing is counted twice: uncheckable (assumptions of no assumption type that review did not
+        reject, one per assumption) and out of scope at T (current final labels inconclusive for that
+        reason, one per assumption and revision pair)."""
+        counts = Counter(e.reason for e in self.store.exclusions() if self._exclusion_kind(e) == kind)
+        counts[str(ExclusionReason.UNCHECKABLE)] += sum(
+            1 for a in self.assumptions.all()
+            if self.cases.kind.get(a.lesson_id) == kind
+            and not a.content.assumption_type.checkable and a.status is not ReviewStatus.REJECTED
+        )  # fmt: skip
+        counts[str(ExclusionReason.OUT_OF_SCOPE_AT_T)] += sum(
+            final.label == Label.INCONCLUSIVE and final.reason == ExclusionReason.OUT_OF_SCOPE_AT_T
+            for _, final in finals
+        )
+        return {reason: n for reason, n in counts.items() if n}
+
+    def _exclusion_kind(self, exclusion: Exclusion) -> Section | None:
+        """The section an exclusion counts in, or None for a `check` row about a constructed assumption
+        whose case is no longer kept (that case already counts as gate failed or no matched control)."""
         if exclusion.stage == CONSTRUCT_STAGE:
             return Section.CONSTRUCTED
         noun, _, ident = exclusion.subject.partition(" ")
@@ -235,6 +268,8 @@ class Scorer:
             lesson_id = a.lesson_id if a else ""
         else:
             lesson_id = ident if noun == "lesson" else ""
+        if not self.cases.counts(lesson_id):
+            return None
         return self.cases.kind.get(lesson_id, Section.NATURAL)
 
     def _extraction_yield(self) -> dict:
@@ -258,12 +293,18 @@ class Scorer:
         kept = [r for r in stale if r.status == CaseStatus.KEPT]
         matched = {r.stale_case_key for r in records if r.role == Role.MATCHED_CONTROL and r.status == CaseStatus.KEPT}
         with_control = sum(r.case_key in matched for r in kept)
+        dropped_controls = Counter(
+            r.status for r in records if r.role == Role.MATCHED_CONTROL and r.status != CaseStatus.KEPT
+        )
         return {
             "stale candidates drafted": len(stale),
             "constructed stale lessons kept": len(kept),
             "gate failed": sum(r.status == CaseStatus.GATE_FAILED for r in stale),
             "with a matched control": with_control,
             "without a matched control": len(kept) - with_control,
+            # Control candidates dropped (V6): drafted but not matched to their stale lesson, or failing the gate.
+            "control candidates not matched": dropped_controls[CaseStatus.NOT_MATCHED],
+            "control candidates gate failed": dropped_controls[CaseStatus.GATE_FAILED],
         }
 
     def _llm_cost(self) -> list[dict]:
@@ -355,3 +396,13 @@ def dataset(store: RunStore) -> dict[str, list[dict]]:
 
 def score(store: RunStore) -> dict:
     return Scorer(store).score()
+
+
+def _only(report: LessonLabelReport, lesson_ids: list[str]) -> LessonLabelReport:
+    """The part of a lesson-label report about `lesson_ids`."""
+    keep = set(lesson_ids)
+    return LessonLabelReport(
+        [label for label in report.labels if label.lesson_id in keep],
+        [lesson_id for lesson_id in report.without_checkable_assumption if lesson_id in keep],
+        [(lesson_id, pair_id) for lesson_id, pair_id in report.awaiting if lesson_id in keep],
+    )

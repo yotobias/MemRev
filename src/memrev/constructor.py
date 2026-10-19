@@ -178,6 +178,10 @@ class Draft:
             ensure_ascii=False,
         )  # fmt: skip
 
+    @classmethod
+    def from_json(cls, text: str) -> Draft:
+        return cls.parse(json.loads(text))
+
     @property
     def files(self) -> frozenset[str]:
         return frozenset(p for p in map(file_part, self.content.code_pointers) if p)
@@ -239,11 +243,20 @@ def case_records(store: RunStore, pair_id: str | None = None) -> list[CaseRecord
 
 
 class _Constructor:
-    def __init__(self, store: RunStore, client: LLMClient, runner: CheckRunner):
+    """Drafts candidates (construct) and decides each case: the 3/3 gates and control matching.
+
+    A case is decided on its candidate as it stands: the LLM's draft until the candidate is kept, then
+    its assumption, which review edits and sign-off rewrites can change. So every `construct` and
+    `check` decides each kept case again (V5, V6); evidence is reused per assumption hash, so an
+    unchanged case runs nothing."""
+
+    def __init__(self, store: RunStore, runner: CheckRunner, client: LLMClient | None = None):
         self.store, self.client = store, client
         self.checker = _Checker(store, EvidenceStore(store), runner)
+        self.assumptions = Assumptions(store)
 
     def construct_pair(self, pair: RevisionPair) -> None:
+        """Draft the pair's candidates (the LLM output is cached) and decide each case."""
         repository = Repository(self.store.repositories()[pair.repository])
         diff = repository.diff(pair.source_revision, pair.target_revision, DIFF_PATHS)
         subject = _drafts_subject(pair.pair_id)
@@ -258,47 +271,94 @@ class _Constructor:
             )
             return
         self.store.clear_exclusion(STAGE, subject)
-        for n, draft in enumerate(drafts, start=1):
-            case_key = f"{pair.pair_id}/constructed-stale-{n}"
-            failure = self._gate(draft, case_key, pair, Outcome.FAIL_ON_TARGET)
-            candidate_subject = f"candidate {case_key}"
-            if failure:
-                self._record_case(case_key, pair, Role.CONSTRUCTED_STALE, "", draft, CaseStatus.GATE_FAILED, failure)
-                self.store.record_exclusion(STAGE, candidate_subject, ExclusionReason.GATE_FAILED, failure)
-                continue
-            self.store.clear_exclusion(STAGE, candidate_subject)
-            self._keep(case_key, pair, draft)
-            self._record_case(case_key, pair, Role.CONSTRUCTED_STALE, "", draft, CaseStatus.KEPT, "")
-            self._match_control(case_key, pair, draft, diff)
+        for n, drafted in enumerate(drafts, start=1):
+            stale_key = f"{pair.pair_id}/constructed-stale-{n}"
+            if self._decide_stale(stale_key, pair, drafted):
+                controls, problem = self._draft_controls(stale_key, pair, self._current(stale_key, drafted), diff)
+                self._decide_controls(stale_key, pair, controls, problem)
 
-    def _match_control(self, stale_key: str, pair: RevisionPair, stale: Draft, diff: str) -> None:
-        """Keep the first drafted control that matches the stale lesson and passes 3/3 at S and T."""
+    def redecide_pair(self, pair: RevisionPair) -> None:
+        """Decide the pair's kept cases again from their current assumptions, without the LLM: the
+        stored drafts stand in for it. Candidates never kept cannot have changed and are left alone."""
+        records = case_records(self.store, pair.pair_id)
+        for record in records:
+            if record.role != Role.CONSTRUCTED_STALE or self._assumption(record.case_key) is None:
+                continue
+            if self._decide_stale(record.case_key, pair, Draft.from_json(record.draft)):
+                controls = sorted(
+                    (r for r in records if r.stale_case_key == record.case_key), key=lambda r: _number(r.case_key)
+                )
+                controls = [Draft.from_json(r.draft) for r in controls]
+                self._decide_controls(record.case_key, pair, controls, "no control drafted")
+
+    def _decide_stale(self, stale_key: str, pair: RevisionPair, drafted: Draft) -> bool:
+        """Gate a constructed stale lesson: 3/3 pass at S, 3/3 fail on its asserted target at T."""
+        failure = self._gate(self._current(stale_key, drafted), stale_key, pair, Outcome.FAIL_ON_TARGET)
         subject = f"candidate {stale_key}"
+        if failure:
+            self._record_case(stale_key, pair, "", drafted, CaseStatus.GATE_FAILED, failure)
+            self.store.record_exclusion(STAGE, subject, ExclusionReason.GATE_FAILED, failure)
+            return False
+        self.store.clear_exclusion(STAGE, subject)
+        self._keep(stale_key, pair, drafted)
+        self._record_case(stale_key, pair, "", drafted, CaseStatus.KEPT, "")
+        return True
+
+    def _draft_controls(self, stale_key: str, pair: RevisionPair, stale: Draft, diff: str) -> tuple[list[Draft], str]:
         try:
             controls = self._draft(
-                CONTROL_SYSTEM, _control_prompt(pair, stale, diff), CONTROL_SCHEMA, "controls", subject
+                CONTROL_SYSTEM, _control_prompt(pair, stale, diff), CONTROL_SCHEMA, "controls", f"candidate {stale_key}"
             )
         except LLMFailure as exc:
-            controls, problem = [], f"drafting failed: {exc}"
-        else:
-            problem = "no control drafted"
-        for m, control in enumerate(controls, start=1):
-            case_key = f"{stale_key}/matched-control-{m}"
-            mismatch = _mismatch(stale, control)
-            if mismatch:
-                self._record_case(case_key, pair, Role.MATCHED_CONTROL, stale_key, control, CaseStatus.NOT_MATCHED, mismatch)
-                problem = f"matched-control-{m}: {mismatch}"
+            return [], f"drafting failed: {exc}"
+        return controls, "no control drafted"
+
+    def _decide_controls(self, stale_key: str, pair: RevisionPair, controls: list[Draft], problem: str) -> None:
+        """Keep the first control that matches the stale lesson (V6) and passes 3/3 at S and T. A control
+        kept earlier behind it stops being the matched control."""
+        stale = self._current(stale_key, None)
+        matched = None
+        for m, drafted in enumerate(controls, start=1):
+            key = f"{stale_key}/matched-control-{m}"
+            if matched is not None:
+                if self._status(key) == CaseStatus.KEPT:
+                    detail = f"{matched} is the matched control"
+                    self._record_case(key, pair, stale_key, drafted, CaseStatus.NOT_MATCHED, detail)
                 continue
-            failure = self._gate(control, case_key, pair, Outcome.PASS)
+            control = self._current(key, drafted)
+            mismatch = _mismatch(stale, control)
+            failure = mismatch or self._gate(control, key, pair, Outcome.PASS)
             if failure:
-                self._record_case(case_key, pair, Role.MATCHED_CONTROL, stale_key, control, CaseStatus.GATE_FAILED, failure)
+                status = CaseStatus.NOT_MATCHED if mismatch else CaseStatus.GATE_FAILED
+                self._record_case(key, pair, stale_key, drafted, status, failure)
                 problem = f"matched-control-{m}: {failure}"
                 continue
-            self._keep(case_key, pair, control)
-            self._record_case(case_key, pair, Role.MATCHED_CONTROL, stale_key, control, CaseStatus.KEPT, "")
+            self._keep(key, pair, drafted)
+            self._record_case(key, pair, stale_key, drafted, CaseStatus.KEPT, "")
+            matched = f"matched-control-{m}"
+        subject = f"candidate {stale_key}"
+        if matched is None:
+            self.store.record_exclusion(STAGE, subject, ExclusionReason.NO_MATCHED_CONTROL, problem)
+        else:
             self.store.clear_exclusion(STAGE, subject)
-            return
-        self.store.record_exclusion(STAGE, subject, ExclusionReason.NO_MATCHED_CONTROL, problem)
+
+    def _assumption(self, case_key: str) -> Assumption | None:
+        """The assumption of a candidate that was kept at some point (None if it never was)."""
+        return self.assumptions.get(_assumption_id(constructed_lesson_id(case_key)))
+
+    def _current(self, case_key: str, drafted: Draft | None) -> Draft:
+        """The candidate as it stands: its lesson text with its current assumption once it was kept,
+        else the LLM's draft."""
+        current = self._assumption(case_key)
+        if current is None:
+            return drafted
+        lesson = ConstructedLessons(self.store).get(current.lesson_id)
+        text = lesson[0].lesson_text if lesson else drafted.lesson_text
+        return Draft(text, current.content)
+
+    def _status(self, case_key: str) -> CaseStatus | None:
+        row = self.store.conn.execute("SELECT status FROM constructed_cases WHERE case_key = ?", (case_key,)).fetchone()
+        return CaseStatus(row[0]) if row else None
 
     def _gate(self, draft: Draft, case_key: str, pair: RevisionPair, expected_at_t: Outcome) -> str:
         """"" if the draft's check passes 3/3 at S and gives `expected_at_t` 3/3 at T, else why not.
@@ -318,27 +378,49 @@ class _Constructor:
             return f"runs at S: {listing(at_s)}; runs at T: {listing(at_t)} (needs 3/3 {expected_at_t})"
         return ""
 
-    def _keep(self, case_key: str, pair: RevisionPair, draft: Draft) -> None:
-        """Store a kept constructed lesson and its assumption (pending review)."""
+    def _keep(self, case_key: str, pair: RevisionPair, drafted: Draft) -> None:
+        """Store a kept constructed lesson and its assumption (pending review). A lesson kept before
+        keeps its assumption as review left it."""
         lesson_id = constructed_lesson_id(case_key)
-        lesson = Lesson(lesson_id, draft.lesson_text, pair.source_instance, pair.repository, pair.source_revision, "")
+        lesson = Lesson(lesson_id, drafted.lesson_text, pair.source_instance, pair.repository, pair.source_revision, "")
         ConstructedLessons(self.store).add(lesson, pair.pair_id)
-        Assumptions(self.store).add(lesson_id, draft.content, ORIGIN)
+        if self._assumption(case_key) is None:
+            self.assumptions.add(lesson_id, drafted.content, ORIGIN)
 
     def _record_case(
-        self, case_key: str, pair: RevisionPair, role: Role, stale_key: str, draft: Draft, status: CaseStatus, detail: str
+        self, case_key: str, pair: RevisionPair, stale_key: str, drafted: Draft, status: CaseStatus, detail: str
     ) -> None:
+        """Store what became of a candidate: a matched control if it has a `stale_key`, else a constructed
+        stale lesson. `drafted` is the LLM's draft, kept as it was."""
+        role = Role.MATCHED_CONTROL if stale_key else Role.CONSTRUCTED_STALE
         lesson_id = constructed_lesson_id(case_key)
         with self.store.conn:
             self.store.conn.execute(
-                f"INSERT OR REPLACE INTO constructed_cases ({_CASE_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (case_key, pair.pair_id, str(role), stale_key, lesson_id, _assumption_id(lesson_id), str(status), detail,
-                 draft.as_json()),
+                f"INSERT INTO constructed_cases ({_CASE_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(case_key) DO UPDATE SET status = excluded.status, detail = excluded.detail, "
+                "draft = excluded.draft",
+                (case_key, pair.pair_id, str(role), stale_key, lesson_id, _assumption_id(lesson_id), str(status),
+                 detail, drafted.as_json()),
             )  # fmt: skip
 
     def _draft(self, system: str, prompt: str, schema: dict, key: str, subject: str) -> list[Draft]:
         request = LLMRequest(system, prompt, schema)
         return self.client.call(request, lambda data: [Draft.parse(item) for item in data[key]], subject=subject)
+
+
+def redecide_constructed_cases(store: RunStore, runner: CheckRunner) -> int:
+    """Decide every kept constructed case again from its current assumption (after review edits or
+    sign-off rewrites); returns how many cases changed status. Called by `check`."""
+    before = {r.case_key: r.status for r in case_records(store)}
+    constructor = _Constructor(store, runner)
+    for pair_id in dict.fromkeys(r.pair_id for r in case_records(store)):
+        constructor.redecide_pair(store.revision_pair(pair_id))
+    return sum(before.get(r.case_key) != r.status for r in case_records(store))
+
+
+def _number(case_key: str) -> int:
+    """n of a case key ending in `-<n>`."""
+    return int(case_key.rsplit("-", 1)[1])
 
 
 def _truncated(diff: str) -> str:
@@ -414,7 +496,7 @@ def cmd_construct(args) -> int:
     pairs = _pairs_to_construct(store, args.pair)
     client = LLMClient(llm.make_llm(args.model), store, STAGE)
     runner = make_runner(store, args.runner)
-    constructor = _Constructor(store, client, runner)
+    constructor = _Constructor(store, runner, client)
     try:
         for pair in pairs:
             constructor.construct_pair(pair)

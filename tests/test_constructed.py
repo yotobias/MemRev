@@ -10,7 +10,7 @@ import sqlite3
 
 import pytest
 
-from memrev import constructor, harness, llm, variant_bank
+from memrev import constructor, harness, llm, scorer, variant_bank
 from memrev.assumptions import Assumptions
 from memrev.constructed_lessons import ConstructedLessons
 from memrev.constructor import Role
@@ -330,6 +330,114 @@ def test_a_constructed_assumption_rejected_in_review_is_not_checked(construction
 
     assert checked.exit_code == 0, checked.err
     assert "check: 0 assumptions checked" in checked.out
+
+
+# Edits after the gate: the gate and control matching are decided again ----
+
+EDITED_CHECK = "python -c 'import module; assert module.VALUE >= 1'"
+
+
+def edit_in_review(c: Construction, of: str, **changes: str) -> None:
+    """Edit the constructed assumption whose statement is `of` in the review CSV and accept every row."""
+    export = c.tmp / "edit.csv"
+    assert c.memrev("review-export", str(export)).exit_code == 0
+    rows = [dict(r, decision="accept", **(changes if r["statement"] == of else {})) for r in read_csv(export)]
+    write_csv(export, rows)
+    result = c.memrev("review-import", str(export), "--reviewer", "rev-1")
+    assert result.exit_code == 0, result.err
+    assert "1 edited" in result.out
+
+
+def case_statuses(c: Construction) -> dict[str, str]:
+    return {r.case_key.split("/", 1)[1]: str(r.status) for r in constructor.case_records(c.store(), c.pair1)}
+
+
+def constructed_counts(c: Construction) -> dict:
+    data = scorer.score(c.store())["constructed"]
+    return {**data["cases"], "in the bank": data["lessons"]["in the bank"]}
+
+
+@pytest.mark.parametrize("stage", ["check", "construct"])
+def test_an_edit_that_breaks_the_gate_drops_the_constructed_stale_lesson_on_the_next_stage(construction, stage):
+    c = construction
+    constructed_pair(c)
+    review_all(c)
+    # The edited check passes at S and at T: the lesson is no longer stale at T.
+    edit_in_review(c, STALE["statement"], check_command=EDITED_CHECK)
+    c.script({STALE_CHECK: {c.s: PASS, c.t1: FAIL}, CONTROL_CHECK: {c.s: PASS, c.t1: PASS}})
+
+    result = c.check() if stage == "check" else c.construct("--pair", c.pair1)
+
+    assert result.exit_code == 0, result.err
+    assert case_statuses(c) == {"constructed-stale-1": "gate failed", "constructed-stale-1/matched-control-1": "kept"}
+    [(reason, detail)] = c.exclusions("construct").values()
+    assert reason == "gate failed (constructed)" and "needs 3/3 fail on asserted target" in detail
+    # Nothing is drafted or added again: the stale lesson keeps its one, edited assumption.
+    statements = sorted((a.content.statement, a.content.check_command) for a in constructed_assumptions(c))
+    assert statements == sorted([(STALE["statement"], EDITED_CHECK), (CONTROL["statement"], CONTROL_CHECK)])
+    assert constructed_counts(c) == {
+        "stale candidates drafted": 1, "constructed stale lessons kept": 0, "gate failed": 1,
+        "with a matched control": 0, "without a matched control": 0,
+        "control candidates not matched": 0, "control candidates gate failed": 0, "in the bank": 1,
+    }  # fmt: skip
+
+
+def test_an_edit_that_keeps_the_gate_passing_keeps_the_case(construction):
+    c = construction
+    constructed_pair(c)
+    review_all(c)
+    edit_in_review(c, STALE["statement"], statement="module.VALUE equals 1 at S.")
+
+    result = c.check()
+
+    assert result.exit_code == 0, result.err
+    assert case_statuses(c) == {"constructed-stale-1": "kept", "constructed-stale-1/matched-control-1": "kept"}
+    assert c.exclusions("construct") == {}
+    assert constructed_counts(c)["constructed stale lessons kept"] == 1
+
+
+def test_a_control_edited_out_of_its_stale_lessons_area_is_no_longer_matched(construction):
+    c = construction
+    constructed_pair(c)
+    review_all(c)
+    edit_in_review(c, CONTROL["statement"], assumption_type="symbol exists")
+
+    result = c.check()
+
+    assert result.exit_code == 0, result.err
+    assert case_statuses(c) == {"constructed-stale-1": "kept", "constructed-stale-1/matched-control-1": "not matched"}
+    [(reason, _)] = c.exclusions("construct").values()
+    assert reason == "no matched control"
+    counts = constructed_counts(c)
+    assert (counts["with a matched control"], counts["without a matched control"]) == (0, 1)
+    assert (counts["control candidates not matched"], counts["control candidates gate failed"]) == (1, 0)
+
+
+def test_a_control_rewritten_at_sign_off_to_fail_at_T_fails_the_gate(construction):
+    c = construction
+    constructed_pair(c)
+    review_all(c)
+    assert c.check().exit_code == 0
+    labels = c.tmp / "labels.csv"
+    assert c.memrev("label-export", str(labels)).exit_code == 0
+    rows = read_csv(labels)
+    write_csv(labels, [
+        dict(r, decision="rewrite", check_command=OTHER_CONTROL_CHECK) if r["statement"] == CONTROL["statement"]
+        else dict(r, decision="accept")
+        for r in rows
+    ])  # fmt: skip
+    assert c.memrev("label-import", str(labels), "--reviewer", "rev-1").exit_code == 0
+    review_all(c)
+    c.script({STALE_CHECK: {c.s: PASS, c.t1: FAIL}, OTHER_CONTROL_CHECK: {c.s: PASS, c.t1: FAIL}})
+
+    result = c.check()
+
+    assert result.exit_code == 0, result.err
+    assert case_statuses(c)["constructed-stale-1/matched-control-1"] == "gate failed"
+    assert [reason for reason, _ in c.exclusions("construct").values()] == ["no matched control"]
+    # The scorer leaves the dropped control out of the constructed lessons in the bank.
+    counts = constructed_counts(c)
+    assert (counts["in the bank"], counts["control candidates gate failed"]) == (1, 1)
 
 
 # The blinded variant memory bank ----------------------------------------
