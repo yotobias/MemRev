@@ -132,15 +132,18 @@ class Scorer:
         from the variant bank (only its constructed lessons; its natural lessons are scored as natural
         cases from the original bank)."""
         labels = {(label.lesson_id, label.pair_id): label for label in report.labels}
-        pair_ids = {(p.repository, p.source_revision, p.target_revision): p.pair_id for p in self.store.revision_pairs()}
+        pair_ids = {
+            harness.PairKey(p.repository, p.source_revision, p.target_revision): p.pair_id
+            for p in self.store.revision_pairs()
+        }
         bank = harness.ORIGINAL if kind == NATURAL else harness.VARIANT
         rows: dict[str, dict] = {}
         for run in harness.recorded_runs(self.store):
-            pair_id = pair_ids.get(run.key[1:])
+            pair_id = pair_ids.get(run.pair)
             if run.bank != bank or pair_id is None:
                 continue
-            decisions = harness.recorded_decisions(self.store, *run.key, bank=bank)
-            cost = harness.recorded_cost(self.store, *run.key, bank=bank)
+            decisions = harness.recorded_decisions(self.store, run)
+            cost = harness.recorded_cost(self.store, run)
             row = rows.setdefault(run.mechanism, _mechanism_row(run.mechanism, kind))
             row["revision pairs"] += 1
             # A recheck adds to cost (V23); cost covers the whole run.

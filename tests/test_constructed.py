@@ -13,6 +13,7 @@ import pytest
 from memrev import constructor, harness, llm
 from memrev.assumptions import Assumptions
 from memrev.constructed_lessons import ConstructedLessons
+from memrev.harness import RecordedRun
 from memrev.labels import LabelStore
 from memrev.lesson_bank import FIELDS as BANK_FIELDS
 from memrev.llm import FakeLLM, LLMError
@@ -445,12 +446,12 @@ def test_decisions_over_the_original_and_the_variant_bank_are_recorded_apart(con
     assert original.exit_code == 0 and variant.exit_code == 0, original.err + variant.err
     store = c.store()
     key = ("file-change-invalidation", REPO, c.s, c.t1)
-    assert set(harness.recorded_decisions(store, *key)) == {"L1", "L2", "L3", "L4"}
-    variant_decisions = harness.recorded_decisions(store, *key, bank="variant")
+    assert set(harness.recorded_decisions(store, RecordedRun(*key))) == {"L1", "L2", "L3", "L4"}
+    variant_decisions = harness.recorded_decisions(store, RecordedRun(*key, bank="variant"))
     assert set(variant_decisions) == {l.lesson_id for l in VariantBank(store).lessons(c.pair1)}
     # Both constructed lessons point at module.py, which changed between S and T1.
     assert sum(d == "flag" for d in variant_decisions.values()) == 2
-    assert harness.recorded_cost(store, *key, bank="variant") is not None
+    assert harness.recorded_cost(store, RecordedRun(*key, bank="variant")) is not None
 
 
 def test_a_variant_bank_must_be_built_before_a_mechanism_runs_over_it(construction):

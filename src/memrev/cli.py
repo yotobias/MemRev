@@ -109,7 +109,7 @@ def cmd_run_mechanism(args) -> int:
     if not by_id and (args.pair is not None or not all(revisions)):
         raise RunError("name the revision pair with either --pair or --repository/--source/--target")
     store = open_run(args)
-    pair = harness.pair_by_id(store, args.pair) if by_id else harness.RevisionPair(*revisions)
+    pair = harness.pair_by_id(store, args.pair) if by_id else harness.PairKey(*revisions)
     run = harness.run_mechanism(store, args.mechanism, pair, args.bank)
     bank = " (variant bank)" if args.bank == harness.VARIANT else ""
     print(f"{args.mechanism}: {len(run.decisions)} lessons decided{bank}")

@@ -7,8 +7,8 @@ import pytest
 
 from memrev import harness
 from memrev.pairs import pair_id
-from memrev.store import ExclusionReason, RunStore
-from memrev.store import RevisionPair as RecordedPair
+from memrev.harness import RecordedRun
+from memrev.store import ExclusionReason, RevisionPair, RunStore
 
 from conftest import _git, lesson, memrev_for, write_bank
 
@@ -23,7 +23,7 @@ def _record_pair(run_dir, source, target, repository="tiny/tiny"):
     """Record (S, T) as the pairs stage would; the pairs stage itself is covered in test_pairs.py."""
     pid = pair_id(source, target)
     RunStore.open(run_dir).add_revision_pair(
-        RecordedPair(pid, repository, "1.0", source, target, "tiny__tiny-1", "tiny__tiny-2", "nearest")
+        RevisionPair(pid, repository, "1.0", source, target, "tiny__tiny-1", "tiny__tiny-2", "nearest")
     )
     return pid
 
@@ -89,7 +89,7 @@ def test_no_maintenance_keeps_every_lesson_of_the_source_revision(cli, tiny_repo
     assert "keep: 3" in result.out
     from memrev.harness import recorded_decisions
 
-    decisions = recorded_decisions(RunStore.open(run_dir), "no-maintenance", "tiny/tiny", s, t)
+    decisions = recorded_decisions(RunStore.open(run_dir), RecordedRun("no-maintenance", "tiny/tiny", s, t))
     assert decisions == {"L1": "keep", "L2": "keep", "L3": "keep"}
 
 
@@ -133,7 +133,8 @@ def test_file_change_invalidation_flags_lessons_whose_supporting_files_changed(
 
     assert result.exit_code == 0, result.err
     assert "flag: 2" in result.out
-    decisions = harness.recorded_decisions(RunStore.open(run_dir), "file-change-invalidation", "tiny/tiny", s, t)
+    run = RecordedRun("file-change-invalidation", "tiny/tiny", s, t)
+    decisions = harness.recorded_decisions(RunStore.open(run_dir), run)
     assert decisions == {"L1": "flag", "L2": "keep", "L3": "flag", "L4": "keep", "L5": "keep"}
 
 
@@ -156,12 +157,12 @@ def test_run_mechanism_records_cost_per_mechanism_and_pair(cli, tiny_repo, run_d
     assert "checks executed: 2" in result.out
     assert "tokens: 150" in result.out
     store = RunStore.open(run_dir)
-    spender = harness.recorded_cost(store, "spender", "tiny/tiny", s, t1)
+    spender = harness.recorded_cost(store, RecordedRun("spender", "tiny/tiny", s, t1))
     assert (spender.checks_executed, spender.tokens) == (2, 150)
     assert spender.wall_time_seconds >= 0
-    baseline = harness.recorded_cost(store, "no-maintenance", "tiny/tiny", s, t2)
+    baseline = harness.recorded_cost(store, RecordedRun("no-maintenance", "tiny/tiny", s, t2))
     assert (baseline.checks_executed, baseline.tokens) == (0, 0)
-    assert harness.recorded_cost(store, "spender", "tiny/tiny", s, t2) is None
+    assert harness.recorded_cost(store, RecordedRun("spender", "tiny/tiny", s, t2)) is None
 
 
 def test_rerunning_a_mechanism_replaces_its_decisions_and_cost_for_that_pair(cli, two_file_repo, run_dir, tmp_path):
@@ -173,8 +174,9 @@ def test_rerunning_a_mechanism_replaces_its_decisions_and_cost_for_that_pair(cli
     assert _run_mechanism(cli, run_dir, "file-change-invalidation", s, t).exit_code == 0
 
     store = RunStore.open(run_dir)
-    assert harness.recorded_decisions(store, "file-change-invalidation", "tiny/tiny", s, t) == {"L1": "flag"}
-    assert harness.recorded_cost(store, "file-change-invalidation", "tiny/tiny", s, t) is not None
+    run = RecordedRun("file-change-invalidation", "tiny/tiny", s, t)
+    assert harness.recorded_decisions(store, run) == {"L1": "flag"}
+    assert harness.recorded_cost(store, run) is not None
 
 
 def test_decisions_recorded_before_variant_banks_existed_are_kept_as_original_bank_decisions(
@@ -196,8 +198,9 @@ def test_decisions_recorded_before_variant_banks_existed_are_kept_as_original_ba
     assert _run_mechanism(cli, run_dir, "file-change-invalidation", s, t2).exit_code == 0
 
     store = RunStore.open(run_dir)
-    assert harness.recorded_decisions(store, "no-maintenance", "tiny/tiny", s, t1) == {"L1": "keep"}
-    assert harness.recorded_decisions(store, "file-change-invalidation", "tiny/tiny", s, t2) == {"L1": "keep"}
+    assert harness.recorded_decisions(store, RecordedRun("no-maintenance", "tiny/tiny", s, t1)) == {"L1": "keep"}
+    run = RecordedRun("file-change-invalidation", "tiny/tiny", s, t2)
+    assert harness.recorded_decisions(store, run) == {"L1": "keep"}
 
 
 BAD_ANSWERS = {
@@ -223,8 +226,8 @@ def test_a_mechanism_must_return_one_valid_decision_per_lesson(cli, tiny_repo, r
     assert result.exit_code != 0
     assert "broken" in result.err
     store = RunStore.open(run_dir)
-    assert harness.recorded_decisions(store, "broken", "tiny/tiny", s, t) == {}
-    assert harness.recorded_cost(store, "broken", "tiny/tiny", s, t) is None
+    assert harness.recorded_decisions(store, RecordedRun("broken", "tiny/tiny", s, t)) == {}
+    assert harness.recorded_cost(store, RecordedRun("broken", "tiny/tiny", s, t)) is None
 
 
 def test_unknown_mechanisms_and_revisions_are_refused(cli, tiny_repo, run_dir, tmp_path):
@@ -249,8 +252,8 @@ def test_a_pair_that_was_not_recorded_is_refused(cli, tiny_repo, run_dir, tmp_pa
     assert result.exit_code == 2
     assert "not a recorded revision pair" in result.err
     store = RunStore.open(run_dir)
-    assert harness.recorded_decisions(store, "no-maintenance", "tiny/tiny", s, t2) == {}
-    assert harness.recorded_cost(store, "no-maintenance", "tiny/tiny", s, t2) is None
+    assert harness.recorded_decisions(store, RecordedRun("no-maintenance", "tiny/tiny", s, t2)) == {}
+    assert harness.recorded_cost(store, RecordedRun("no-maintenance", "tiny/tiny", s, t2)) is None
 
 
 def test_an_excluded_pair_is_refused(cli, tiny_repo, run_dir, tmp_path):
@@ -267,7 +270,7 @@ def test_an_excluded_pair_is_refused(cli, tiny_repo, run_dir, tmp_path):
     for result in (by_revisions, by_id):
         assert result.exit_code == 2
         assert f"pair {pid} is excluded" in result.err and "environment unavailable" in result.err
-    assert harness.recorded_decisions(RunStore.open(run_dir), "no-maintenance", "tiny/tiny", s, t) == {}
+    assert harness.recorded_decisions(RunStore.open(run_dir), RecordedRun("no-maintenance", "tiny/tiny", s, t)) == {}
 
 
 def test_a_pair_can_be_named_by_its_pair_id(cli, tiny_repo, run_dir, tmp_path):
@@ -279,7 +282,7 @@ def test_a_pair_can_be_named_by_its_pair_id(cli, tiny_repo, run_dir, tmp_path):
 
     assert result.exit_code == 0, result.err
     assert "keep: 2" in result.out
-    decisions = harness.recorded_decisions(RunStore.open(run_dir), "no-maintenance", "tiny/tiny", s, t)
+    decisions = harness.recorded_decisions(RunStore.open(run_dir), RecordedRun("no-maintenance", "tiny/tiny", s, t))
     assert decisions == {"L1": "keep", "L2": "keep"}
 
 

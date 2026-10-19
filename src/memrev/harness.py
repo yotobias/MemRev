@@ -17,8 +17,7 @@ from typing import Mapping, Protocol
 
 from memrev.assumptions import Assumptions
 from memrev.repository import Repository
-from memrev.store import Lesson, RunError, RunStore
-from memrev.store import RevisionPair as RecordedPair
+from memrev.store import Lesson, RevisionPair, RunError, RunStore
 from memrev.variant_bank import VariantBank
 
 STAGE = "run-mechanism"
@@ -63,11 +62,11 @@ class Decision(StrEnum):
 
 
 @dataclass(frozen=True)
-class RevisionPair:
-    """The minimal revision-pair value a mechanism sees: repository, S and T.
+class PairKey:
+    """What a mechanism sees of a revision pair: repository, S and T.
 
-    Not to be confused with `store.RevisionPair` (imported here as `RecordedPair`), the full row
-    the pairs stage records. A run only accepts an (S, T) that is a recorded, non-excluded pair.
+    The full row the pairs stage records is `store.RevisionPair`. A run only accepts an (S, T) that
+    is a recorded, non-excluded revision pair.
     """
 
     repository: str
@@ -101,7 +100,7 @@ class MechanismView:
     """Everything a mechanism may use. Label-free by construction."""
 
     lessons: tuple[Lesson, ...]
-    pair: RevisionPair
+    pair: PairKey
     repository: Repository
     supporting_files: Mapping[str, frozenset[str]]
     """Repository paths each lesson relies on, by lesson id; a lesson may have none."""
@@ -157,15 +156,15 @@ def _add_bank_column(store: RunStore, table: str) -> None:
         store.conn.execute(f"DROP TABLE {table}_old")
 
 
-def pair_by_id(store: RunStore, pair_id: str) -> RevisionPair:
+def pair_by_id(store: RunStore, pair_id: str) -> PairKey:
     """The (repository, S, T) of a recorded revision pair, refused if unknown."""
     recorded = store.revision_pair(pair_id)
     if recorded is None:
         raise RunError(f"{pair_id} is not a recorded revision pair (run `pairs` first)")
-    return RevisionPair(recorded.repository, recorded.source_revision, recorded.target_revision)
+    return PairKey(recorded.repository, recorded.source_revision, recorded.target_revision)
 
 
-def _require_runnable(store: RunStore, pair: RevisionPair) -> RecordedPair:
+def _require_runnable(store: RunStore, pair: PairKey) -> RevisionPair:
     """The recorded pair for (repository, S, T); refused if not recorded or excluded at any stage."""
     recorded = next(
         (
@@ -189,7 +188,7 @@ def _require_runnable(store: RunStore, pair: RevisionPair) -> RecordedPair:
     return recorded
 
 
-def _build_view(store: RunStore, pair: RevisionPair, bank: str = ORIGINAL) -> MechanismView:
+def _build_view(store: RunStore, pair: PairKey, bank: str = ORIGINAL) -> MechanismView:
     recorded = _require_runnable(store, pair)
     path = store.repositories().get(pair.repository)
     if path is None:
@@ -214,7 +213,7 @@ def _build_view(store: RunStore, pair: RevisionPair, bank: str = ORIGINAL) -> Me
 
 
 def _variant_view(
-    store: RunStore, recorded: RecordedPair, pair: RevisionPair, repository: Repository
+    store: RunStore, recorded: RevisionPair, pair: PairKey, repository: Repository
 ) -> MechanismView:
     """The view over the pair's variant bank: opaque ids, the bank schema, files stored with the bank.
     Reads only `memrev.variant_bank`, never the constructed-case mapping."""
@@ -252,7 +251,7 @@ class MechanismRun:
     cost: Cost
 
 
-def run_mechanism(store: RunStore, name: str, pair: RevisionPair, bank: str = ORIGINAL) -> MechanismRun:
+def run_mechanism(store: RunStore, name: str, pair: PairKey, bank: str = ORIGINAL) -> MechanismRun:
     mechanism = MECHANISMS.get(name)
     if mechanism is None:
         raise RunError(f"unknown mechanism {name!r}; known: {', '.join(sorted(MECHANISMS))}")
@@ -262,7 +261,7 @@ def run_mechanism(store: RunStore, name: str, pair: RevisionPair, bank: str = OR
     started = time.perf_counter()
     decisions = _validated(name, view, mechanism.decide(view))
     cost = Cost(view.cost.checks_executed, time.perf_counter() - started, view.cost.tokens)
-    _record(store, name, pair, bank, decisions, cost)
+    _record(store, RecordedRun.of(name, pair, bank), decisions, cost)
     return MechanismRun(decisions, cost)
 
 
@@ -283,14 +282,35 @@ def _validated(name: str, view: MechanismView, answer: Mapping[str, str]) -> dic
     return {lesson_id: Decision(str(d)) for lesson_id, d in answer.items()}
 
 
+@dataclass(frozen=True)
+class RecordedRun:
+    """The key of one recorded mechanism run: mechanism, revision pair and bank."""
+
+    mechanism: str
+    repository: str
+    source_revision: str
+    target_revision: str
+    bank: str = ORIGINAL
+
+    @classmethod
+    def of(cls, mechanism: str, pair: PairKey, bank: str = ORIGINAL) -> RecordedRun:
+        return cls(mechanism, pair.repository, pair.source_revision, pair.target_revision, bank)
+
+    @property
+    def pair(self) -> PairKey:
+        return PairKey(self.repository, self.source_revision, self.target_revision)
+
+    @property
+    def values(self) -> tuple[str, str, str, str, str]:
+        return (self.mechanism, self.repository, self.source_revision, self.target_revision, self.bank)
+
+
 _KEY = "mechanism, repository, source_revision, target_revision, bank"
 _WHERE = "mechanism = ? AND repository = ? AND source_revision = ? AND target_revision = ? AND bank = ?"
 
 
-def _record(
-    store: RunStore, name: str, pair: RevisionPair, bank: str, decisions: dict[str, Decision], cost: Cost
-) -> None:
-    key = (name, pair.repository, pair.source_revision, pair.target_revision, bank)
+def _record(store: RunStore, run: RecordedRun, decisions: dict[str, Decision], cost: Cost) -> None:
+    key = run.values
     _ensure_schema(store)
     with store.conn:
         store.conn.execute(f"DELETE FROM mechanism_decisions WHERE {_WHERE}", key)
@@ -305,29 +325,12 @@ def _record(
         )
 
 
-def recorded_cost(
-    store: RunStore, mechanism: str, repository: str, source_revision: str, target_revision: str,
-    bank: str = ORIGINAL,
-) -> Cost | None:
+def recorded_cost(store: RunStore, run: RecordedRun) -> Cost | None:
     _ensure_schema(store)
     row = store.conn.execute(
-        f"SELECT checks_executed, wall_time_seconds, tokens FROM mechanism_costs WHERE {_WHERE}",
-        (mechanism, repository, source_revision, target_revision, bank),
+        f"SELECT checks_executed, wall_time_seconds, tokens FROM mechanism_costs WHERE {_WHERE}", run.values
     ).fetchone()
     return Cost(*row) if row else None
-
-
-@dataclass(frozen=True)
-class RecordedRun:
-    mechanism: str
-    repository: str
-    source_revision: str
-    target_revision: str
-    bank: str
-
-    @property
-    def key(self) -> tuple[str, str, str, str]:
-        return (self.mechanism, self.repository, self.source_revision, self.target_revision)
 
 
 def recorded_runs(store: RunStore) -> list[RecordedRun]:
@@ -337,14 +340,10 @@ def recorded_runs(store: RunStore) -> list[RecordedRun]:
     return [RecordedRun(*row) for row in rows]
 
 
-def recorded_decisions(
-    store: RunStore, mechanism: str, repository: str, source_revision: str, target_revision: str,
-    bank: str = ORIGINAL,
-) -> dict[str, str]:
+def recorded_decisions(store: RunStore, run: RecordedRun) -> dict[str, str]:
     """Lesson id -> decision; for the variant bank the ids are opaque (the scorer maps them)."""
     _ensure_schema(store)
     rows = store.conn.execute(
-        f"SELECT lesson_id, decision FROM mechanism_decisions WHERE {_WHERE} ORDER BY lesson_id",
-        (mechanism, repository, source_revision, target_revision, bank),
+        f"SELECT lesson_id, decision FROM mechanism_decisions WHERE {_WHERE} ORDER BY lesson_id", run.values
     )
     return dict(rows)
