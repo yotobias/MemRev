@@ -3,7 +3,9 @@ name = "memrev"
 version = "0.1.0"
 description = "Pilot B: assumption applicability of agent lessons across repository revisions"
 requires-python = ">=3.11,<3.12"
-dependencies = []
+dependencies = [
+    "anthropic>=1.15,<2",
+]
 
 [project.scripts]
 memrev = "memrev.cli:main"

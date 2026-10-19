@@ -26,6 +26,7 @@ uv run pytest                             # run the tests
 uv run memrev --run ~/memrev-runs/r1 init --repo django/django=/path/to/django-clone
 uv run memrev --run ~/memrev-runs/r1 import fixtures/django/lessons.jsonl
 uv run memrev --run ~/memrev-runs/r1 pairs
+uv run memrev --run ~/memrev-runs/r1 extract --limit 30              # LLM extraction; needs ANTHROPIC_API_KEY (env or .env)
 uv run memrev --run ~/memrev-runs/r1 seed-assumptions my-seed.csv     # optional, hand-written assumptions
 uv run memrev --run ~/memrev-runs/r1 review-export review.csv
 uv run memrev --run ~/memrev-runs/r1 review-import review.csv --reviewer <your-id>

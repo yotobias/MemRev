@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from memrev import harness, lesson_bank, pairs, review, swe_bench
+from memrev import extraction, harness, lesson_bank, pairs, review, swe_bench
 from memrev.repository import Repository
 from memrev.store import RunError, RunStore
 
@@ -52,6 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
     mech.add_argument("--target", help="target revision T (full SHA)")
 
     review.add_parsers(stages)
+    extraction.add_parsers(stages)
     return parser
 
 
@@ -112,6 +113,7 @@ def cmd_run_mechanism(args) -> int:
 
 COMMANDS = {"init": cmd_init, "import": cmd_import, "pairs": cmd_pairs, "run-mechanism": cmd_run_mechanism}
 COMMANDS.update(review.COMMANDS)
+COMMANDS.update(extraction.COMMANDS)
 
 
 def main(argv: list[str] | None = None) -> int:
