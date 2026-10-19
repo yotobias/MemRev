@@ -121,4 +121,78 @@ After a feature is done, spend ten minutes on what went wrong in the workflow it
 | Feature | Spec | Status |
 |---------|------|--------|
 | Pilot A: experience acquisition | [pilot-a/](pilot-a/) | not started |
-| Pilot B: assumption applicability across revisions | [specs/pilot-b/spec.md](specs/pilot-b/spec.md) | 01–06 and 08–10 done; 07 waits for the real-Docker test (N2); 11 waits for Docker and an API key |
+| Pilot B: assumption applicability across revisions | [specs/pilot-b/spec.md](specs/pilot-b/spec.md) | 01–06 and 08–10 done; 07 waits for the real-Docker test (N2); 11 waits for Docker and an LLM backend |
+
+## Status, 19 October 2026
+
+### Where Pilot B stands
+
+The Pilot B pipeline is built on branch `spec/pilot-b` and has been tested only with fakes. It has not run on real data yet.
+
+- **Done (9 of 11 tickets):**
+  - lesson import;
+  - revision pairs from SWE-bench Verified;
+  - assumption extraction and review;
+  - checks run 3 times at S and T, with the drift guard;
+  - label sign-off and lesson labels;
+  - constructed stale lessons, matched controls and the blinded variant memory bank;
+  - the mechanism harness, shipping no maintenance and file-change invalidation;
+  - the scorer, report and export.
+- **Tests:** 198 pass; 10 skipped (they need Docker or a real repository clone).
+- **Review:** the whole branch had a spec review and a standards review, and every finding was fixed. Two real bugs were found and fixed. A constructed lesson stayed counted as stale after its check was edited. Some non-test failures were counted as contradicted instead of inconclusive.
+- **Data source:** we build our own revision pairs from SWE-bench Verified, because SWE-ContextBench has not released its data ([ADR 0001](docs/adr/0001-own-revision-pairs-from-swe-bench-verified.md)). On the real django history, the 12 fixture lessons give 36 revision pairs, and none failed the ancestry check.
+- **Not done:**
+  - **Ticket 07 (Docker check runner)** is built, but its test against a real SWE-bench image has not run.
+  - **Ticket 11** is the first real django run on about 30 lessons. It ends with a go / narrow / stop recommendation.
+- **Decisions:** V1–V32 are in [docs/decisions.md](docs/decisions.md). The small choices made while building are listed in each ticket's Notes. Please read them and object where you disagree.
+
+### Decisions the team needs to make
+
+**1. Which LLM do we use for extraction and drafting?**
+
+Two stages need a language model:
+- `extract` proposes the checkable assumptions in each lesson.
+- `construct` drafts constructed stale lessons and matched controls from the S..T diff.
+
+Everything else runs without one. The code puts the LLM behind one interface, so switching costs one small adapter. V9 currently says "Anthropic API", which is paid per token.
+
+| Option | Cost | Trade-off |
+|--------|------|-----------|
+| **A. Anthropic API (current)** | Pay per token. Rough estimate for the pilot (30 lessons, ~36 pairs): a few dollars | Needs an API key and a budget owner. Most reproducible: model and token counts are logged exactly. |
+| **B. Claude Code subscription (`claude -p`)** | No API tokens; counts toward a team member's subscription limits | Runs on one person's account. The model version is less pinned. Fine for a pilot, weaker for the paper's reproducibility claims. |
+| **C. Hand-written** | Free | We already support hand-written assumptions. Constructed lessons would need a small CSV import. Slow, and less like what agents really write. |
+| **D. Local open model (Ollama)** | Free after setup | Weaker at structured extraction, so we would need to measure its quality. Needs a capable machine. |
+
+Suggestion: use **B or C for the pilot** to answer the go/no-go question cheaply. Move to **A** (or a supervisor-funded key) for anything that goes into the paper.
+
+**2. Where do the checks run?**
+
+Checks run inside SWE-bench Docker images. These images are x86-only (about 1.15 GB each).
+
+| Option | Trade-off |
+|--------|-----------|
+| **A. A team member's Mac (Docker Desktop + Rosetta)** | Works now, but emulation is slow. Fine for ~30 lessons, painful at scale. |
+| **B. A Linux x86 machine (lab PC, TU Delft cluster, or a cloud VM)** | Native speed. Someone has to arrange access, and Docker must be allowed on it. |
+
+Suggestion: A for ticket 11, and look into B before scaling up.
+
+**3. How do we count cross-version exclusions? (V31, open)**
+
+The `pairs` stage records one "cross-version" exclusion for every later task in a different SWE-bench version. For 12 lessons that is 984 rows, which would swamp the report.
+
+Proposal: record one row per source revision instead, with the count in the details. Also record a source whose commit is missing from the clone, instead of skipping it silently.
+
+**4. Pilot A: who runs it, and with which agent?**
+
+Pilot B currently runs on 12 hand-written fixture lessons. Real lessons need Pilot A: an agent solving SWE-bench Verified tasks in django (then sympy and scikit-learn) and writing lessons in the [lesson-bank format](docs/lesson-bank-schema.md). The open questions are in [pilot-a/README.md](pilot-a/README.md). The model choice in decision 1 applies here as well, at a much larger token cost, because the agent has to solve tasks and not just read lessons.
+
+**5. Data source follow-up**
+
+Someone should email the SWE-ContextBench authors (arXiv 2602.08316) to ask for their related-task groups. If the data arrives, it can replace or supplement our own pairs.
+
+### Next steps once these are decided
+
+1. Finish ticket 07: run the real-image test.
+2. Run ticket 11, the first real django run, and share the yield and timing.
+3. Open a PR from `spec/pilot-b` into `main` for team review.
+4. Start the Pilot A grilling.
