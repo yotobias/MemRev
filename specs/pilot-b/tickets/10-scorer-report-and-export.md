@@ -17,3 +17,4 @@ Covers stories 36, 38, 39, 43. Decisions V22, V23.
 - [ ] `export` writes lessons, assumptions, evidence and final labels as JSONL and CSV.
 
 ## Notes
+- From 08: the constructed-case mapping (`constructor.case_records`, `constructor.variant_entries`), constructed lesson labels (`LabelStore.constructed_lesson_report()`) and variant-bank decisions (`harness.recorded_decisions(..., bank="variant")`) are described in ticket 08's Notes.

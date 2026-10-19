@@ -4,17 +4,24 @@ Builds on the `check` pipeline from test_checks: one source S with targets T1 an
 changes module.py), lesson L1 at S, and the fake runner scripting each check per revision.
 """
 
+import dataclasses
+import re
+import sqlite3
+
 import pytest
 
-from memrev import constructor, llm
+from memrev import constructor, harness, llm
 from memrev.assumptions import Assumptions
-from memrev.llm import FakeLLM, LLMError
-from memrev.store import RunStore
-
-from conftest import _git
 from memrev.constructed_lessons import ConstructedLessons
 from memrev.labels import LabelStore
-from test_checks import FAIL, PASS, Pipeline
+from memrev.lesson_bank import FIELDS as BANK_FIELDS
+from memrev.llm import FakeLLM, LLMError
+from memrev.store import RunStore
+from memrev.variant_bank import VariantBank
+
+from conftest import _git, lesson, write_bank
+from test_checks import FAIL, PASS, REPO, Pipeline
+from test_harness import _reachable
 from test_review import read_csv, write_csv
 
 STALE_CHECK = "python -c 'import module; assert module.VALUE == 1'"
@@ -187,6 +194,64 @@ def test_a_stale_lesson_without_a_passing_control_is_counted_as_no_matched_contr
     assert "matched controls: 0, no matched control: 1" in result.out
 
 
+def test_rerunning_construct_reuses_drafts_and_gate_runs(construction):
+    c = construction
+    constructed_pair(c)
+    calls = len(c.fake.calls)
+    runs = len(c.evidence().evidence())
+    c.script({}, default="harness error")
+
+    result = c.construct("--pair", c.pair1)
+
+    assert result.exit_code == 0, result.err
+    assert len(c.fake.calls) == calls
+    assert len(c.evidence().evidence()) == runs
+    assert len(constructed_assumptions(c)) == 2
+    assert "constructed stale lessons kept: 1, gate failed: 0" in result.out
+    assert "matched controls: 1, no matched control: 0" in result.out
+
+
+def test_construct_covers_every_pair_the_drift_guard_kept(construction):
+    c = construction
+    stale_drafts(c)
+
+    result = c.construct()
+
+    assert result.exit_code == 0, result.err
+    assert "construct: 2 revision pairs" in result.out
+    assert "no behaviour change found: 2" in result.out
+
+
+def test_persistent_drafting_failures_are_counted_and_retried_on_the_next_run(construction):
+    c = construction
+    c.fake.answer("Draft constructed stale lessons", LLMError("overloaded"))
+
+    failed = c.construct("--pair", c.pair1)
+
+    assert failed.exit_code == 0, failed.err
+    subject = f"constructed cases for pair {c.pair1}"
+    assert c.exclusions("construct")[subject][0] == "extraction failed"
+    assert "drafting failed: 1" in failed.out
+
+    stale_drafts(c)
+    assert c.construct("--pair", c.pair1).exit_code == 0
+    assert c.exclusions("construct")[subject][0] == "no behaviour change found"
+
+
+def test_construct_refuses_a_pair_the_drift_guard_did_not_keep(construction):
+    c = construction
+    c.script({}, unavailable=[c.t2])
+    store = c.store()
+    with store.conn:
+        store.conn.execute("DELETE FROM drift_verdicts WHERE pair_id = ?", (c.pair2,))
+    assert c.drift().exit_code == 0
+
+    result = c.construct("--pair", c.pair2)
+
+    assert result.exit_code == 2
+    assert "not kept by the drift guard" in result.err
+
+
 # Review, check and sign-off like natural assumptions ---------------------
 
 
@@ -246,6 +311,12 @@ def test_constructed_lessons_go_through_review_check_and_sign_off_like_natural_o
     # Natural lesson labels stay natural only.
     natural = label_store.lesson_report()
     assert {l.lesson_id for l in natural.labels} | set(natural.without_checkable_assumption) == {"L1"}
+    shown = c.memrev("lesson-labels")
+    assert "lesson-labels: 1 lessons in the bank" in shown.out
+    assert (
+        "  constructed lessons: 2, per revision pair: supported within scope: 1, contradicted: 1, inconclusive: 0"
+        in shown.out
+    )
 
 
 def test_a_constructed_assumption_rejected_in_review_is_not_checked(construction):
@@ -257,3 +328,135 @@ def test_a_constructed_assumption_rejected_in_review_is_not_checked(construction
 
     assert checked.exit_code == 0, checked.err
     assert "check: 0 assumptions checked" in checked.out
+
+
+# The blinded variant memory bank ----------------------------------------
+
+OPAQUE_ID = re.compile(r"v-[0-9a-f]{16}")
+
+
+def variant_ready(c: Construction) -> None:
+    """Natural lessons L1..L4 at S, STALE and CONTROL constructed on pair 1 and accepted in review."""
+    more = write_bank(c.tmp / "more.jsonl", [lesson(REPO, c.s, n) for n in (2, 3, 4)])
+    assert c.memrev("import", str(more)).exit_code == 0
+    constructed_pair(c)
+    review_all(c)
+
+
+def test_the_variant_bank_replaces_natural_lessons_by_constructed_ones_under_opaque_ids(construction):
+    c = construction
+    variant_ready(c)
+
+    result = c.memrev("variant-bank", "--pair", c.pair1)
+
+    assert result.exit_code == 0, result.err
+    bank = VariantBank(c.store()).lessons(c.pair1)
+    # Same size as the original bank: two natural lessons were replaced.
+    assert len(bank) == 4
+    assert all(OPAQUE_ID.fullmatch(l.lesson_id) for l in bank)
+    assert [f.name for f in dataclasses.fields(bank[0])] == list(BANK_FIELDS)
+    assert {l.repository for l in bank} == {REPO} and {l.source_revision for l in bank} == {c.s}
+    assert {l.trajectory_pointer for l in bank} == {""}
+    texts = {l.lesson_text for l in bank}
+    assert {STALE["lesson_text"], CONTROL["lesson_text"]} <= texts
+    assert len(texts & {f"Lesson number {n}: VALUE in module.py is an int." for n in range(1, 5)}) == 2
+    # No provenance field in the bank's table.
+    columns = [row[1] for row in c.store().conn.execute("PRAGMA table_info(variant_lessons)")]
+    assert columns == ["pair_id", *BANK_FIELDS]
+    # Only the mapping says what is behind each opaque id.
+    entries = {e.variant_lesson_id: e for e in constructor.variant_entries(c.store(), c.pair1)}
+    assert set(entries) == {l.lesson_id for l in bank}
+    kinds = sorted(e.kind for e in entries.values())
+    assert kinds == sorted([constructor.CONTROL, constructor.STALE, constructor.NATURAL, constructor.NATURAL])
+    by_text = {l.lesson_text: entries[l.lesson_id] for l in bank}
+    stale_lesson = next(a.lesson_id for a in constructed_assumptions(c) if a.content.statement == STALE["statement"])
+    assert (by_text[STALE["lesson_text"]].kind, by_text[STALE["lesson_text"]].lesson_id) == (
+        constructor.STALE, stale_lesson,
+    )
+    assert "2 constructed lessons replaced 2 natural lessons" in result.out
+
+
+def test_rebuilding_the_variant_bank_keeps_its_opaque_ids(construction):
+    c = construction
+    variant_ready(c)
+    assert c.memrev("variant-bank", "--pair", c.pair1).exit_code == 0
+    first = VariantBank(c.store()).lessons(c.pair1)
+
+    assert c.memrev("variant-bank", "--pair", c.pair1).exit_code == 0
+
+    assert VariantBank(c.store()).lessons(c.pair1) == first
+
+
+def test_a_constructed_lesson_rejected_in_review_stays_out_of_the_variant_bank(construction):
+    c = construction
+    constructed_pair(c)
+    rows = review_all(c, decision="")
+    review = c.tmp / "review.csv"
+    stale = {r["assumption_id"] for r in rows if r["statement"] == STALE["statement"]}
+    write_csv(review, [dict(r, decision="reject" if r["assumption_id"] in stale else "accept") for r in rows])
+    assert c.memrev("review-import", str(review), "--reviewer", "rev-1").exit_code == 0
+
+    assert c.memrev("variant-bank", "--pair", c.pair1).exit_code == 0
+
+    texts = {l.lesson_text for l in VariantBank(c.store()).lessons(c.pair1)}
+    assert texts == {CONTROL["lesson_text"]}
+
+
+def test_a_mechanism_over_the_variant_bank_sees_no_provenance(construction, monkeypatch):
+    c = construction
+    variant_ready(c)
+    assert c.memrev("variant-bank", "--pair", c.pair1).exit_code == 0
+    seen_views = []
+
+    class Spy:
+        def decide(self, view):
+            seen_views.append(view)
+            return {lesson.lesson_id: harness.Decision.KEEP for lesson in view.lessons}
+
+    monkeypatch.setitem(harness.MECHANISMS, "spy", Spy())
+
+    result = c.memrev("run-mechanism", "spy", "--pair", c.pair1, "--bank", "variant")
+
+    assert result.exit_code == 0, result.err
+    [view] = seen_views
+    assert {l.lesson_id for l in view.lessons} == {l.lesson_id for l in VariantBank(c.store()).lessons(c.pair1)}
+    reachable = _reachable(view)
+    assert not any(isinstance(o, (sqlite3.Connection, sqlite3.Cursor, RunStore)) for o in reachable)
+    texts = [str(o) for o in reachable if isinstance(o, (str, bytes)) or hasattr(o, "__fspath__")]
+    # Strings only: the clone's path (a Path) lives under pytest's tmp dir, named after this test.
+    strings = [o for o in reachable if isinstance(o, str)]
+    hidden = [f"L{n}" for n in range(1, 5)] + [cl.lesson_id for cl, _ in ConstructedLessons(c.store()).all()]
+    assert not any(h in s for h in hidden for s in strings), "an underlying lesson id leaks into the view"
+    words = ("stale", "control", "constructed", "natural", "provenance")
+    assert not any(w in s.lower() for w in words for s in strings), "a role leaks into the view"
+    assert not any(str(c.run_dir.resolve()) in text for text in texts)
+    # The view's lessons carry supporting files under their opaque ids.
+    assert set(view.supporting_files) == {l.lesson_id for l in view.lessons}
+
+
+def test_decisions_over_the_original_and_the_variant_bank_are_recorded_apart(construction):
+    c = construction
+    variant_ready(c)
+    assert c.memrev("variant-bank", "--pair", c.pair1).exit_code == 0
+
+    original = c.memrev("run-mechanism", "file-change-invalidation", "--pair", c.pair1)
+    variant = c.memrev("run-mechanism", "file-change-invalidation", "--pair", c.pair1, "--bank", "variant")
+
+    assert original.exit_code == 0 and variant.exit_code == 0, original.err + variant.err
+    store = c.store()
+    key = ("file-change-invalidation", REPO, c.s, c.t1)
+    assert set(harness.recorded_decisions(store, *key)) == {"L1", "L2", "L3", "L4"}
+    variant_decisions = harness.recorded_decisions(store, *key, bank="variant")
+    assert set(variant_decisions) == {l.lesson_id for l in VariantBank(store).lessons(c.pair1)}
+    # Both constructed lessons point at module.py, which changed between S and T1.
+    assert sum(d == "flag" for d in variant_decisions.values()) == 2
+    assert harness.recorded_cost(store, *key, bank="variant") is not None
+
+
+def test_a_variant_bank_must_be_built_before_a_mechanism_runs_over_it(construction):
+    c = construction
+
+    result = c.memrev("run-mechanism", "no-maintenance", "--pair", c.pair1, "--bank", "variant")
+
+    assert result.exit_code == 2
+    assert "variant-bank" in result.err

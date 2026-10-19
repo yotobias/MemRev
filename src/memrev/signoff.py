@@ -285,6 +285,16 @@ def cmd_lesson_labels(args) -> int:
         + " (excluded from metrics)"
     )
     print(f"  awaiting check or sign-off: {len(report.awaiting)}")
+    constructed = LabelStore(store).constructed_lesson_report()
+    n_constructed = len(constructed.without_checkable_assumption) + len(
+        {lesson_id for lesson_id, _ in constructed.awaiting} | {label.lesson_id for label in constructed.labels}
+    )
+    if n_constructed:  # reported apart from natural lessons, never mixed into their counts
+        counts = Counter(label.label for label in constructed.labels)
+        print(
+            f"  constructed lessons: {n_constructed}, per revision pair: "
+            + ", ".join(f"{label}: {counts[str(label)]}" for label in Label)
+        )
     return 0
 
 

@@ -36,7 +36,11 @@ uv run memrev --run ~/memrev-runs/r1 label-export labels.csv
 uv run memrev --run ~/memrev-runs/r1 label-import labels.csv --reviewer <your-id>          # accept, inconclusive or rewrite
 uv run memrev --run ~/memrev-runs/r1 label-import sample.csv --reviewer <other-id> --second  # optional second reviewer
 uv run memrev --run ~/memrev-runs/r1 lesson-labels
+uv run memrev --run ~/memrev-runs/r1 construct     # constructed stale lessons + matched controls; needs ANTHROPIC_API_KEY and Docker
+uv run memrev --run ~/memrev-runs/r1 review-export review.csv           # then review-import, check, label-export/import as above
+uv run memrev --run ~/memrev-runs/r1 variant-bank                       # blinded variant memory bank per pair
 uv run memrev --run ~/memrev-runs/r1 run-mechanism file-change-invalidation --pair <pair_id>   # or --repository R --source S --target T
+uv run memrev --run ~/memrev-runs/r1 run-mechanism file-change-invalidation --pair <pair_id> --bank variant
 ```
 
 The run directory holds `run.db` (SQLite) and `work/`, and must be outside any repository checkout. The lesson-bank format is in [docs/lesson-bank-schema.md](docs/lesson-bank-schema.md).

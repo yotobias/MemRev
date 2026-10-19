@@ -50,6 +50,12 @@ def build_parser() -> argparse.ArgumentParser:
     mech.add_argument("--repository", help="repository name, e.g. django/django")
     mech.add_argument("--source", help="source revision S (full SHA)")
     mech.add_argument("--target", help="target revision T (full SHA)")
+    mech.add_argument(
+        "--bank",
+        choices=harness.BANKS,
+        default=harness.ORIGINAL,
+        help="original (the imported lessons of S, default) or variant (the pair's blinded variant bank)",
+    )
 
     review.add_parsers(stages)
     extraction.add_parsers(stages)
@@ -103,8 +109,9 @@ def cmd_run_mechanism(args) -> int:
         raise RunError("name the revision pair with either --pair or --repository/--source/--target")
     store = RunStore.open(args.run.expanduser().resolve())
     pair = harness.pair_by_id(store, args.pair) if by_id else harness.RevisionPair(*revisions)
-    run = harness.run_mechanism(store, args.mechanism, pair)
-    print(f"{args.mechanism}: {len(run.decisions)} lessons decided")
+    run = harness.run_mechanism(store, args.mechanism, pair, args.bank)
+    bank = " (variant bank)" if args.bank == harness.VARIANT else ""
+    print(f"{args.mechanism}: {len(run.decisions)} lessons decided{bank}")
     for decision in harness.Decision:
         print(f"  {decision}: {sum(1 for d in run.decisions.values() if d == decision)}")
     print(

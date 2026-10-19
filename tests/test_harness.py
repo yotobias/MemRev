@@ -179,6 +179,29 @@ def test_rerunning_a_mechanism_replaces_its_decisions_and_cost_for_that_pair(cli
     assert harness.recorded_cost(store, "file-change-invalidation", "tiny/tiny", s, t) is not None
 
 
+def test_decisions_recorded_before_variant_banks_existed_are_kept_as_original_bank_decisions(
+    cli, tiny_repo, run_dir, tmp_path
+):
+    s, t1, t2 = tiny_repo.commits
+    _run_with_lessons(cli, run_dir, tmp_path, tiny_repo.path, s, 1)
+    store = RunStore.open(run_dir)
+    with store.conn:  # the tables as ticket 09 created them, without a `bank` column
+        store.conn.execute(
+            "CREATE TABLE mechanism_decisions (mechanism TEXT NOT NULL, repository TEXT NOT NULL, "
+            "source_revision TEXT NOT NULL, target_revision TEXT NOT NULL, lesson_id TEXT NOT NULL, "
+            "decision TEXT NOT NULL, PRIMARY KEY (mechanism, repository, source_revision, target_revision, lesson_id))"
+        )
+        store.conn.execute(
+            "INSERT INTO mechanism_decisions VALUES ('no-maintenance', 'tiny/tiny', ?, ?, 'L1', 'keep')", (s, t1)
+        )
+
+    assert _run_mechanism(cli, run_dir, "file-change-invalidation", s, t2).exit_code == 0
+
+    store = RunStore.open(run_dir)
+    assert harness.recorded_decisions(store, "no-maintenance", "tiny/tiny", s, t1) == {"L1": "keep"}
+    assert harness.recorded_decisions(store, "file-change-invalidation", "tiny/tiny", s, t2) == {"L1": "keep"}
+
+
 BAD_ANSWERS = {
     "a lesson without a decision": lambda ids: {ids[0]: "keep"},
     "a decision for an unknown lesson": lambda ids: {**{i: "keep" for i in ids}, "L99": "keep"},
