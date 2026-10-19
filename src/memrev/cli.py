@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from memrev import lesson_bank
+from memrev import lesson_bank, review
 from memrev.repository import Repository
 from memrev.store import RunError, RunStore
 
@@ -35,6 +35,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     imp = stages.add_parser("import", help="validate a lesson-bank JSONL file into the run")
     imp.add_argument("bank", type=Path, help="lesson-bank JSONL file")
+
+    review.add_parsers(stages)
     return parser
 
 
@@ -61,6 +63,7 @@ def cmd_import(args) -> int:
 
 
 COMMANDS = {"init": cmd_init, "import": cmd_import}
+COMMANDS.update(review.COMMANDS)
 
 
 def main(argv: list[str] | None = None) -> int:
