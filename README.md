@@ -30,8 +30,8 @@ uv run memrev --run ~/memrev-runs/r1 extract --limit 30              # LLM extra
 uv run memrev --run ~/memrev-runs/r1 seed-assumptions my-seed.csv     # optional, hand-written assumptions
 uv run memrev --run ~/memrev-runs/r1 review-export review.csv
 uv run memrev --run ~/memrev-runs/r1 review-import review.csv --reviewer <your-id>
-uv run memrev --run ~/memrev-runs/r1 drift --runner fake=script.json    # docker runner arrives with ticket 07
-uv run memrev --run ~/memrev-runs/r1 check --runner fake=script.json
+uv run memrev --run ~/memrev-runs/r1 drift      # SWE-bench Docker images; Docker must be running (--runner fake=script.json for a scripted runner)
+uv run memrev --run ~/memrev-runs/r1 check
 uv run memrev --run ~/memrev-runs/r1 label-export labels.csv
 uv run memrev --run ~/memrev-runs/r1 label-import labels.csv --reviewer <your-id>          # accept, inconclusive or rewrite
 uv run memrev --run ~/memrev-runs/r1 label-import sample.csv --reviewer <other-id> --second  # optional second reviewer
