@@ -19,3 +19,4 @@ Covers seam N2. Decisions V14, ADR 0001.
 - [ ] The time per check run is recorded so it can be reported.
 
 ## Notes
+- Research: docs/research/swe-bench-docker.md. The image's /testbed is reset to the instance's base_commit and later commits are pruned, so T cannot be checked out inside S's image: bring T's source in from the host (`git archive T` or a bind-mounted worktree) and reinstall (`pip install -e .`). Images are amd64-only (~1.15 GB each): always `--platform linux/amd64`, Rosetta on. The dataset's `image`, `log_parser` and `eval_script` fields are in data/swe-bench-verified-meta.jsonl (image + log_parser). Django ≥4.2 test ids look like `test_x (module.Class.test_x)`; some ids are a docstring's first line.
