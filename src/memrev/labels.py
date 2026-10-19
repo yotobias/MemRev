@@ -11,9 +11,10 @@ from dataclasses import dataclass, replace
 
 from memrev.assumptions import Assumption, Assumptions, ReviewStatus, register_downstream
 from memrev.checks import KEPT
+from memrev.constructed_lessons import ConstructedLessons
 from memrev.evidence import EvidenceStore, ProposedLabel
 from memrev.labeller import INVALID_AT_S, VALID, Label, lesson_label
-from memrev.store import RunStore
+from memrev.store import Lesson, RevisionPair, RunStore
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS final_labels (
@@ -142,11 +143,25 @@ class LabelStore:
         A lesson's checkable assumptions are its accepted and pending ones (rejected ones are out of the
         dataset). It gets a label at a pair only when none is pending and every one is either invalid at
         S or has a final label there; otherwise the (lesson, pair) is awaiting check or sign-off."""
+        pairs = self.store.revision_pairs()
+        lessons = [
+            (lesson, [p for p in pairs if _same_source(p, lesson)])
+            for lesson in self.store.lessons()
+        ]  # fmt: skip
+        return self._report(lessons)
+
+    def constructed_lesson_report(self) -> LessonLabelReport:
+        """The same, for constructed lessons (ticket 08), each at the one pair it was constructed for.
+        Kept apart from `lesson_report` so natural and constructed cases are never mixed."""
+        constructed = ConstructedLessons(self.store).all()
+        return self._report([(lesson, [self.store.revision_pair(pair_id)]) for lesson, pair_id in constructed])
+
+    def _report(self, lessons: list[tuple[Lesson, list[RevisionPair]]]) -> LessonLabelReport:
         assumptions, evidence = Assumptions(self.store), EvidenceStore(self.store)
         source = {(v.assumption_id, v.assumption_hash): v.verdict for v in evidence.source_verdicts()}
         kept = {pair_id for pair_id, verdict in evidence.drift_verdicts().items() if verdict == KEPT}
         report = LessonLabelReport([], [], [])
-        for lesson in self.store.lessons():
+        for lesson, pairs in lessons:
             checkable = [
                 a for a in assumptions.for_lesson(lesson.lesson_id)
                 if a.content.assumption_type.checkable and a.status is not ReviewStatus.REJECTED
@@ -154,8 +169,8 @@ class LabelStore:
             if not checkable:
                 report.without_checkable_assumption.append(lesson.lesson_id)
                 continue
-            for pair in self.store.revision_pairs(lesson.repository):
-                if pair.source_revision != lesson.source_revision or pair.pair_id not in kept:
+            for pair in pairs:
+                if pair is None or pair.pair_id not in kept:
                     continue
                 labels = [self._assumption_label(a, pair.pair_id, source) for a in checkable]
                 if None in labels:
@@ -185,6 +200,10 @@ class LabelStore:
     def lessons_without_checkable_assumption(self) -> list[str]:
         """Lessons kept in the bank and counted, but never labelled or scored (V22)."""
         return self.lesson_report().without_checkable_assumption
+
+
+def _same_source(pair: RevisionPair, lesson: Lesson) -> bool:
+    return (pair.repository, pair.source_revision) == (lesson.repository, lesson.source_revision)
 
 
 @dataclass(frozen=True)

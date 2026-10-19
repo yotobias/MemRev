@@ -20,6 +20,7 @@ from memrev.check_runner import (
     RunResult,
     make_runner,
 )
+from memrev.constructed_lessons import ConstructedLessons
 from memrev.evidence import DriftRun, Evidence, EvidenceStore, ProposedLabel, SourceVerdict, excerpt
 from memrev.labeller import INVALID_AT_S, VALID, Label, source_verdict, target_label
 from memrev.store import ExclusionReason, RevisionPair, RunError, RunStore
@@ -186,22 +187,31 @@ class _Checker:
         self.counts[str(label)] += 1
 
 
+def _lesson_and_pairs(store: RunStore, constructed: ConstructedLessons, lesson_id: str):
+    """The lesson behind an assumption and the revision pairs to check it at: every pair of a natural
+    lesson's source revision, or only the pair a constructed lesson was constructed for."""
+    lesson = store.lesson(lesson_id)
+    if lesson is not None:
+        pairs = store.revision_pairs(lesson.repository)
+        return lesson, [p for p in pairs if p.source_revision == lesson.source_revision]
+    lesson, pair_id = constructed.get(lesson_id)
+    return lesson, [store.revision_pair(pair_id)]
+
+
 def cmd_check(args) -> int:
     store = RunStore.open(args.run.expanduser().resolve())
     evidence = EvidenceStore(store)
     drift = evidence.drift_verdicts()
     runner = make_runner(store, args.runner)
     checker = _Checker(store, evidence, runner)
+    constructed = ConstructedLessons(store)
     counts = checker.counts
     try:
         for a in Assumptions(store).reviewed():
             if not a.content.assumption_type.checkable:
                 counts["uncheckable"] += 1
                 continue
-            lesson = store.lesson(a.lesson_id)
-            pairs = [
-                p for p in store.revision_pairs(lesson.repository) if p.source_revision == lesson.source_revision
-            ]
+            lesson, pairs = _lesson_and_pairs(store, constructed, a.lesson_id)
             counts["not drift-guarded"] += sum(1 for p in pairs if p.pair_id not in drift)
             kept = [p for p in pairs if drift.get(p.pair_id) == KEPT]
             if not kept:

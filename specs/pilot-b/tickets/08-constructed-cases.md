@@ -1,6 +1,6 @@
 # 08: Constructed cases
 
-**Status:** ready-for-agent
+**Status:** in-progress
 **Blocked by:** 04, 06
 **Estimate:** ~130k tokens
 

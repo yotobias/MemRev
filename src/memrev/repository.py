@@ -51,3 +51,10 @@ class Repository:
         if result.returncode != 0:
             raise ValueError(f"git diff {source_revision}..{target_revision} failed: {result.stderr.strip()}")
         return frozenset(line for line in result.stdout.splitlines() if line)
+
+    def diff(self, source_revision: str, target_revision: str, paths: tuple[str, ...] = ()) -> str:
+        """The unified diff from S to T, optionally limited to pathspecs (e.g. `*.py`). Read-only."""
+        result = self._git("diff", "--no-renames", source_revision, target_revision, "--", *paths)
+        if result.returncode != 0:
+            raise ValueError(f"git diff {source_revision}..{target_revision} failed: {result.stderr.strip()}")
+        return result.stdout

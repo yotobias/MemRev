@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from memrev import checks, docker_runner, extraction, harness, lesson_bank, pairs, review, signoff, swe_bench  # noqa: F401  (docker_runner registers "docker")
+from memrev import checks, constructor, docker_runner, extraction, harness, lesson_bank, pairs, review, signoff, swe_bench  # noqa: F401  (docker_runner registers "docker")
 from memrev.repository import Repository
 from memrev.store import RunError, RunStore
 
@@ -55,6 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
     extraction.add_parsers(stages)
     checks.add_parsers(stages)
     signoff.add_parsers(stages)
+    constructor.add_parsers(stages)
     return parser
 
 
@@ -118,6 +119,7 @@ COMMANDS.update(review.COMMANDS)
 COMMANDS.update(extraction.COMMANDS)
 COMMANDS.update(checks.COMMANDS)
 COMMANDS.update(signoff.COMMANDS)
+COMMANDS.update(constructor.COMMANDS)
 
 
 def main(argv: list[str] | None = None) -> int:
