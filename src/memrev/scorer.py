@@ -9,10 +9,12 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import asdict, dataclass
+from enum import StrEnum
 
-from memrev import constructor, harness
+from memrev import constructor, harness, variant_bank
 from memrev.assumptions import Assumption, Assumptions
 from memrev.constructed_lessons import ConstructedLessons
+from memrev.constructor import CaseStatus, Role
 from memrev.evidence import EvidenceStore
 from memrev.extraction import STAGE as EXTRACT_STAGE
 from memrev.labeller import Label
@@ -22,8 +24,14 @@ from memrev.store import Exclusion, ExclusionReason, Lesson, RunStore
 
 CONSTRUCT_STAGE = constructor.STAGE
 
-NATURAL, CONSTRUCTED = "natural", "constructed"
-KINDS = (NATURAL, CONSTRUCTED)
+
+
+class Section(StrEnum):
+    """The report's two sections: natural and constructed cases are never mixed (V7)."""
+
+    NATURAL = "natural"
+    CONSTRUCTED = "constructed"
+
 LABELS = tuple(str(label) for label in Label)
 AWAITING = "awaiting check or sign-off"
 
@@ -33,18 +41,18 @@ class _Cases:
     """Which lessons are natural and which are constructed, and where each comes from."""
 
     lessons: dict[str, Lesson]
-    kind: dict[str, str]
+    kind: dict[str, Section]
 
     @classmethod
     def of(cls, store: RunStore) -> _Cases:
         lessons = {lesson.lesson_id: lesson for lesson in store.lessons()}
-        kind = dict.fromkeys(lessons, NATURAL)
+        kind = dict.fromkeys(lessons, Section.NATURAL)
         for lesson, _pair_id in ConstructedLessons(store).all():
             lessons[lesson.lesson_id] = lesson
-            kind[lesson.lesson_id] = CONSTRUCTED
+            kind[lesson.lesson_id] = Section.CONSTRUCTED
         return cls(lessons, kind)
 
-    def ids(self, kind: str) -> list[str]:
+    def ids(self, kind: Section) -> list[str]:
         return [lesson_id for lesson_id, k in self.kind.items() if k == kind]
 
 
@@ -56,14 +64,17 @@ class Scorer:
         self.cases = _Cases.of(store)
 
     def score(self) -> dict:
-        reports = {NATURAL: self.labels.lesson_report(), CONSTRUCTED: self.labels.constructed_lesson_report()}
-        data = {kind: self._section(kind, reports[kind]) for kind in KINDS}
-        data[NATURAL]["extraction"] = self._extraction_yield()
-        data[CONSTRUCTED]["cases"] = self._constructed_cases()
+        reports = {
+            Section.NATURAL: self.labels.lesson_report(),
+            Section.CONSTRUCTED: self.labels.constructed_lesson_report(),
+        }
+        data = {kind: self._section(kind, reports[kind]) for kind in Section}
+        data[Section.NATURAL]["extraction"] = self._extraction_yield()
+        data[Section.CONSTRUCTED]["cases"] = self._constructed_cases()
         data["llm_cost"] = self._llm_cost()
         return data
 
-    def _section(self, kind: str, report: LessonLabelReport) -> dict:
+    def _section(self, kind: Section, report: LessonLabelReport) -> dict:
         finals = self._current_finals(kind)
         sampled = [final for _, final in finals if final.second_label is not None]
         return {
@@ -86,13 +97,13 @@ class Scorer:
 
     # Labels ---------------------------------------------------------------
 
-    def _reviewed(self, kind: str) -> dict[str, Assumption]:
+    def _reviewed(self, kind: Section) -> dict[str, Assumption]:
         return {
             a.assumption_id: a for a in self.assumptions.reviewed()
             if self.cases.kind.get(a.lesson_id) == kind
         }  # fmt: skip
 
-    def _current_finals(self, kind: str) -> list[tuple[Assumption, FinalLabel]]:
+    def _current_finals(self, kind: Section) -> list[tuple[Assumption, FinalLabel]]:
         """Current final labels of reviewed (accepted) assumptions of one kind of case."""
         reviewed = self._reviewed(kind)
         return [
@@ -127,7 +138,7 @@ class Scorer:
 
     # Mechanisms (V6, V22, V23) ---------------------------------------------
 
-    def _mechanisms(self, kind: str, report: LessonLabelReport) -> list[dict]:
+    def _mechanisms(self, kind: Section, report: LessonLabelReport) -> list[dict]:
         """Per mechanism, summed over its runs: natural cases from the original bank, constructed cases
         from the variant bank (only its constructed lessons; its natural lessons are scored as natural
         cases from the original bank)."""
@@ -136,7 +147,7 @@ class Scorer:
             harness.PairKey(p.repository, p.source_revision, p.target_revision): p.pair_id
             for p in self.store.revision_pairs()
         }
-        bank = harness.ORIGINAL if kind == NATURAL else harness.VARIANT
+        bank = harness.ORIGINAL if kind == Section.NATURAL else harness.VARIANT
         rows: dict[str, dict] = {}
         for run in harness.recorded_runs(self.store):
             pair_id = pair_ids.get(run.pair)
@@ -150,9 +161,9 @@ class Scorer:
             row["cost: checks"] += cost.checks_executed + sum(d == harness.Decision.RECHECK for d in decisions.values())
             row["wall time (s)"] = round(row["wall time (s)"] + cost.wall_time_seconds, 3)
             row["tokens"] += cost.tokens
-            section = decisions if kind == NATURAL else self._constructed_decisions(pair_id, decisions)
+            section = decisions if kind == Section.NATURAL else self._constructed_decisions(pair_id, decisions)
             _score_decisions(row, section, {lid: labels.get((lid, pair_id)) for lid in section})
-            if kind == CONSTRUCTED:
+            if kind == Section.CONSTRUCTED:
                 _score_controls(row["unnecessary rejection"], section, labels, pair_id, self._stale_of_control())
         return list(rows.values())
 
@@ -160,17 +171,17 @@ class Scorer:
         """Variant-bank decisions on constructed lessons, keyed by the constructed lesson id."""
         return {
             entry.lesson_id: decisions[entry.variant_lesson_id]
-            for entry in constructor.variant_entries(self.store, pair_id)
-            if entry.kind != constructor.NATURAL and entry.variant_lesson_id in decisions
+            for entry in variant_bank.variant_entries(self.store, pair_id)
+            if entry.kind != Role.NATURAL and entry.variant_lesson_id in decisions
         }
 
     def _stale_of_control(self) -> dict[str, str]:
         """Constructed lesson id of each kept matched control -> that of its constructed stale lesson."""
         records = constructor.case_records(self.store)
-        stale = {r.case_key: r.lesson_id for r in records if r.role == constructor.STALE}
+        stale = {r.case_key: r.lesson_id for r in records if r.role == Role.CONSTRUCTED_STALE}
         return {
             r.lesson_id: stale[r.stale_case_key] for r in records
-            if r.role == constructor.CONTROL and r.status == constructor.KEPT_CASE and r.stale_case_key in stale
+            if r.role == Role.MATCHED_CONTROL and r.status == CaseStatus.KEPT and r.stale_case_key in stale
         }  # fmt: skip
 
     # Dataset export (story 43) ---------------------------------------------
@@ -183,8 +194,8 @@ class Scorer:
         case_of_assumption = {r.assumption_id: r.role for r in records}
         constructed_pair = {lesson.lesson_id: pair_id for lesson, pair_id in ConstructedLessons(self.store).all()}
 
-        def case(lesson_id: str) -> str:
-            return case_of_lesson.get(lesson_id, constructor.NATURAL)
+        def case(lesson_id: str) -> Role:
+            return case_of_lesson.get(lesson_id, Role.NATURAL)
 
         lessons = [
             {**asdict(lesson), "case": case(lesson_id), "pair_id": constructed_pair.get(lesson_id, "")}
@@ -208,23 +219,23 @@ class Scorer:
                 "assumption_type": str(a.content.assumption_type),
                 "case": case(a.lesson_id),
             }
-            for kind in KINDS
+            for kind in Section
             for a, final in self._current_finals(kind)
         ]
         return {"lessons": lessons, "assumptions": assumptions, "evidence": evidence, "final_labels": finals}
 
     # Yield, exclusions and cost ------------------------------------------
 
-    def _exclusion_kind(self, exclusion: Exclusion) -> str:
+    def _exclusion_kind(self, exclusion: Exclusion) -> Section:
         if exclusion.stage == CONSTRUCT_STAGE:
-            return CONSTRUCTED
+            return Section.CONSTRUCTED
         noun, _, ident = exclusion.subject.partition(" ")
         if noun == "assumption":
             a = self.assumptions.get(ident)
             lesson_id = a.lesson_id if a else ""
         else:
             lesson_id = ident if noun == "lesson" else ""
-        return self.cases.kind.get(lesson_id, NATURAL)
+        return self.cases.kind.get(lesson_id, Section.NATURAL)
 
     def _extraction_yield(self) -> dict:
         extracted = [a for a in self.assumptions.all() if a.origin == EXTRACT_STAGE]
@@ -243,14 +254,14 @@ class Scorer:
 
     def _constructed_cases(self) -> dict:
         records = constructor.case_records(self.store)
-        stale = [r for r in records if r.role == constructor.STALE]
-        kept = [r for r in stale if r.status == constructor.KEPT_CASE]
-        matched = {r.stale_case_key for r in records if r.role == constructor.CONTROL and r.status == constructor.KEPT_CASE}
+        stale = [r for r in records if r.role == Role.CONSTRUCTED_STALE]
+        kept = [r for r in stale if r.status == CaseStatus.KEPT]
+        matched = {r.stale_case_key for r in records if r.role == Role.MATCHED_CONTROL and r.status == CaseStatus.KEPT}
         with_control = sum(r.case_key in matched for r in kept)
         return {
             "stale candidates drafted": len(stale),
             "constructed stale lessons kept": len(kept),
-            "gate failed": sum(r.status == constructor.GATE_FAILED for r in stale),
+            "gate failed": sum(r.status == CaseStatus.GATE_FAILED for r in stale),
             "with a matched control": with_control,
             "without a matched control": len(kept) - with_control,
         }
@@ -274,7 +285,7 @@ class Scorer:
 REJECTED = (harness.Decision.FLAG, harness.Decision.WITHHOLD)
 
 
-def _mechanism_row(mechanism: str, kind: str) -> dict:
+def _mechanism_row(mechanism: str, kind: Section) -> dict:
     return {
         "mechanism": mechanism,
         "revision pairs": 0,
@@ -284,7 +295,7 @@ def _mechanism_row(mechanism: str, kind: str) -> dict:
         "contradicted rejected": 0,
         "recheck": 0,
         # Measured on constructed cases with a matched control only (V6).
-        "unnecessary rejection": {"rejected": 0, "matched controls": 0} if kind == CONSTRUCTED else None,
+        "unnecessary rejection": {"rejected": 0, "matched controls": 0} if kind == Section.CONSTRUCTED else None,
         "cost: checks": 0,
         "wall time (s)": 0.0,
         "tokens": 0,

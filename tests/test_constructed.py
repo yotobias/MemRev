@@ -10,9 +10,10 @@ import sqlite3
 
 import pytest
 
-from memrev import constructor, harness, llm
+from memrev import constructor, harness, llm, variant_bank
 from memrev.assumptions import Assumptions
 from memrev.constructed_lessons import ConstructedLessons
+from memrev.constructor import Role
 from memrev.harness import RecordedRun
 from memrev.labels import LabelStore
 from memrev.lesson_bank import FIELDS as BANK_FIELDS
@@ -167,8 +168,8 @@ def test_each_kept_stale_lesson_gets_one_matched_control_that_passes_3_of_3_at_S
     control_lesson, pair_id = ConstructedLessons(c.store()).get(by_statement[CONTROL["statement"]].lesson_id)
     assert (control_lesson.lesson_text, pair_id) == (CONTROL["lesson_text"], c.pair1)
     cases = constructor.case_records(c.store(), c.pair1)
-    stale_case = next(r for r in cases if r.role == constructor.STALE)
-    controls = [r for r in cases if r.role == constructor.CONTROL]
+    stale_case = next(r for r in cases if r.role == Role.CONSTRUCTED_STALE)
+    controls = [r for r in cases if r.role == Role.MATCHED_CONTROL]
     assert [(r.status, r.stale_case_key) for r in controls] == [
         ("not matched", stale_case.case_key),
         ("not matched", stale_case.case_key),
@@ -365,14 +366,14 @@ def test_the_variant_bank_replaces_natural_lessons_by_constructed_ones_under_opa
     columns = [row[1] for row in c.store().conn.execute("PRAGMA table_info(variant_lessons)")]
     assert columns == ["pair_id", *BANK_FIELDS]
     # Only the mapping says what is behind each opaque id.
-    entries = {e.variant_lesson_id: e for e in constructor.variant_entries(c.store(), c.pair1)}
+    entries = {e.variant_lesson_id: e for e in variant_bank.variant_entries(c.store(), c.pair1)}
     assert set(entries) == {l.lesson_id for l in bank}
     kinds = sorted(e.kind for e in entries.values())
-    assert kinds == sorted([constructor.CONTROL, constructor.STALE, constructor.NATURAL, constructor.NATURAL])
+    assert kinds == sorted([Role.MATCHED_CONTROL, Role.CONSTRUCTED_STALE, Role.NATURAL, Role.NATURAL])
     by_text = {l.lesson_text: entries[l.lesson_id] for l in bank}
     stale_lesson = next(a.lesson_id for a in constructed_assumptions(c) if a.content.statement == STALE["statement"])
     assert (by_text[STALE["lesson_text"]].kind, by_text[STALE["lesson_text"]].lesson_id) == (
-        constructor.STALE, stale_lesson,
+        Role.CONSTRUCTED_STALE, stale_lesson,
     )
     assert "2 constructed lessons replaced 2 natural lessons" in result.out
 

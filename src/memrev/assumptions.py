@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -259,3 +260,24 @@ class Assumptions:
                 "WHERE assumption_id = ? AND assumption_hash IN (?, ?)",
                 (current_hash, assumption_id, stale_hash, current_hash),
             )
+
+
+# Supporting files ---------------------------------------------------------
+
+_LINE_SUFFIX = re.compile(r":\d+(-\d+)?$")
+
+
+def file_part(code_pointer: str) -> str:
+    """The repository path of a code pointer: `a/b.py::Cls.meth`, `a/b.py:12` or `a/b.py:12-20` -> `a/b.py`."""
+    return _LINE_SUFFIX.sub("", code_pointer.split("::", 1)[0].strip())
+
+
+def supporting_files(store: RunStore, lesson_ids: list[str]) -> dict[str, frozenset[str]]:
+    """Per lesson, the files its accepted (reviewed) assumptions point at; pending and rejected don't count."""
+    files: dict[str, set[str]] = {lesson_id: set() for lesson_id in lesson_ids}
+    for assumption in Assumptions(store).reviewed():
+        if assumption.lesson_id in files:
+            files[assumption.lesson_id].update(
+                path for path in map(file_part, assumption.content.code_pointers) if path
+            )
+    return {lesson_id: frozenset(paths) for lesson_id, paths in files.items()}

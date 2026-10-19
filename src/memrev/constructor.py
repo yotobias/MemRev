@@ -1,5 +1,5 @@
-"""Stages `construct` and `variant-bank`: constructed stale lessons, matched controls and the blinded
-variant memory bank per revision pair (V4, V5, V6, V29, V30).
+"""Stage `construct`: constructed stale lessons and matched controls per revision pair (V4, V5, V6,
+V29, V30). The blinded variant memory bank built from them is `memrev.variant_bank`.
 
 Per drift-kept revision pair, an LLM reads the S..T diff and drafts candidate stale lessons: advice
 that relied on behaviour the diff changes, each with one assumption and its check. The repository is
@@ -12,10 +12,10 @@ Kept constructed lessons live in `constructed_lessons` (the lesson-bank schema p
 assumptions enter the shared `assumptions` table as pending (origin `construct`), so they go through
 `review-export`/`review-import`, `check` and label sign-off like natural ones (V29).
 
-Which constructed lesson is a stale lesson and which a control (`constructed_cases`), and which lesson
-sits behind each opaque id of a variant bank (`variant_mapping`, see `memrev.variant_bank`), is the
-constructed-case mapping. Only the scorer reads it, through `case_records` and `variant_entries`; the
-harness never imports this module.
+Which constructed lesson is a constructed stale lesson and which a matched control
+(`constructed_cases`), and which lesson sits behind each opaque id of a variant bank
+(`memrev.variant_bank.variant_entries`), is the constructed-case mapping. Only the scorer reads it,
+through `case_records` and `variant_entries`; the harness only reads `variant_bank.VariantBank`.
 """
 
 from __future__ import annotations
@@ -23,27 +23,39 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import secrets
 from collections import Counter
 from dataclasses import dataclass
+from enum import StrEnum
 
-from memrev.assumptions import Assumption, AssumptionContent, Assumptions, AssumptionType, ReviewStatus
+from memrev.assumptions import Assumption, AssumptionContent, Assumptions, AssumptionType, ReviewStatus, file_part
 from memrev.check_runner import CheckRunner, Outcome, make_runner
 from memrev.checks import KEPT, RUNNER_HELP, _Checker, environment_for
 from memrev.constructed_lessons import ConstructedLessons
 from memrev.evidence import EvidenceStore
 from memrev.labeller import listing
-from memrev.harness import file_part, supporting_files
 from memrev import llm
 from memrev.llm import DEFAULT_MODEL, LLMClient, LLMFailure, LLMRequest
 from memrev.repository import Repository
 from memrev.store import ExclusionReason, Lesson, RevisionPair, RunError, RunStore, open_run
-from memrev.variant_bank import VariantBank
 
 STAGE = ORIGIN = "construct"
-STALE, CONTROL, NATURAL = "constructed stale lesson", "matched control", "natural lesson"
-# Status of a case (one drafted candidate).
-KEPT_CASE, GATE_FAILED, NOT_MATCHED = "kept", "gate failed", "not matched"
+
+
+class Role(StrEnum):
+    """What a lesson is in the constructed-case mapping (scorer only)."""
+
+    NATURAL = "natural lesson"
+    CONSTRUCTED_STALE = "constructed stale lesson"
+    MATCHED_CONTROL = "matched control"
+
+
+class CaseStatus(StrEnum):
+    """What became of one drafted candidate."""
+
+    KEPT = "kept"
+    GATE_FAILED = "gate failed"
+    NOT_MATCHED = "not matched"
+
 
 DIFF_PATHS = ("*.py",)  # the diff the LLM sees: Python files only
 MAX_DIFF_CHARS = 60_000
@@ -61,17 +73,6 @@ CREATE TABLE IF NOT EXISTS constructed_cases (
     status TEXT NOT NULL,                 -- kept | gate failed | not matched
     detail TEXT NOT NULL,
     draft TEXT NOT NULL                   -- the LLM's candidate as JSON
-);
-CREATE TABLE IF NOT EXISTS variant_mapping (
-    pair_id TEXT NOT NULL,
-    variant_lesson_id TEXT NOT NULL,      -- the opaque id in the variant bank
-    kind TEXT NOT NULL,                   -- natural lesson | constructed stale lesson | matched control
-    lesson_id TEXT NOT NULL,              -- the natural or constructed lesson behind it
-    PRIMARY KEY (pair_id, variant_lesson_id)
-);
-CREATE TABLE IF NOT EXISTS variant_salts (
-    pair_id TEXT PRIMARY KEY,
-    salt TEXT NOT NULL                    -- secret: opaque ids and the replacement order derive from it
 );
 """
 
@@ -188,11 +189,11 @@ class CaseRecord:
 
     case_key: str
     pair_id: str
-    role: str  # STALE or CONTROL
+    role: Role  # CONSTRUCTED_STALE or MATCHED_CONTROL
     stale_case_key: str
     lesson_id: str
     assumption_id: str
-    status: str  # KEPT_CASE, GATE_FAILED or NOT_MATCHED
+    status: CaseStatus
     detail: str
     draft: str
 
@@ -228,7 +229,10 @@ def case_records(store: RunStore, pair_id: str | None = None) -> list[CaseRecord
         f"SELECT {_CASE_COLUMNS} FROM constructed_cases WHERE (? IS NULL OR pair_id = ?) ORDER BY rowid",
         (pair_id, pair_id),
     )
-    return [CaseRecord(*row) for row in rows]
+    return [
+        CaseRecord(key, pid, Role(role), stale_key, lesson_id, aid, CaseStatus(status), detail, draft)
+        for key, pid, role, stale_key, lesson_id, aid, status, detail, draft in rows
+    ]
 
 
 # The stage ------------------------------------------------------------------
@@ -261,12 +265,12 @@ class _Constructor:
             failure = self._gate(draft, case_key, pair, Outcome.FAIL_ON_TARGET)
             candidate_subject = f"candidate {case_key}"
             if failure:
-                self._record_case(case_key, pair, STALE, "", draft, GATE_FAILED, failure)
+                self._record_case(case_key, pair, Role.CONSTRUCTED_STALE, "", draft, CaseStatus.GATE_FAILED, failure)
                 self.store.record_exclusion(STAGE, candidate_subject, ExclusionReason.GATE_FAILED, failure)
                 continue
             self.store.clear_exclusion(STAGE, candidate_subject)
             self._keep(case_key, pair, draft)
-            self._record_case(case_key, pair, STALE, "", draft, KEPT_CASE, "")
+            self._record_case(case_key, pair, Role.CONSTRUCTED_STALE, "", draft, CaseStatus.KEPT, "")
             self._match_control(case_key, pair, draft, diff)
 
     def _match_control(self, stale_key: str, pair: RevisionPair, stale: Draft, diff: str) -> None:
@@ -284,16 +288,16 @@ class _Constructor:
             case_key = f"{stale_key}/control-{m}"
             mismatch = _mismatch(stale, control)
             if mismatch:
-                self._record_case(case_key, pair, CONTROL, stale_key, control, NOT_MATCHED, mismatch)
+                self._record_case(case_key, pair, Role.MATCHED_CONTROL, stale_key, control, CaseStatus.NOT_MATCHED, mismatch)
                 problem = f"control-{m}: {mismatch}"
                 continue
             failure = self._gate(control, case_key, pair, Outcome.PASS)
             if failure:
-                self._record_case(case_key, pair, CONTROL, stale_key, control, GATE_FAILED, failure)
+                self._record_case(case_key, pair, Role.MATCHED_CONTROL, stale_key, control, CaseStatus.GATE_FAILED, failure)
                 problem = f"control-{m}: {failure}"
                 continue
             self._keep(case_key, pair, control)
-            self._record_case(case_key, pair, CONTROL, stale_key, control, KEPT_CASE, "")
+            self._record_case(case_key, pair, Role.MATCHED_CONTROL, stale_key, control, CaseStatus.KEPT, "")
             self.store.clear_exclusion(STAGE, subject)
             return
         self.store.record_exclusion(STAGE, subject, ExclusionReason.NO_MATCHED_CONTROL, problem)
@@ -324,13 +328,13 @@ class _Constructor:
         Assumptions(self.store).add(lesson_id, draft.content, ORIGIN)
 
     def _record_case(
-        self, case_key: str, pair: RevisionPair, role: str, stale_key: str, draft: Draft, status: str, detail: str
+        self, case_key: str, pair: RevisionPair, role: Role, stale_key: str, draft: Draft, status: CaseStatus, detail: str
     ) -> None:
         lesson_id = constructed_lesson_id(case_key)
         with self.store.conn:
             self.store.conn.execute(
                 f"INSERT OR REPLACE INTO constructed_cases ({_CASE_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (case_key, pair.pair_id, role, stale_key, lesson_id, _assumption_id(lesson_id), status, detail,
+                (case_key, pair.pair_id, str(role), stale_key, lesson_id, _assumption_id(lesson_id), str(status), detail,
                  draft.as_json()),
             )  # fmt: skip
 
@@ -421,123 +425,16 @@ def cmd_construct(args) -> int:
     counts = _summary(store)
     print(f"construct: {len(pairs)} revision pairs, cost ${client.cost_usd:.4f}")
     print(
-        f"  constructed stale lessons kept: {counts[(STALE, KEPT_CASE)]}, "
+        f"  constructed stale lessons kept: {counts[(Role.CONSTRUCTED_STALE, CaseStatus.KEPT)]}, "
         f"gate failed: {counts[str(ExclusionReason.GATE_FAILED)]}"
     )
     print(
-        f"  matched controls: {counts[(CONTROL, KEPT_CASE)]}, "
+        f"  matched controls: {counts[(Role.MATCHED_CONTROL, CaseStatus.KEPT)]}, "
         f"no matched control: {counts[str(ExclusionReason.NO_MATCHED_CONTROL)]}"
     )
     print(f"  no behaviour change found: {counts[str(ExclusionReason.NO_BEHAVIOUR_CHANGE_FOUND)]}")
     if counts[str(ExclusionReason.EXTRACTION_FAILED)]:
         print(f"  drafting failed: {counts[str(ExclusionReason.EXTRACTION_FAILED)]} (rerun to retry)")
-    return 0
-
-
-# variant-bank -------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class VariantEntry:
-    """What sits behind one opaque id of a variant bank. Part of the constructed-case mapping: scorer only."""
-
-    pair_id: str
-    variant_lesson_id: str
-    kind: str  # NATURAL, STALE or CONTROL
-    lesson_id: str  # the natural lesson id, or the constructed lesson id (see `case_records`)
-
-
-def variant_entries(store: RunStore, pair_id: str | None = None) -> list[VariantEntry]:
-    """The opaque-id mapping of the variant banks. For the scorer only."""
-    _ensure_schema(store)
-    rows = store.conn.execute(
-        "SELECT pair_id, variant_lesson_id, kind, lesson_id FROM variant_mapping "
-        "WHERE (? IS NULL OR pair_id = ?) ORDER BY pair_id, variant_lesson_id",
-        (pair_id, pair_id),
-    )
-    return [VariantEntry(*row) for row in rows]
-
-
-def _salt(store: RunStore, pair_id: str) -> str:
-    """The pair's secret salt, created once, so opaque ids stay stable across rebuilds but cannot be
-    recomputed from lesson ids by anyone who has not read the mapping."""
-    with store.conn:
-        store.conn.execute(
-            "INSERT OR IGNORE INTO variant_salts (pair_id, salt) VALUES (?, ?)", (pair_id, secrets.token_hex(16))
-        )
-    return store.conn.execute("SELECT salt FROM variant_salts WHERE pair_id = ?", (pair_id,)).fetchone()[0]
-
-
-def _digest(salt: str, *parts: str) -> str:
-    return hashlib.sha256("\0".join((salt, *parts)).encode()).hexdigest()
-
-
-def _reviewed_constructed(store: RunStore, pair_id: str) -> list[tuple[Lesson, str]]:
-    """The pair's kept constructed lessons whose assumption was accepted in review, with their role."""
-    roles = {r.lesson_id: r.role for r in case_records(store, pair_id) if r.status == KEPT_CASE}
-    accepted = {a.lesson_id for a in Assumptions(store).reviewed()}
-    return [
-        (lesson, roles[lesson.lesson_id])
-        for lesson, pid in ConstructedLessons(store).all()
-        if pid == pair_id and lesson.lesson_id in roles and lesson.lesson_id in accepted
-    ]
-
-
-def build_variant_bank(store: RunStore, pair: RevisionPair) -> tuple[int, int] | None:
-    """Build the pair's variant bank (V29): the natural bank of (repository, S) with natural lessons
-    replaced, in a salted random order, by the pair's reviewed constructed lessons (extra ones are
-    added). Every lesson gets an opaque id and an empty trajectory pointer; a constructed lesson takes
-    the task id of the lesson it replaces. Returns (lessons, replaced), or None if the pair has no
-    reviewed constructed lesson."""
-    _ensure_schema(store)
-    constructed = _reviewed_constructed(store, pair.pair_id)
-    if not constructed:
-        return None
-    salt = _salt(store, pair.pair_id)
-    natural = sorted(
-        (l for l in store.lessons() if (l.repository, l.source_revision) == (pair.repository, pair.source_revision)),
-        key=lambda l: _digest(salt, "order", l.lesson_id),
-    )
-    replaced, kept = natural[: len(constructed)], natural[len(constructed) :]
-    behind = [(NATURAL, lesson, lesson.task_id) for lesson in kept] + [
-        (role, lesson, replaced[i].task_id if i < len(replaced) else lesson.task_id)
-        for i, (lesson, role) in enumerate(constructed)
-    ]
-    entries, bank = [], []
-    for kind, lesson, task_id in behind:
-        opaque = "v-" + _digest(salt, pair.pair_id, lesson.lesson_id)[:16]
-        entries.append(VariantEntry(pair.pair_id, opaque, kind, lesson.lesson_id))
-        bank.append(Lesson(opaque, lesson.lesson_text, task_id, pair.repository, pair.source_revision, ""))
-    files = supporting_files(store, [e.lesson_id for e in entries])
-    VariantBank(store).replace(pair.pair_id, bank, {e.variant_lesson_id: files[e.lesson_id] for e in entries})
-    with store.conn:
-        store.conn.execute("DELETE FROM variant_mapping WHERE pair_id = ?", (pair.pair_id,))
-        store.conn.executemany(
-            "INSERT INTO variant_mapping (pair_id, variant_lesson_id, kind, lesson_id) VALUES (?, ?, ?, ?)",
-            [(e.pair_id, e.variant_lesson_id, e.kind, e.lesson_id) for e in entries],
-        )
-    return len(bank), len(replaced)
-
-
-def cmd_variant_bank(args) -> int:
-    store = open_run(args)
-    wanted = args.pair or list(dict.fromkeys(pid for _, pid in ConstructedLessons(store).all()))
-    for pair_id in wanted:
-        pair = store.revision_pair(pair_id)
-        if pair is None:
-            raise RunError(f"{pair_id} is not a recorded revision pair (run `pairs` first)")
-        built = build_variant_bank(store, pair)
-        if built is None:
-            print(f"variant-bank: pair {pair_id}: no reviewed constructed lesson, no variant bank built")
-            continue
-        size, replaced = built
-        n_constructed = len(_reviewed_constructed(store, pair_id))
-        print(
-            f"variant-bank: pair {pair_id}: {size} lessons; "
-            f"{n_constructed} constructed lessons replaced {replaced} natural lessons"
-        )
-    if not wanted:
-        print("variant-bank: no constructed lessons in this run (run `construct` first)")
     return 0
 
 
@@ -549,12 +446,5 @@ def add_parsers(stages: argparse._SubParsersAction) -> None:
     con.add_argument("--model", default=DEFAULT_MODEL, help=f"model id (default {DEFAULT_MODEL})")
     con.add_argument("--runner", default="docker", help=RUNNER_HELP)
 
-    var = stages.add_parser(
-        "variant-bank", help="build the blinded variant memory bank per pair from reviewed constructed lessons"
-    )
-    var.add_argument(
-        "--pair", action="append", help="only this pair id (repeatable; default: every pair with constructed lessons)"
-    )
 
-
-COMMANDS = {"construct": cmd_construct, "variant-bank": cmd_variant_bank}
+COMMANDS = {"construct": cmd_construct}

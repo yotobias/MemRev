@@ -20,8 +20,8 @@ from memrev.store import open_run
 
 TITLE = "# MemRev Pilot B report"
 SECTION_TITLES = {
-    scorer.NATURAL: "## Natural cases",
-    scorer.CONSTRUCTED: "## Constructed cases",
+    scorer.Section.NATURAL: "## Natural cases",
+    scorer.Section.CONSTRUCTED: "## Constructed cases",
 }
 
 
@@ -68,7 +68,7 @@ def _section(kind: str, data: dict) -> list[str]:
         MECHANISM_NOTE,
         "",
     ]
-    if kind == scorer.NATURAL:
+    if kind == scorer.Section.NATURAL:
         y = data["extraction"]
         lines[2:2] = [
             f"Extraction yield: lessons processed: {y['lessons processed']}, checkable assumptions: "
@@ -81,8 +81,8 @@ def _section(kind: str, data: dict) -> list[str]:
 
 
 BANKS = {
-    scorer.NATURAL: "original memory bank",
-    scorer.CONSTRUCTED: "variant memory bank, constructed lessons only",
+    scorer.Section.NATURAL: "original memory bank",
+    scorer.Section.CONSTRUCTED: "variant memory bank, constructed lessons only",
 }
 MECHANISM_NOTE = (
     "Lessons scored: lesson labels other than inconclusive. Kept = keep; rejected = flag or withhold; "
@@ -116,7 +116,7 @@ def _llm_cost(rows: list[dict]) -> list[str]:
 
 def render(data: dict, run_dir: Path) -> str:
     lines = [TITLE, "", f"Run: {run_dir}", ""]
-    for kind in scorer.KINDS:
+    for kind in scorer.Section:
         lines += _section(kind, data[kind])
     lines += _llm_cost(data["llm_cost"])
     return "\n".join(lines)
