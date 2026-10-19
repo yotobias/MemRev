@@ -23,7 +23,7 @@ Built by an AI agent (Claude Code), test-first on seam N1.
 
 **Command**
 - `uv run memrev --run <run-dir> pairs [--meta <meta.jsonl>]`. `--meta` defaults to `data/swe-bench-verified-meta.jsonl`. Stdout: `pairs: N revision pairs from M source revisions, K excluded`, then one `  <reason>: <count>` line per exclusion reason. Each exclusion is listed on stderr with its detail.
-- Runs over every repository mapped in the run that has lessons. Rerunning is idempotent (same pair ids, exclusions upserted, stale ones cleared).
+- Runs over every repository mapped in the run that has lessons. Rerunning is idempotent (same pair ids, exclusions upserted, outdated ones cleared).
 - On the fixture bank against the real django clone: 36 pairs from 12 sources (all 4.0), 0 ancestry failures, 984 cross-version rows, about 6 s. Opt-in test: `MEMREV_DJANGO_REPO=<clone> uv run pytest`.
 
 **Layout**

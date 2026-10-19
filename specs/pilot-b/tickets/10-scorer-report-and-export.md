@@ -46,5 +46,5 @@ Built by an AI agent (Claude Code), test-first on seam N1 (`tests/test_report.py
 - One recheck adds one check to cost. If a later mechanism executes the recheck itself (and counts it through `view.cost`), it would be counted twice; revisit then.
 - A matched control whose stale lesson was rejected in review (so not in the variant bank) is left out of unnecessary rejection: there is no matched pair to score.
 - `lessons processed` counts lessons with any logged extract call, so it is cumulative over reruns with a growing `--limit`.
-- The export includes every assumption (any review status, with `status`), current (non-stale) evidence, including gate runs of candidates that failed the gate (their `lesson_id` is empty, `case` comes from the mapping), and current final labels of accepted assumptions only. Lesson labels are not exported (derived; see the report).
+- The export includes every assumption (any review status, with `status`), current (not superseded) evidence, including gate runs of candidates that failed the gate (their `lesson_id` is empty, `case` comes from the mapping), and current final labels of accepted assumptions only. Lesson labels are not exported (derived; see the report).
 - LLM cost per stage counts API attempts (cache hits left out), failed attempts included, since they can cost tokens.

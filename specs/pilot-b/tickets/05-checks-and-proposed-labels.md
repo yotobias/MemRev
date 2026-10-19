@@ -24,14 +24,14 @@ Built by an AI agent (Claude Code), test-first on seam N1 (`tests/test_checks.py
 
 **Commands**
 - `memrev --run <dir> drift [--runner NAME[=ARG]] [--sanity <file>]`: per revision pair, runs every sanity command 3x at S and 3x at T. Kept only if all runs pass. Otherwise, or if the runner raises `EnvironmentUnavailable`, the pair is dropped: exclusion stage `drift`, subject `pair <pair_id>`, reason "environment unavailable", detail like `T: <command>: pass, fail on asserted target, pass`. Stdout: `drift: N revision pairs guarded, K kept, D dropped (R reused from an earlier run)`. A pair that already has a verdict is not rerun.
-- `memrev --run <dir> check [--runner NAME[=ARG]]`: for every reviewed (accepted), checkable assumption, runs its check 3x at the lesson's S and, if valid at S, 3x at T of every pair the drift guard kept. Prints counts at S, proposed labels per label, and reused evidence. Pairs without a drift verdict are skipped and counted ("run `drift` first").
+- `memrev --run <dir> check [--runner NAME[=ARG]]`: for every reviewed (accepted), checkable assumption, runs its check 3x at the lesson's S and, if it passes 3/3 at S, 3x at T of every pair the drift guard kept. Prints counts at S, proposed labels per label, and reused evidence. Pairs without a drift verdict are skipped and counted ("run `drift` first").
 - `--runner` defaults to `docker`, which ticket 07 registers. Until then use `--runner fake=<script.json>`.
 - Sanity set: `checks.SANITY_SETS` per repository (django: `utils_tests.test_text`, `test_html` and `test_datastructures` via runtests.py; ticket 07/11 should confirm these labels exist in every version). `--sanity <file>` (one command per line) replaces it. A repository with neither is an error.
 
 **Layout**
 - `src/memrev/check_runner.py`: the interface (`Outcome`, `Check`, `Environment`, `RunResult`, `EnvironmentUnavailable`, `CheckRunner` protocol), `FakeCheckRunner` and the runner registry (`register_runner`, `make_runner`).
 - `src/memrev/labeller.py`: pure rules. `source_verdict(outcomes)` and `target_label(outcomes)`, plus `Label`. Ticket 06 can add lesson-label aggregation here.
-- `src/memrev/evidence.py`: `EvidenceStore(store)`, the tables below. It creates them on first use and registers the three assumption tables as downstream (staleness hook from 03).
+- `src/memrev/evidence.py`: `EvidenceStore(store)`, the tables below. It creates them on first use and registers the three assumption tables as downstream (supersession hook from 03).
 - `src/memrev/checks.py`: the two stages. `cli.py` wires them like review (`checks.add_parsers`, `COMMANDS.update`).
 
 **Check-runner interface (for ticket 07)**
@@ -52,12 +52,12 @@ raise EnvironmentUnavailable(msg)     # image or checkout of `revision` cannot b
 - Image name: look up `instance_id` in the metadata's `image` column. `Environment` doesn't carry it, so the fake needs no metadata.
 - During `check`, `EnvironmentUnavailable` is stored as a "harness error" run, since the drift guard already passed. At S that makes the assumption invalid at S (V20 taken literally).
 
-**Tables (for ticket 06/10)**. Read through `EvidenceStore`, which filters `stale = 0` unless `include_stale=True`.
-- `evidence` (one row per assumption-check execution): `assumption_id, assumption_hash, side (S|T), revision, pair_id ('' at S), command, asserted_target, run_index (1-3), outcome, exit_status, output_excerpt, detail, ran_at (UTC ISO), duration_seconds, stale`. PK `(assumption_id, assumption_hash, revision, run_index)`. One S run serves all pairs of the source (they share the image).
-- `source_verdicts`: `assumption_id, assumption_hash, revision (S), verdict ('valid' | 'invalid at S'), detail ('runs at S: ...'), stale`. Invalid at S is also an exclusion: stage `check`, subject `assumption <id>`, reason "invalid at S". It is cleared if a later version is valid.
-- `proposed_labels`: `assumption_id, assumption_hash, pair_id, target_revision, label ('supported within scope' | 'contradicted' | 'inconclusive'), reason, stale, proposed_at`. PK `(assumption_id, assumption_hash, pair_id)`. `reason` is '' unless inconclusive, and then one of `labeller.HARNESS_ERROR` ("harness error"), `DISAGREEMENT` ("check disagrees with itself") or `OUT_OF_SCOPE_AT_T` ("out of scope at T"). The individual outcomes stay in `evidence`.
+**Tables (for ticket 06/10)**. Read through `EvidenceStore`, which filters `superseded = 0` unless `include_superseded=True`.
+- `evidence` (one row per assumption-check execution): `assumption_id, assumption_hash, side (S|T), revision, pair_id ('' at S), command, asserted_target, run_index (1-3), outcome, exit_status, output_excerpt, detail, ran_at (UTC ISO), duration_seconds, superseded`. PK `(assumption_id, assumption_hash, revision, run_index)`. One S run serves all pairs of the source (they share the image).
+- `source_verdicts`: `assumption_id, assumption_hash, revision (S), verdict ('passes at S' | 'invalid at S'), detail ('runs at S: ...'), superseded`. Invalid at S is also an exclusion: stage `check`, subject `assumption <id>`, reason "invalid at S". It is cleared if a later version passes at S.
+- `proposed_labels`: `assumption_id, assumption_hash, pair_id, target_revision, label ('supported within scope' | 'contradicted' | 'inconclusive'), reason, superseded, proposed_at`. PK `(assumption_id, assumption_hash, pair_id)`. `reason` is '' unless inconclusive, and then one of `Outcome.HARNESS_ERROR` ("harness error"), `DISAGREEMENT` ("check disagrees with itself") or `OUT_OF_SCOPE_AT_T` ("out of scope at T"). The individual outcomes stay in `evidence`.
 - `drift_runs` (`pair_id, side, revision, command, run_index, outcome, exit_status, output_excerpt, detail, ran_at, duration_seconds`) and `drift_verdicts` (`pair_id, verdict 'kept'|'dropped', detail`). These are not keyed to assumptions.
-- For 06: "send back for a rewritten check" → `Assumptions.update_content`. The new hash has no evidence, so the next `check` runs it, and the old rows are stale. A rejected assumption keeps its non-stale rows, so join with `Assumptions.reviewed()`.
+- For 06: "send back for a rewritten check" → `Assumptions.update_content`. The new hash has no evidence, so the next `check` runs it, and the old rows are superseded. A rejected assumption keeps its current rows, so join with `Assumptions.reviewed()`.
 
 **Decisions made while building** (small, not grilled)
 - Rule order at T: any harness error → inconclusive "harness error"; otherwise mixed outcomes → "check disagrees with itself"; 3/3 pass → supported; 3/3 fail on target → contradicted; 3/3 out of scope → inconclusive "out of scope at T". "Out of scope at T" is a label reason, not an extra exclusion row, so 10 must not count it twice.
@@ -65,7 +65,7 @@ raise EnvironmentUnavailable(msg)     # image or checkout of `revision` cannot b
 - The drift guard needs every sanity run at S and T to pass, so a sanity test broken at S also drops the pair.
 - Uncheckable assumptions are skipped and counted on stdout, with no exclusion row (03/04 own that count).
 - Reuse: three stored runs for (id, hash, revision) are reused. A partial set (interrupted stage) is discarded and rerun. Labels and verdicts are recomputed from the evidence on every run.
-- The staleness hook only fires for tables registered in the process. `cli.py` imports `checks` → `evidence`, so any `review-import` through the CLI marks evidence stale.
+- The supersession hook only fires for tables registered in the process. `cli.py` imports `checks` → `evidence`, so any `review-import` through the CLI marks evidence superseded.
 
 **Fake runner script** (`--runner fake=<script.json>`)
 ```json

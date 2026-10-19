@@ -218,7 +218,7 @@ def test_a_check_not_passing_3_of_3_at_S_is_invalid_at_S_and_never_run_at_T(pipe
 
     result = pipeline.check()
 
-    assert "at S: 0 valid, 1 invalid at S" in result.out
+    assert "at S: 0 pass 3/3, 1 invalid at S" in result.out
     assert labels(pipeline) == {}
     assert {r.side for r in pipeline.evidence().evidence("L1#1")} == {"S"}
     reason, detail = pipeline.exclusions("check")["assumption L1#1"]
@@ -299,7 +299,7 @@ def test_rerunning_the_check_stage_reuses_evidence_of_unchanged_assumptions(pipe
     assert {label for label, _ in labels(pipeline).values()} == {"supported within scope"}
 
 
-def test_editing_an_assumption_makes_its_evidence_stale_and_the_new_version_is_checked_again(pipeline):
+def test_editing_an_assumption_makes_its_evidence_superseded_and_the_new_version_is_checked_again(pipeline):
     pipeline.seed_and_accept(VALUE_EXISTS)
     pipeline.drift()
     pipeline.check()
@@ -318,10 +318,10 @@ def test_editing_an_assumption_makes_its_evidence_stale_and_the_new_version_is_c
     current = pipeline.evidence().evidence("L1#1")
     assert {(r.assumption_hash, r.command) for r in current} == {(new_hash, OTHER_CHECK)}
     assert len(current) == 9
-    everything = pipeline.evidence().evidence("L1#1", include_stale=True)
-    assert {r.assumption_hash for r in everything if r.stale} == {old_hash}
+    everything = pipeline.evidence().evidence("L1#1", include_superseded=True)
+    assert {r.assumption_hash for r in everything if r.superseded} == {old_hash}
     assert labels(pipeline)[("L1#1", pipeline.pair1)] == ("contradicted", "")
-    old_labels = [l for l in pipeline.evidence().proposed_labels(include_stale=True) if l.stale]
+    old_labels = [l for l in pipeline.evidence().proposed_labels(include_superseded=True) if l.superseded]
     assert {(l.assumption_hash, l.label) for l in old_labels} == {(old_hash, "supported within scope")}
 
 

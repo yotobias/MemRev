@@ -1,9 +1,9 @@
-"""Assumptions in the run store: the record, its content hash, review state and staleness.
+"""Assumptions in the run store: the record, its content hash, review state and superseded versions.
 
 Every assumption has a stable `assumption_id` and a content `assumption_hash` over the
 reviewable fields. Downstream records (evidence, labels, scores) are keyed to
 `(assumption_id, assumption_hash)`. When an edit changes the hash, `Assumptions.update_content`
-marks the rows of every registered downstream table that carry the old hash as stale.
+marks the rows of every registered downstream table that carry the old hash as superseded.
 """
 
 from __future__ import annotations
@@ -50,9 +50,9 @@ CREATE TABLE IF NOT EXISTS review_decisions (
 );
 """
 
-# Downstream tables whose rows go stale when an assumption's hash changes.
+# Downstream tables whose rows are superseded when an assumption's hash changes.
 # Each table must have the columns `assumption_id TEXT`, `assumption_hash TEXT` and
-# `stale INTEGER NOT NULL DEFAULT 0`. Tickets that add evidence, labels or scores
+# `superseded INTEGER NOT NULL DEFAULT 0`. Tickets that add evidence, labels or scores
 # append their table name here (or call `register_downstream`).
 DOWNSTREAM_TABLES: list[str] = []
 
@@ -188,7 +188,7 @@ class Assumptions:
 
     def update_content(self, assumption_id: str, content: AssumptionContent) -> bool:
         """Replace an assumption's content. If the hash changes, the assumption returns to pending
-        and every downstream row carrying the old hash is marked stale. Returns whether it changed."""
+        and every downstream row carrying the old hash is marked superseded. Returns whether it changed."""
         current = self.get(assumption_id)
         if current is None:
             raise KeyError(assumption_id)
@@ -207,7 +207,7 @@ class Assumptions:
                 (assumption_id, current.hash),
             )
             self._record_version(assumption_id, content.hash)
-            self._mark_downstream(assumption_id, stale_hash=current.hash, current_hash=content.hash)
+            self._mark_downstream(assumption_id, superseded_hash=current.hash, current_hash=content.hash)
         return True
 
     def record_decision(self, assumption_id: str, decision: str, status: ReviewStatus, reviewer_id: str) -> None:
@@ -224,7 +224,7 @@ class Assumptions:
                 (decision, str(status), reviewer_id, assumption_id),
             )
 
-    def is_stale(self, assumption_id: str, assumption_hash: str) -> bool:
+    def is_superseded(self, assumption_id: str, assumption_hash: str) -> bool:
         """True if `assumption_hash` is not the assumption's current hash (it was edited since)."""
         current = self.get(assumption_id)
         return current is None or current.hash != assumption_hash
@@ -250,15 +250,15 @@ class Assumptions:
             (assumption_id, assumption_hash),
         )
 
-    def _mark_downstream(self, assumption_id: str, stale_hash: str, current_hash: str) -> None:
+    def _mark_downstream(self, assumption_id: str, superseded_hash: str, current_hash: str) -> None:
         existing = {r[0] for r in self.conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         for table in DOWNSTREAM_TABLES:
             if table not in existing:
                 continue
             self.conn.execute(
-                f"UPDATE {table} SET stale = (assumption_hash != ?) "
+                f"UPDATE {table} SET superseded = (assumption_hash != ?) "
                 "WHERE assumption_id = ? AND assumption_hash IN (?, ?)",
-                (current_hash, assumption_id, stale_hash, current_hash),
+                (current_hash, assumption_id, superseded_hash, current_hash),
             )
 
 

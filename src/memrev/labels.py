@@ -1,8 +1,8 @@
 """Final labels in the run store: the reviewer's sign-off of each proposed label.
 
 Rows are keyed to `(assumption_id, assumption_hash, pair_id)` and registered as a downstream table,
-so an edit or a rewritten check of an assumption marks its final labels stale (see
-`memrev.assumptions`). Read through `LabelStore`, which filters `stale = 0` unless asked otherwise.
+so an edit or a rewritten check of an assumption marks its final labels superseded (see
+`memrev.assumptions`). Read through `LabelStore`, which filters `superseded = 0` unless asked otherwise.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from memrev.assumptions import Assumption, Assumptions, ReviewStatus, register_d
 from memrev.checks import KEPT
 from memrev.constructed_lessons import ConstructedLessons
 from memrev.evidence import EvidenceStore, ProposedLabel
-from memrev.labeller import INVALID_AT_S, VALID, Label, lesson_label
+from memrev.labeller import INVALID_AT_S, PASSES_AT_S, Label, lesson_label
 from memrev.store import Lesson, RevisionPair, RunStore
 
 SCHEMA = """
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS final_labels (
     second_reviewer_id TEXT,
     label TEXT NOT NULL,                  -- the final label: reviewer_label unless the reviewers disagree
     reason TEXT NOT NULL,                 -- why inconclusive ('' otherwise)
-    stale INTEGER NOT NULL DEFAULT 0,
+    superseded INTEGER NOT NULL DEFAULT 0,
     decided_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (assumption_id, assumption_hash, pair_id)
 );
@@ -59,7 +59,7 @@ class FinalLabel:
     second_reviewer_id: str | None
     label: str
     reason: str
-    stale: bool
+    superseded: bool
 
     @property
     def key(self) -> tuple[str, str, str]:
@@ -68,7 +68,7 @@ class FinalLabel:
 
 _COLUMNS = (
     "assumption_id, assumption_hash, pair_id, target_revision, proposed_label, proposed_reason, reviewer_label, "
-    "action, reviewer_id, second_label, second_reviewer_id, label, reason, stale"
+    "action, reviewer_id, second_label, second_reviewer_id, label, reason, superseded"
 )
 
 
@@ -115,7 +115,7 @@ class LabelStore:
         with self.conn:
             self.conn.execute(
                 f"INSERT OR REPLACE INTO final_labels ({_COLUMNS}) VALUES ({', '.join('?' * 14)})",
-                (*tuple(label.__dict__.values())[:13], int(label.stale)),
+                (*tuple(label.__dict__.values())[:13], int(label.superseded)),
             )
 
     def reviewer_agreement(self) -> tuple[int, int]:
@@ -123,8 +123,8 @@ class LabelStore:
         sampled = [f for f in self.final_labels() if f.second_label is not None]
         return sum(f.second_label == f.reviewer_label for f in sampled), len(sampled)
 
-    def final_labels(self, include_stale: bool = False) -> list[FinalLabel]:
-        where = "" if include_stale else " WHERE stale = 0"
+    def final_labels(self, include_superseded: bool = False) -> list[FinalLabel]:
+        where = "" if include_superseded else " WHERE superseded = 0"
         rows = self.conn.execute(f"SELECT {_COLUMNS} FROM final_labels{where} ORDER BY rowid")
         return [_final(row) for row in rows]
 
@@ -187,8 +187,8 @@ class LabelStore:
         verdict = source.get((a.assumption_id, a.hash))
         if verdict == INVALID_AT_S:
             return str(Label.INCONCLUSIVE)
-        final = self.final_label(a.assumption_id, a.hash, pair_id) if verdict == VALID else None
-        return final.label if final and not final.stale else None
+        final = self.final_label(a.assumption_id, a.hash, pair_id) if verdict == PASSES_AT_S else None
+        return final.label if final and not final.superseded else None
 
     def lesson_labels(self) -> list[LessonLabel]:
         return self.lesson_report().labels

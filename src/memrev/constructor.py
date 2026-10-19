@@ -64,9 +64,9 @@ LENGTH_RATIO = 2.0  # a control's lesson text is at most this many times longer 
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS constructed_cases (
-    case_key TEXT PRIMARY KEY,            -- <pair_id>/stale-<n> or <pair_id>/stale-<n>/control-<m>
+    case_key TEXT PRIMARY KEY,            -- <pair_id>/constructed-stale-<n>[/matched-control-<m>]
     pair_id TEXT NOT NULL,
-    role TEXT NOT NULL,                   -- constructed stale lesson | matched control
+    role TEXT NOT NULL,                   -- constructed stale lesson | matched control (Role)
     stale_case_key TEXT NOT NULL,         -- for a control: its stale lesson's case; else ''
     lesson_id TEXT NOT NULL,              -- the constructed lesson id (kept or not)
     assumption_id TEXT NOT NULL,
@@ -261,7 +261,7 @@ class _Constructor:
             return
         self.store.clear_exclusion(STAGE, subject)
         for n, draft in enumerate(drafts, start=1):
-            case_key = f"{pair.pair_id}/stale-{n}"
+            case_key = f"{pair.pair_id}/constructed-stale-{n}"
             failure = self._gate(draft, case_key, pair, Outcome.FAIL_ON_TARGET)
             candidate_subject = f"candidate {case_key}"
             if failure:
@@ -285,16 +285,16 @@ class _Constructor:
         else:
             problem = "no control drafted"
         for m, control in enumerate(controls, start=1):
-            case_key = f"{stale_key}/control-{m}"
+            case_key = f"{stale_key}/matched-control-{m}"
             mismatch = _mismatch(stale, control)
             if mismatch:
                 self._record_case(case_key, pair, Role.MATCHED_CONTROL, stale_key, control, CaseStatus.NOT_MATCHED, mismatch)
-                problem = f"control-{m}: {mismatch}"
+                problem = f"matched-control-{m}: {mismatch}"
                 continue
             failure = self._gate(control, case_key, pair, Outcome.PASS)
             if failure:
                 self._record_case(case_key, pair, Role.MATCHED_CONTROL, stale_key, control, CaseStatus.GATE_FAILED, failure)
-                problem = f"control-{m}: {failure}"
+                problem = f"matched-control-{m}: {failure}"
                 continue
             self._keep(case_key, pair, control)
             self._record_case(case_key, pair, Role.MATCHED_CONTROL, stale_key, control, CaseStatus.KEPT, "")

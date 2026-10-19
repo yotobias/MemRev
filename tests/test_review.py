@@ -297,14 +297,14 @@ def downstream_scores(monkeypatch):
     def create(store: RunStore) -> None:
         store.conn.execute(
             "CREATE TABLE test_scores (assumption_id TEXT, assumption_hash TEXT, "
-            "score INTEGER, stale INTEGER NOT NULL DEFAULT 0)"
+            "score INTEGER, superseded INTEGER NOT NULL DEFAULT 0)"
         )
         store.conn.commit()
 
     return create
 
 
-def test_an_edit_marks_downstream_rows_of_the_old_hash_stale(seeded, run_dir, tmp_path, downstream_scores):
+def test_an_edit_marks_downstream_rows_of_the_old_hash_superseded(seeded, run_dir, tmp_path, downstream_scores):
     rows = by_statement(export(seeded, tmp_path))
     target = rows["module.VALUE is 0"]
     other = rows["module defines VALUE"]
@@ -319,9 +319,9 @@ def test_an_edit_marks_downstream_rows_of_the_old_hash_stale(seeded, run_dir, tm
 
     review(seeded, tmp_path, list(rows.values()))
 
-    stale = dict(RunStore.open(run_dir).conn.execute("SELECT score, stale FROM test_scores"))
-    assert stale == {1: 1, 2: 0}
-    assert Assumptions(RunStore.open(run_dir)).is_stale(target["assumption_id"], target["hash"])
+    superseded = dict(RunStore.open(run_dir).conn.execute("SELECT score, superseded FROM test_scores"))
+    assert superseded == {1: 1, 2: 0}
+    assert Assumptions(RunStore.open(run_dir)).is_superseded(target["assumption_id"], target["hash"])
 
 
 def test_reverting_an_edit_makes_the_original_rows_current_again(seeded, run_dir, tmp_path, downstream_scores):
@@ -340,5 +340,5 @@ def test_reverting_an_edit_makes_the_original_rows_current_again(seeded, run_dir
 
     review(seeded, tmp_path, list(original.values()), name="revert.csv")
 
-    assert RunStore.open(run_dir).conn.execute("SELECT stale FROM test_scores").fetchone() == (0,)
-    assert not Assumptions(RunStore.open(run_dir)).is_stale(target["assumption_id"], target["hash"])
+    assert RunStore.open(run_dir).conn.execute("SELECT superseded FROM test_scores").fetchone() == (0,)
+    assert not Assumptions(RunStore.open(run_dir)).is_superseded(target["assumption_id"], target["hash"])

@@ -19,7 +19,8 @@ class Label(StrEnum):
     INCONCLUSIVE = "inconclusive"
 
 
-VALID = "valid"
+# Source verdicts: the check passed 3/3 at S, or it is invalid at S (V20).
+PASSES_AT_S = "passes at S"
 INVALID_AT_S = str(ExclusionReason.INVALID_AT_S)
 
 # Reasons for an inconclusive label (besides the runner's own `Outcome.HARNESS_ERROR`).
@@ -33,9 +34,9 @@ def listing(outcomes: Sequence[Outcome]) -> str:
 
 
 def source_verdict(outcomes: Sequence[Outcome]) -> tuple[str, str]:
-    """(VALID, "") if every run at S passed, else (INVALID_AT_S, the outcomes)."""
+    """(PASSES_AT_S, "") if every run at S passed, else (INVALID_AT_S, the outcomes)."""
     if outcomes and all(o is Outcome.PASS for o in outcomes):
-        return VALID, ""
+        return PASSES_AT_S, ""
     return INVALID_AT_S, f"runs at S: {listing(outcomes)}"
 
 

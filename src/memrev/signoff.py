@@ -180,7 +180,7 @@ def _check_rewrites(parsed: list[_SignedRow]) -> list[str]:
 
 
 def _send_back(assumptions: Assumptions, row: _SignedRow, reviewer: str) -> str:
-    """Rewrite the assumption's check: a new hash, back to pending review, old labels stale. Returns a
+    """Rewrite the assumption's check: a new hash, back to pending review, old labels superseded. Returns a
     line for the summary."""
     a = row.item.assumption
     command, target = row.check

@@ -274,7 +274,7 @@ def test_a_row_exported_before_the_assumption_changed_is_rejected(signoff):
     assert "L1#1 has changed since this file was exported; export again" in result.err
 
 
-def test_editing_an_assumption_in_review_makes_its_final_labels_stale(signoff):
+def test_editing_an_assumption_in_review_makes_its_final_labels_superseded(signoff):
     signoff.checked(VALUE_EXISTS)
     signoff.sign(decide(signoff.export(), "accept"))
     old_hash = signoff.current_hash("L1#1")
@@ -286,8 +286,8 @@ def test_editing_an_assumption_in_review_makes_its_final_labels_stale(signoff):
     assert signoff.memrev("review-import", str(export), "--reviewer", "rev-1").exit_code == 0
 
     assert signoff.finals() == {}
-    stale = signoff.labels().final_labels(include_stale=True)
-    assert {(f.assumption_hash, f.stale) for f in stale} == {(old_hash, True)}
+    superseded = signoff.labels().final_labels(include_superseded=True)
+    assert {(f.assumption_hash, f.superseded) for f in superseded} == {(old_hash, True)}
 
 
 # Lesson labels ----------------------------------------------------------

@@ -1,7 +1,7 @@
 """Evidence in the run store: drift-guard runs, check runs, verdicts at S and proposed labels.
 
 Assumption rows are keyed to `(assumption_id, assumption_hash)` and registered as downstream
-tables, so an edit of an assumption marks them stale (see `memrev.assumptions`).
+tables, so an edit of an assumption marks them superseded (see `memrev.assumptions`).
 """
 
 from __future__ import annotations
@@ -47,16 +47,16 @@ CREATE TABLE IF NOT EXISTS evidence (
     detail TEXT NOT NULL,
     ran_at TEXT NOT NULL,
     duration_seconds REAL NOT NULL,
-    stale INTEGER NOT NULL DEFAULT 0,
+    superseded INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (assumption_id, assumption_hash, revision, run_index)
 );
 CREATE TABLE IF NOT EXISTS source_verdicts (
     assumption_id TEXT NOT NULL,
     assumption_hash TEXT NOT NULL,
     revision TEXT NOT NULL,
-    verdict TEXT NOT NULL,                -- valid | invalid at S
+    verdict TEXT NOT NULL,                -- passes at S | invalid at S
     detail TEXT NOT NULL,
-    stale INTEGER NOT NULL DEFAULT 0,
+    superseded INTEGER NOT NULL DEFAULT 0,
     decided_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (assumption_id, assumption_hash, revision)
 );
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS proposed_labels (
     target_revision TEXT NOT NULL,
     label TEXT NOT NULL,                  -- supported within scope | contradicted | inconclusive
     reason TEXT NOT NULL,                 -- why inconclusive ('' otherwise)
-    stale INTEGER NOT NULL DEFAULT 0,
+    superseded INTEGER NOT NULL DEFAULT 0,
     proposed_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (assumption_id, assumption_hash, pair_id)
 );
@@ -117,7 +117,7 @@ class Evidence:
     detail: str
     ran_at: str
     duration_seconds: float
-    stale: bool
+    superseded: bool
 
 
 @dataclass(frozen=True)
@@ -127,7 +127,7 @@ class SourceVerdict:
     revision: str
     verdict: str
     detail: str
-    stale: bool
+    superseded: bool
 
 
 @dataclass(frozen=True)
@@ -138,7 +138,7 @@ class ProposedLabel:
     target_revision: str
     label: str
     reason: str
-    stale: bool
+    superseded: bool
 
 
 _DRIFT_RUN_COLUMNS = (
@@ -147,10 +147,10 @@ _DRIFT_RUN_COLUMNS = (
 )
 _EVIDENCE_COLUMNS = (
     "assumption_id, assumption_hash, side, revision, pair_id, command, asserted_target, run_index, "
-    "outcome, exit_status, output_excerpt, detail, ran_at, duration_seconds, stale"
+    "outcome, exit_status, output_excerpt, detail, ran_at, duration_seconds, superseded"
 )
-_VERDICT_COLUMNS = "assumption_id, assumption_hash, revision, verdict, detail, stale"
-_LABEL_COLUMNS = "assumption_id, assumption_hash, pair_id, target_revision, label, reason, stale"
+_VERDICT_COLUMNS = "assumption_id, assumption_hash, revision, verdict, detail, superseded"
+_LABEL_COLUMNS = "assumption_id, assumption_hash, pair_id, target_revision, label, reason, superseded"
 
 
 class EvidenceStore:
@@ -198,14 +198,14 @@ class EvidenceStore:
                 (
                     ev.assumption_id, ev.assumption_hash, ev.side, ev.revision, ev.pair_id, ev.command,
                     ev.asserted_target, ev.run_index, ev.outcome, ev.exit_status, ev.output_excerpt,
-                    ev.detail, ev.ran_at, ev.duration_seconds, int(ev.stale),
+                    ev.detail, ev.ran_at, ev.duration_seconds, int(ev.superseded),
                 ),
             )  # fmt: skip
 
-    def evidence(self, assumption_id: str | None = None, include_stale: bool = False) -> list[Evidence]:
+    def evidence(self, assumption_id: str | None = None, include_superseded: bool = False) -> list[Evidence]:
         query = f"SELECT {_EVIDENCE_COLUMNS} FROM evidence WHERE (? IS NULL OR assumption_id = ?)"
-        if not include_stale:
-            query += " AND stale = 0"
+        if not include_superseded:
+            query += " AND superseded = 0"
         rows = self.conn.execute(query + " ORDER BY rowid", (assumption_id, assumption_id))
         return [_evidence(row) for row in rows]
 
@@ -229,11 +229,11 @@ class EvidenceStore:
         with self.conn:
             self.conn.execute(
                 f"INSERT OR REPLACE INTO source_verdicts ({_VERDICT_COLUMNS}) VALUES ({_marks(6)})",
-                (*_values(verdict)[:5], int(verdict.stale)),
+                (*_values(verdict)[:5], int(verdict.superseded)),
             )
 
-    def source_verdicts(self, include_stale: bool = False) -> list[SourceVerdict]:
-        where = "" if include_stale else " WHERE stale = 0"
+    def source_verdicts(self, include_superseded: bool = False) -> list[SourceVerdict]:
+        where = "" if include_superseded else " WHERE superseded = 0"
         rows = self.conn.execute(f"SELECT {_VERDICT_COLUMNS} FROM source_verdicts{where} ORDER BY rowid")
         return [SourceVerdict(*row[:5], bool(row[5])) for row in rows]
 
@@ -241,11 +241,11 @@ class EvidenceStore:
         with self.conn:
             self.conn.execute(
                 f"INSERT OR REPLACE INTO proposed_labels ({_LABEL_COLUMNS}) VALUES ({_marks(7)})",
-                (*_values(label)[:6], int(label.stale)),
+                (*_values(label)[:6], int(label.superseded)),
             )
 
-    def proposed_labels(self, include_stale: bool = False) -> list[ProposedLabel]:
-        where = "" if include_stale else " WHERE stale = 0"
+    def proposed_labels(self, include_superseded: bool = False) -> list[ProposedLabel]:
+        where = "" if include_superseded else " WHERE superseded = 0"
         rows = self.conn.execute(f"SELECT {_LABEL_COLUMNS} FROM proposed_labels{where} ORDER BY rowid")
         return [ProposedLabel(*row[:6], bool(row[6])) for row in rows]
 

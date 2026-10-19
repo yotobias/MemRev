@@ -1,5 +1,5 @@
 """Stages `drift` and `check`: the drift guard per revision pair, then each reviewed assumption's
-check 3 times at S and (if valid at S) 3 times at every kept target, with proposed labels."""
+check 3 times at S and (if it passes 3/3 at S) 3 times at every kept target, with proposed labels."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from memrev.check_runner import (
 )
 from memrev.constructed_lessons import ConstructedLessons
 from memrev.evidence import DriftRun, Evidence, EvidenceStore, ProposedLabel, SourceVerdict, excerpt
-from memrev.labeller import INVALID_AT_S, VALID, Label, source_verdict, target_label
+from memrev.labeller import INVALID_AT_S, PASSES_AT_S, Label, source_verdict, target_label
 from memrev.store import ExclusionReason, RevisionPair, RunError, RunStore, open_run
 
 RUNS = 3  # V15: every check runs 3 times at S and 3 times at T
@@ -172,12 +172,12 @@ class _Checker:
         verdict, detail = source_verdict(self.outcomes(a, "S", source, "", env))
         self.evidence.set_source_verdict(SourceVerdict(a.assumption_id, a.hash, source, verdict, detail, False))
         subject = f"assumption {a.assumption_id}"
-        if verdict == VALID:
+        if verdict == PASSES_AT_S:
             self.store.clear_exclusion(CHECK_STAGE, subject)
         else:
             self.store.record_exclusion(CHECK_STAGE, subject, ExclusionReason.INVALID_AT_S, detail)
         self.counts[verdict] += 1
-        return verdict == VALID
+        return verdict == PASSES_AT_S
 
     def check_at_target(self, a: Assumption, pair: RevisionPair, env: Environment) -> None:
         label, reason = target_label(self.outcomes(a, "T", pair.target_revision, pair.pair_id, env))
@@ -228,7 +228,7 @@ def cmd_check(args) -> int:
         f"check: {counts['checked']} assumptions checked ({counts['uncheckable']} uncheckable skipped, "
         f"{counts['no kept pair']} without a kept revision pair)"
     )
-    print(f"  at S: {counts[VALID]} valid, {counts[INVALID_AT_S]} invalid at S")
+    print(f"  at S: {counts[PASSES_AT_S]} pass 3/3, {counts[INVALID_AT_S]} invalid at S")
     print("  proposed labels: " + ", ".join(f"{label}: {counts[str(label)]}" for label in Label))
     print(f"  reused evidence: {counts['reused S']} at S, {counts['reused T']} at T")
     if counts["not drift-guarded"]:
