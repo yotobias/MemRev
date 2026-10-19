@@ -1,11 +1,14 @@
 """Seam N1: the `run-mechanism` stage and the harness, driven through the command-line tool."""
 
+import csv
 import sqlite3
 
 import pytest
 
 from memrev import harness
-from memrev.store import RunStore
+from memrev.pairs import pair_id
+from memrev.store import ExclusionReason, RunStore
+from memrev.store import RevisionPair as RecordedPair
 
 from conftest import _git, lesson, write_bank
 
@@ -16,11 +19,66 @@ def _run_with_lessons(cli, run_dir, tmp_path, repo_path, revision, n_lessons):
     assert cli("--run", str(run_dir), "import", str(bank)).exit_code == 0
 
 
-def _run_mechanism(cli, run_dir, name, source, target):
+def _record_pair(run_dir, source, target, repository="tiny/tiny"):
+    """Record (S, T) as the pairs stage would; the pairs stage itself is covered in test_pairs.py."""
+    pid = pair_id(source, target)
+    RunStore.open(run_dir).add_revision_pair(
+        RecordedPair(pid, repository, "1.0", source, target, "tiny__tiny-1", "tiny__tiny-2", "nearest")
+    )
+    return pid
+
+
+def _run_mechanism(cli, run_dir, name, source, target, record_pair=True):
+    if record_pair:
+        _record_pair(run_dir, source, target)
     return cli(
         "--run", str(run_dir), "run-mechanism", name,
         "--repository", "tiny/tiny", "--source", source, "--target", target,
     )
+
+
+SEED_COLUMNS = ["lesson_id", "statement", "assumption_type", "scope", "code_pointers", "check_command", "asserted_target"]
+
+
+def _review_assumptions(cli, run_dir, tmp_path, rows):
+    """Seed assumptions through `seed-assumptions`, then decide them through `review-import`.
+
+    `rows` is a list of (lesson_id, code_pointers, decision), decision "accept", "reject" or "" (pending).
+    """
+    seed = tmp_path / "seed.csv"
+    with seed.open("w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=SEED_COLUMNS)
+        writer.writeheader()
+        for n, (lesson_id, pointers, _) in enumerate(rows):
+            writer.writerow({
+                "lesson_id": lesson_id,
+                "statement": f"assumption {n} of {lesson_id}",
+                "assumption_type": "symbol exists",
+                "scope": pointers,
+                "code_pointers": pointers,
+                "check_command": "python -c 'pass'",
+                "asserted_target": f"target {n}",
+            })
+
+    def memrev(*args):
+        return cli("--run", str(run_dir), *args)
+
+    seeded = memrev("seed-assumptions", str(seed))
+    assert seeded.exit_code == 0, seeded.err
+    review = tmp_path / "review.csv"
+    assert memrev("review-export", str(review)).exit_code == 0
+    with review.open(newline="") as fh:
+        reader = csv.DictReader(fh)
+        columns, exported = reader.fieldnames, list(reader)
+    decisions = {f"assumption {n} of {lesson_id}": decision for n, (lesson_id, _, decision) in enumerate(rows)}
+    for row in exported:
+        row["decision"] = decisions.get(row["statement"], row["decision"])
+    with review.open("w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=columns)
+        writer.writeheader()
+        writer.writerows(exported)
+    imported = memrev("review-import", str(review), "--reviewer", "tester")
+    assert imported.exit_code == 0, imported.err
 
 
 def test_no_maintenance_keeps_every_lesson_of_the_source_revision(cli, tiny_repo, run_dir, tmp_path):
@@ -60,19 +118,25 @@ def test_file_change_invalidation_flags_lessons_whose_supporting_files_changed(
     cli, two_file_repo, run_dir, tmp_path
 ):
     path, s, t = two_file_repo
-    _run_with_lessons(cli, run_dir, tmp_path, path, s, 4)
-    store = RunStore.open(run_dir)
-    harness.add_supporting_files(store, "L1", ["module.py"])
-    harness.add_supporting_files(store, "L2", ["stable.py"])
-    harness.add_supporting_files(store, "L3", ["stable.py", "old_name.py"])
-    # L4 has no known supporting files.
+    _run_with_lessons(cli, run_dir, tmp_path, path, s, 5)
+    _review_assumptions(cli, run_dir, tmp_path, [
+        ("L1", "module.py:1", "accept"),
+        ("L2", "stable.py", "accept"),
+        ("L3", "stable.py::STABLE", "accept"),
+        ("L3", "old_name.py::helper; stable.py:1", "accept"),
+        # Only accepted assumptions count: L4's pending and rejected ones point at a changed file.
+        ("L4", "stable.py", "accept"),
+        ("L4", "module.py", ""),
+        ("L4", "module.py:1", "reject"),
+    ])
+    # L5 has no assumptions, so no supporting files.
 
     result = _run_mechanism(cli, run_dir, "file-change-invalidation", s, t)
 
     assert result.exit_code == 0, result.err
     assert "flag: 2" in result.out
     decisions = harness.recorded_decisions(RunStore.open(run_dir), "file-change-invalidation", "tiny/tiny", s, t)
-    assert decisions == {"L1": "flag", "L2": "keep", "L3": "flag", "L4": "keep"}
+    assert decisions == {"L1": "flag", "L2": "keep", "L3": "flag", "L4": "keep", "L5": "keep"}
 
 
 def test_run_mechanism_records_cost_per_mechanism_and_pair(cli, tiny_repo, run_dir, tmp_path, monkeypatch):
@@ -106,7 +170,7 @@ def test_rerunning_a_mechanism_replaces_its_decisions_and_cost_for_that_pair(cli
     path, s, t = two_file_repo
     _run_with_lessons(cli, run_dir, tmp_path, path, s, 1)
     assert _run_mechanism(cli, run_dir, "file-change-invalidation", s, t).exit_code == 0
-    harness.add_supporting_files(RunStore.open(run_dir), "L1", ["module.py"])
+    _review_assumptions(cli, run_dir, tmp_path, [("L1", "module.py", "accept")])
 
     assert _run_mechanism(cli, run_dir, "file-change-invalidation", s, t).exit_code == 0
 
@@ -147,10 +211,76 @@ def test_unknown_mechanisms_and_revisions_are_refused(cli, tiny_repo, run_dir, t
     _run_with_lessons(cli, run_dir, tmp_path, tiny_repo.path, s, 1)
 
     unknown_mechanism = _run_mechanism(cli, run_dir, "magic", s, t)
+    # A recorded pair whose target is missing from the clone (e.g. the clone was replaced).
     unknown_target = _run_mechanism(cli, run_dir, "no-maintenance", s, "f" * 40)
 
     assert unknown_mechanism.exit_code != 0 and "unknown mechanism" in unknown_mechanism.err
     assert unknown_target.exit_code != 0 and "not in repository" in unknown_target.err
+
+
+def test_a_pair_that_was_not_recorded_is_refused(cli, tiny_repo, run_dir, tmp_path):
+    s, t1, t2 = tiny_repo.commits
+    _run_with_lessons(cli, run_dir, tmp_path, tiny_repo.path, s, 1)
+    _record_pair(run_dir, s, t1)
+
+    result = _run_mechanism(cli, run_dir, "no-maintenance", s, t2, record_pair=False)
+
+    assert result.exit_code == 2
+    assert "not a recorded revision pair" in result.err
+    store = RunStore.open(run_dir)
+    assert harness.recorded_decisions(store, "no-maintenance", "tiny/tiny", s, t2) == {}
+    assert harness.recorded_cost(store, "no-maintenance", "tiny/tiny", s, t2) is None
+
+
+def test_an_excluded_pair_is_refused(cli, tiny_repo, run_dir, tmp_path):
+    s, t = tiny_repo.commits[0], tiny_repo.commits[2]
+    _run_with_lessons(cli, run_dir, tmp_path, tiny_repo.path, s, 1)
+    pid = _record_pair(run_dir, s, t)
+    RunStore.open(run_dir).record_exclusion(
+        "drift", f"pair {pid}", ExclusionReason.ENVIRONMENT_UNAVAILABLE, "image missing"
+    )
+
+    by_revisions = _run_mechanism(cli, run_dir, "no-maintenance", s, t, record_pair=False)
+    by_id = cli("--run", str(run_dir), "run-mechanism", "no-maintenance", "--pair", pid)
+
+    for result in (by_revisions, by_id):
+        assert result.exit_code == 2
+        assert f"pair {pid} is excluded" in result.err and "environment unavailable" in result.err
+    assert harness.recorded_decisions(RunStore.open(run_dir), "no-maintenance", "tiny/tiny", s, t) == {}
+
+
+def test_a_pair_can_be_named_by_its_pair_id(cli, tiny_repo, run_dir, tmp_path):
+    s, t = tiny_repo.commits[0], tiny_repo.commits[2]
+    _run_with_lessons(cli, run_dir, tmp_path, tiny_repo.path, s, 2)
+    pid = _record_pair(run_dir, s, t)
+
+    result = cli("--run", str(run_dir), "run-mechanism", "no-maintenance", "--pair", pid)
+
+    assert result.exit_code == 0, result.err
+    assert "keep: 2" in result.out
+    decisions = harness.recorded_decisions(RunStore.open(run_dir), "no-maintenance", "tiny/tiny", s, t)
+    assert decisions == {"L1": "keep", "L2": "keep"}
+
+
+@pytest.mark.parametrize(
+    "args, message",
+    [
+        (["--pair", "nope..nope"], "not a recorded revision pair"),
+        (["--pair", "PID", "--source", "S"], "either --pair or --repository/--source/--target"),
+        (["--repository", "tiny/tiny", "--source", "S"], "either --pair or --repository/--source/--target"),
+        ([], "either --pair or --repository/--source/--target"),
+    ],
+)
+def test_run_mechanism_needs_exactly_one_way_of_naming_the_pair(cli, tiny_repo, run_dir, tmp_path, args, message):
+    s, t = tiny_repo.commits[0], tiny_repo.commits[2]
+    _run_with_lessons(cli, run_dir, tmp_path, tiny_repo.path, s, 1)
+    pid = _record_pair(run_dir, s, t)
+    args = [{"PID": pid, "S": s}.get(a, a) for a in args]
+
+    result = cli("--run", str(run_dir), "run-mechanism", "no-maintenance", *args)
+
+    assert result.exit_code == 2
+    assert message in result.err
 
 
 SENTINEL = "SECRET-LABEL-7f3a"

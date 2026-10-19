@@ -9,13 +9,16 @@ a mechanism's reach. Only the scorer reads those.
 
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Mapping, Protocol
 
+from memrev.assumptions import Assumptions
 from memrev.repository import Repository
 from memrev.store import Lesson, RunError, RunStore
+from memrev.store import RevisionPair as RecordedPair
 
 STAGE = "run-mechanism"
 
@@ -40,13 +43,6 @@ CREATE TABLE IF NOT EXISTS mechanism_costs (
     ran_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (mechanism, repository, source_revision, target_revision)
 );
--- Interim input until ticket 03 lands: replace with the file part of each
--- reviewed assumption's supporting code pointers, then drop this table.
-CREATE TABLE IF NOT EXISTS lesson_supporting_files (
-    lesson_id TEXT NOT NULL,
-    path TEXT NOT NULL,
-    PRIMARY KEY (lesson_id, path)
-);
 """
 
 
@@ -59,7 +55,11 @@ class Decision(StrEnum):
 
 @dataclass(frozen=True)
 class RevisionPair:
-    """The minimal revision-pair value a mechanism sees: repository, S and T."""
+    """The minimal revision-pair value a mechanism sees: repository, S and T.
+
+    Not to be confused with `store.RevisionPair` (imported here as `RecordedPair`), the full row
+    the pairs stage records. A run only accepts an (S, T) that is a recorded, non-excluded pair.
+    """
 
     repository: str
     source_revision: str
@@ -132,7 +132,40 @@ def _ensure_schema(store: RunStore) -> None:
     store.conn.executescript(SCHEMA)
 
 
+def pair_by_id(store: RunStore, pair_id: str) -> RevisionPair:
+    """The (repository, S, T) of a recorded revision pair, refused if unknown."""
+    recorded = store.revision_pair(pair_id)
+    if recorded is None:
+        raise RunError(f"{pair_id} is not a recorded revision pair (run `pairs` first)")
+    return RevisionPair(recorded.repository, recorded.source_revision, recorded.target_revision)
+
+
+def _require_runnable(store: RunStore, pair: RevisionPair) -> RecordedPair:
+    """The recorded pair for (repository, S, T); refused if not recorded or excluded at any stage."""
+    recorded = next(
+        (
+            p
+            for p in store.revision_pairs(pair.repository)
+            if (p.source_revision, p.target_revision) == (pair.source_revision, pair.target_revision)
+        ),
+        None,
+    )
+    if recorded is None:
+        raise RunError(
+            f"({pair.repository}, {pair.source_revision}, {pair.target_revision}) "
+            "is not a recorded revision pair (run `pairs` first)"
+        )
+    subject = f"pair {recorded.pair_id}"
+    for exclusion in store.exclusions():
+        if exclusion.subject == subject:
+            raise RunError(
+                f"{subject} is excluded at stage {exclusion.stage} ({exclusion.reason}): {exclusion.detail}"
+            )
+    return recorded
+
+
 def _build_view(store: RunStore, pair: RevisionPair) -> MechanismView:
+    _require_runnable(store, pair)
     path = store.repositories().get(pair.repository)
     if path is None:
         raise RunError(f"unknown repository {pair.repository} (map it with `init --repo`)")
@@ -153,22 +186,22 @@ def _build_view(store: RunStore, pair: RevisionPair) -> MechanismView:
     )
 
 
-def add_supporting_files(store: RunStore, lesson_id: str, paths: list[str]) -> None:
-    """Record repository paths a lesson relies on (interim input until ticket 03)."""
-    _ensure_schema(store)
-    with store.conn:
-        store.conn.executemany(
-            "INSERT OR IGNORE INTO lesson_supporting_files (lesson_id, path) VALUES (?, ?)",
-            [(lesson_id, path) for path in paths],
-        )
+_LINE_SUFFIX = re.compile(r":\d+(-\d+)?$")
+
+
+def file_part(code_pointer: str) -> str:
+    """The repository path of a code pointer: `a/b.py::Cls.meth`, `a/b.py:12` or `a/b.py:12-20` -> `a/b.py`."""
+    return _LINE_SUFFIX.sub("", code_pointer.split("::", 1)[0].strip())
 
 
 def _supporting_files(store: RunStore, lesson_ids: list[str]) -> dict[str, frozenset[str]]:
-    _ensure_schema(store)
+    """Per lesson, the files its accepted (reviewed) assumptions point at; pending and rejected don't count."""
     files: dict[str, set[str]] = {lesson_id: set() for lesson_id in lesson_ids}
-    for lesson_id, path in store.conn.execute("SELECT lesson_id, path FROM lesson_supporting_files"):
-        if lesson_id in files:
-            files[lesson_id].add(path)
+    for assumption in Assumptions(store).reviewed():
+        if assumption.lesson_id in files:
+            files[assumption.lesson_id].update(
+                path for path in map(file_part, assumption.content.code_pointers) if path
+            )
     return {lesson_id: frozenset(paths) for lesson_id, paths in files.items()}
 
 
