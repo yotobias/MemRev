@@ -12,6 +12,10 @@ _Avoid_: experience, experience entry, memory, memory entry
 The set of lessons available to an agent or a maintenance mechanism in one run.
 _Avoid_: memory store, lesson store
 
+**Variant memory bank**:
+A memory bank for one revision pair in which some natural lessons are replaced by constructed stale lessons and matched controls, all under opaque ids and with no provenance. Only the scorer knows which lesson is which.
+_Avoid_: mixed bank, poisoned bank, test bank
+
 **Assumption**:
 One concrete, checkable statement about repository behaviour that a lesson relies on (e.g. "`get_user` returns `None` for a missing id").
 _Avoid_: claim, fact, belief
@@ -68,6 +72,22 @@ _Avoid_: wrong from the start, broken check
 The symbol or behaviour a check declares it tests; an error on it counts as evidence, an error elsewhere does not.
 _Avoid_: subject, target (alone, to avoid confusion with target revision)
 
+**Check outcome**:
+What one execution of a check says: pass, fail on asserted target, harness error (container, timeout, crash or an error away from the asserted target) or out of scope (a fixture, backend or test the check needs is missing at that revision). Labels are derived from the outcomes of three runs.
+_Avoid_: result, verdict, status
+
+**Source verdict**:
+Whether an assumption's check passes 3/3 at S ("passes at S") or not (invalid at S). Only an assumption that passes at S is checked at T.
+_Avoid_: valid, validity, S label
+
+**Proposed label**:
+The label the labeller derives from the three check outcomes at T, before a reviewer signs it off.
+_Avoid_: suggested label, auto label, prediction
+
+**Final label**:
+The label after sign-off: the reviewer's accepted or downgraded label, or inconclusive when a second reviewer disagrees. Only final labels enter the dataset and the scores.
+_Avoid_: ground truth, gold label, verdict
+
 **Evidence**:
 The stored record of one check execution: revision, command, exit status, output excerpt, run index, time.
 _Avoid_: result, log
@@ -83,6 +103,14 @@ _Avoid_: real case, organic case
 **Constructed stale lesson**:
 A lesson written by us whose assumption passes its check at S and fails at T, based on a real behaviour change between them.
 _Avoid_: injected lesson, synthetic memory, poisoned lesson
+
+**Drafted candidate**:
+A lesson with one assumption that the LLM drafted from the S..T diff as a possible constructed stale lesson or matched control, before its gate. It becomes a constructed stale lesson or matched control only if it passes.
+_Avoid_: proposal, suggestion, generated lesson
+
+**Gate**:
+The execution test a drafted candidate must pass to be kept: 3/3 pass at S and 3/3 fail on asserted target at T for a constructed stale lesson, 3/3 pass at S and at T (plus matching) for a matched control. It is decided again whenever review changes the candidate's assumption.
+_Avoid_: filter, validation, acceptance test
 
 **Matched control**:
 A lesson paired 1:1 with a constructed stale lesson, about the same file or symbol area and of similar length and type, whose check passes at both S and T.
