@@ -22,8 +22,7 @@ class Label(StrEnum):
 VALID = "valid"
 INVALID_AT_S = str(ExclusionReason.INVALID_AT_S)
 
-# Reasons for an inconclusive label.
-HARNESS_ERROR = "harness error"
+# Reasons for an inconclusive label (besides the runner's own `Outcome.HARNESS_ERROR`).
 OUT_OF_SCOPE_AT_T = str(ExclusionReason.OUT_OF_SCOPE_AT_T)
 DISAGREEMENT = "check disagrees with itself"
 
@@ -44,7 +43,7 @@ def target_label(outcomes: Sequence[Outcome]) -> tuple[Label, str]:
     """The proposed label at T and, for inconclusive, its reason (one of the fixed reasons above;
     the individual outcomes stay in the evidence)."""
     if Outcome.HARNESS_ERROR in outcomes:
-        return Label.INCONCLUSIVE, HARNESS_ERROR
+        return Label.INCONCLUSIVE, str(Outcome.HARNESS_ERROR)
     if len(set(outcomes)) != 1:
         return Label.INCONCLUSIVE, DISAGREEMENT
     only = outcomes[0]
