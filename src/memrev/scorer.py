@@ -1,0 +1,343 @@
+"""Scorer: the only component that reads labels and the constructed-case mapping (V7, V29).
+
+`score(store)` joins final labels, lesson labels, exclusions, the LLM call log and mechanism decisions
+into one plain dict, with natural and constructed cases always under separate keys (V6, V22, V23).
+`memrev.report` renders that dict; `export_dataset` writes the dataset for teammates.
+"""
+
+from __future__ import annotations
+
+from collections import Counter
+from dataclasses import asdict, dataclass
+
+from memrev import constructor, harness
+from memrev.assumptions import Assumption, Assumptions
+from memrev.constructed_lessons import ConstructedLessons
+from memrev.evidence import EvidenceStore
+from memrev.extraction import STAGE as EXTRACT_STAGE
+from memrev.labeller import Label
+from memrev.labels import FinalLabel, LabelStore, LessonLabel, LessonLabelReport
+from memrev.llm import call_log
+from memrev.store import Exclusion, ExclusionReason, Lesson, RunStore
+
+CONSTRUCT_STAGE = constructor.STAGE
+
+NATURAL, CONSTRUCTED = "natural", "constructed"
+KINDS = (NATURAL, CONSTRUCTED)
+LABELS = tuple(str(label) for label in Label)
+AWAITING = "awaiting check or sign-off"
+
+
+@dataclass(frozen=True)
+class _Cases:
+    """Which lessons are natural and which are constructed, and where each comes from."""
+
+    lessons: dict[str, Lesson]
+    kind: dict[str, str]
+
+    @classmethod
+    def of(cls, store: RunStore) -> _Cases:
+        lessons = {lesson.lesson_id: lesson for lesson in store.lessons()}
+        kind = dict.fromkeys(lessons, NATURAL)
+        for lesson, _pair_id in ConstructedLessons(store).all():
+            lessons[lesson.lesson_id] = lesson
+            kind[lesson.lesson_id] = CONSTRUCTED
+        return cls(lessons, kind)
+
+    def ids(self, kind: str) -> list[str]:
+        return [lesson_id for lesson_id, k in self.kind.items() if k == kind]
+
+
+class Scorer:
+    def __init__(self, store: RunStore):
+        self.store = store
+        self.labels = LabelStore(store)
+        self.assumptions = Assumptions(store)
+        self.cases = _Cases.of(store)
+
+    def score(self) -> dict:
+        reports = {NATURAL: self.labels.lesson_report(), CONSTRUCTED: self.labels.constructed_lesson_report()}
+        data = {kind: self._section(kind, reports[kind]) for kind in KINDS}
+        data[NATURAL]["extraction"] = self._extraction_yield()
+        data[CONSTRUCTED]["cases"] = self._constructed_cases()
+        data["llm_cost"] = self._llm_cost()
+        return data
+
+    def _section(self, kind: str, report: LessonLabelReport) -> dict:
+        finals = self._current_finals(kind)
+        sampled = [final for _, final in finals if final.second_label is not None]
+        return {
+            "lessons": {
+                "in the bank": len(self.cases.ids(kind)),
+                "without a checkable assumption": len(report.without_checkable_assumption),
+            },
+            "assumption_labels": self._assumption_labels(finals),
+            "inconclusive_reasons": dict(
+                Counter(final.reason for _, final in finals if final.label == Label.INCONCLUSIVE)
+            ),
+            "lesson_labels": self._lesson_labels(report),
+            "reviewer_agreement": {
+                "sampled": len(sampled),
+                "agreeing": sum(final.second_label == final.reviewer_label for final in sampled),
+            },
+            "mechanisms": self._mechanisms(kind, report),
+            "exclusions": dict(Counter(e.reason for e in self.store.exclusions() if self._exclusion_kind(e) == kind)),
+        }
+
+    # Labels ---------------------------------------------------------------
+
+    def _reviewed(self, kind: str) -> dict[str, Assumption]:
+        return {
+            a.assumption_id: a for a in self.assumptions.reviewed()
+            if self.cases.kind.get(a.lesson_id) == kind
+        }  # fmt: skip
+
+    def _current_finals(self, kind: str) -> list[tuple[Assumption, FinalLabel]]:
+        """Current final labels of reviewed (accepted) assumptions of one kind of case."""
+        reviewed = self._reviewed(kind)
+        return [
+            (reviewed[final.assumption_id], final) for final in self.labels.final_labels()
+            if final.assumption_id in reviewed and reviewed[final.assumption_id].hash == final.assumption_hash
+        ]  # fmt: skip
+
+    def _assumption_labels(self, finals: list[tuple[Assumption, FinalLabel]]) -> list[dict]:
+        """Final labels per (repository, assumption type)."""
+        counts: Counter = Counter()
+        for a, final in finals:
+            repository = self.cases.lessons[a.lesson_id].repository
+            counts[(repository, str(a.content.assumption_type), final.label)] += 1
+        groups = sorted({key[:2] for key in counts})
+        return [
+            {"repository": repo, "assumption_type": atype, **{label: counts[(repo, atype, label)] for label in LABELS}}
+            for repo, atype in groups
+        ]
+
+    def _lesson_labels(self, report: LessonLabelReport) -> list[dict]:
+        """Lesson labels per repository (one per lesson and revision pair), plus those still awaited."""
+        counts: Counter = Counter()
+        for label in report.labels:
+            counts[(self.cases.lessons[label.lesson_id].repository, label.label)] += 1
+        for lesson_id, _pair_id in report.awaiting:
+            counts[(self.cases.lessons[lesson_id].repository, AWAITING)] += 1
+        repositories = sorted({repo for repo, _ in counts})
+        return [
+            {"repository": repo, **{label: counts[(repo, label)] for label in (*LABELS, AWAITING)}}
+            for repo in repositories
+        ]
+
+    # Mechanisms (V6, V22, V23) ---------------------------------------------
+
+    def _mechanisms(self, kind: str, report: LessonLabelReport) -> list[dict]:
+        """Per mechanism, summed over its runs: natural cases from the original bank, constructed cases
+        from the variant bank (only its constructed lessons; its natural lessons are scored as natural
+        cases from the original bank)."""
+        labels = {(label.lesson_id, label.pair_id): label for label in report.labels}
+        pair_ids = {(p.repository, p.source_revision, p.target_revision): p.pair_id for p in self.store.revision_pairs()}
+        bank = harness.ORIGINAL if kind == NATURAL else harness.VARIANT
+        rows: dict[str, dict] = {}
+        for run in harness.recorded_runs(self.store):
+            pair_id = pair_ids.get(run.key[1:])
+            if run.bank != bank or pair_id is None:
+                continue
+            decisions = harness.recorded_decisions(self.store, *run.key, bank=bank)
+            cost = harness.recorded_cost(self.store, *run.key, bank=bank)
+            row = rows.setdefault(run.mechanism, _mechanism_row(run.mechanism, kind))
+            row["revision pairs"] += 1
+            # A recheck adds to cost (V23); cost covers the whole run.
+            row["cost: checks"] += cost.checks_executed + sum(d == harness.Decision.RECHECK for d in decisions.values())
+            row["wall time (s)"] = round(row["wall time (s)"] + cost.wall_time_seconds, 3)
+            row["tokens"] += cost.tokens
+            section = decisions if kind == NATURAL else self._constructed_decisions(pair_id, decisions)
+            _score_decisions(row, section, {lid: labels.get((lid, pair_id)) for lid in section})
+            if kind == CONSTRUCTED:
+                _score_controls(row["unnecessary rejection"], section, labels, pair_id, self._stale_of_control())
+        return list(rows.values())
+
+    def _constructed_decisions(self, pair_id: str, decisions: dict[str, str]) -> dict[str, str]:
+        """Variant-bank decisions on constructed lessons, keyed by the constructed lesson id."""
+        return {
+            entry.lesson_id: decisions[entry.variant_lesson_id]
+            for entry in constructor.variant_entries(self.store, pair_id)
+            if entry.kind != constructor.NATURAL and entry.variant_lesson_id in decisions
+        }
+
+    def _stale_of_control(self) -> dict[str, str]:
+        """Constructed lesson id of each kept matched control -> that of its constructed stale lesson."""
+        records = constructor.case_records(self.store)
+        stale = {r.case_key: r.lesson_id for r in records if r.role == constructor.STALE}
+        return {
+            r.lesson_id: stale[r.stale_case_key] for r in records
+            if r.role == constructor.CONTROL and r.status == constructor.KEPT_CASE and r.stale_case_key in stale
+        }  # fmt: skip
+
+    # Dataset export (story 43) ---------------------------------------------
+
+    def dataset(self) -> dict[str, list[dict]]:
+        """Lessons, assumptions, evidence and final labels, each record tagged with its case:
+        natural lesson, constructed stale lesson or matched control."""
+        records = constructor.case_records(self.store)
+        case_of_lesson = {r.lesson_id: r.role for r in records}
+        case_of_assumption = {r.assumption_id: r.role for r in records}
+        constructed_pair = {lesson.lesson_id: pair_id for lesson, pair_id in ConstructedLessons(self.store).all()}
+
+        def case(lesson_id: str) -> str:
+            return case_of_lesson.get(lesson_id, constructor.NATURAL)
+
+        lessons = [
+            {**asdict(lesson), "case": case(lesson_id), "pair_id": constructed_pair.get(lesson_id, "")}
+            for lesson_id, lesson in self.cases.lessons.items()
+        ]
+        assumptions = [_assumption_record(a, case(a.lesson_id)) for a in self.assumptions.all()]
+        lesson_of = {a.assumption_id: a.lesson_id for a in self.assumptions.all()}
+        evidence = [
+            {
+                **asdict(e),
+                "lesson_id": lesson_of.get(e.assumption_id, ""),
+                "case": case_of_assumption.get(e.assumption_id) or case(lesson_of.get(e.assumption_id, "")),
+            }
+            for e in EvidenceStore(self.store).evidence()
+        ]
+        finals = [
+            {
+                **asdict(final),
+                "lesson_id": a.lesson_id,
+                "repository": self.cases.lessons[a.lesson_id].repository,
+                "assumption_type": str(a.content.assumption_type),
+                "case": case(a.lesson_id),
+            }
+            for kind in KINDS
+            for a, final in self._current_finals(kind)
+        ]
+        return {"lessons": lessons, "assumptions": assumptions, "evidence": evidence, "final_labels": finals}
+
+    # Yield, exclusions and cost ------------------------------------------
+
+    def _exclusion_kind(self, exclusion: Exclusion) -> str:
+        if exclusion.stage == CONSTRUCT_STAGE:
+            return CONSTRUCTED
+        noun, _, ident = exclusion.subject.partition(" ")
+        if noun == "assumption":
+            a = self.assumptions.get(ident)
+            lesson_id = a.lesson_id if a else ""
+        else:
+            lesson_id = ident if noun == "lesson" else ""
+        return self.cases.kind.get(lesson_id, NATURAL)
+
+    def _extraction_yield(self) -> dict:
+        extracted = [a for a in self.assumptions.all() if a.origin == EXTRACT_STAGE]
+        failed = [
+            e for e in self.store.exclusions()
+            if e.stage == EXTRACT_STAGE and e.reason == ExclusionReason.EXTRACTION_FAILED
+        ]  # fmt: skip
+        checkable = sum(a.content.assumption_type.checkable for a in extracted)
+        return {
+            "lessons processed": len({c.subject for c in call_log(self.store) if c.stage == EXTRACT_STAGE}),
+            "assumptions": len(extracted),
+            "checkable": checkable,
+            "uncheckable": len(extracted) - checkable,
+            "extraction failed": len(failed),
+        }
+
+    def _constructed_cases(self) -> dict:
+        records = constructor.case_records(self.store)
+        stale = [r for r in records if r.role == constructor.STALE]
+        kept = [r for r in stale if r.status == constructor.KEPT_CASE]
+        matched = {r.stale_case_key for r in records if r.role == constructor.CONTROL and r.status == constructor.KEPT_CASE}
+        with_control = sum(r.case_key in matched for r in kept)
+        return {
+            "stale candidates drafted": len(stale),
+            "constructed stale lessons kept": len(kept),
+            "gate failed": sum(r.status == constructor.GATE_FAILED for r in stale),
+            "with a matched control": with_control,
+            "without a matched control": len(kept) - with_control,
+        }
+
+    def _llm_cost(self) -> list[dict]:
+        """API calls (cache hits left out), tokens and dollars per pipeline stage."""
+        rows: dict[str, dict] = {}
+        for call in call_log(self.store):
+            if call.cached:
+                continue
+            row = rows.setdefault(
+                call.stage, {"stage": call.stage, "calls": 0, "input tokens": 0, "output tokens": 0, "cost_usd": 0.0}
+            )
+            row["calls"] += 1
+            row["input tokens"] += call.input_tokens
+            row["output tokens"] += call.output_tokens
+            row["cost_usd"] += call.cost_usd or 0.0
+        return list(rows.values())
+
+
+REJECTED = (harness.Decision.FLAG, harness.Decision.WITHHOLD)
+
+
+def _mechanism_row(mechanism: str, kind: str) -> dict:
+    return {
+        "mechanism": mechanism,
+        "revision pairs": 0,
+        "lessons scored": 0,
+        "contradicted": 0,
+        "contradicted kept": 0,
+        "contradicted rejected": 0,
+        "recheck": 0,
+        # Measured on constructed cases with a matched control only (V6).
+        "unnecessary rejection": {"rejected": 0, "matched controls": 0} if kind == CONSTRUCTED else None,
+        "cost: checks": 0,
+        "wall time (s)": 0.0,
+        "tokens": 0,
+    }
+
+
+def _score_decisions(row: dict, decisions: dict[str, str], labels: dict[str, LessonLabel | None]) -> None:
+    """Keep is kept, flag and withhold are rejected, recheck is neither (V23). Only scored lesson
+    labels count (V22): inconclusive and unlabelled lessons are left out."""
+    for lesson_id, decision in decisions.items():
+        row["recheck"] += decision == harness.Decision.RECHECK
+        label = labels[lesson_id]
+        if label is None or not label.scored:
+            continue
+        row["lessons scored"] += 1
+        if label.label == Label.CONTRADICTED:
+            row["contradicted"] += 1
+            row["contradicted kept"] += decision == harness.Decision.KEEP
+            row["contradicted rejected"] += decision in REJECTED
+
+
+def _score_controls(
+    tally: dict, decisions: dict[str, str], labels: dict, pair_id: str, stale_of_control: dict[str, str]
+) -> None:
+    """Unnecessary rejection: a matched control supported within scope, whose stale lesson is in the same
+    bank, rejected by the mechanism."""
+    for lesson_id, decision in decisions.items():
+        label = labels.get((lesson_id, pair_id))
+        if stale_of_control.get(lesson_id) not in decisions or label is None or label.label != Label.SUPPORTED:
+            continue
+        tally["matched controls"] += 1
+        tally["rejected"] += decision in REJECTED
+
+
+def _assumption_record(a: Assumption, case: str) -> dict:
+    content = a.content
+    return {
+        "assumption_id": a.assumption_id,
+        "lesson_id": a.lesson_id,
+        "statement": content.statement,
+        "assumption_type": str(content.assumption_type),
+        "scope": content.scope,
+        "code_pointers": list(content.code_pointers),
+        "check_command": content.check_command,
+        "asserted_target": content.asserted_target,
+        "assumption_hash": a.hash,
+        "origin": a.origin,
+        "status": str(a.status),
+        "reviewer_id": a.reviewer_id,
+        "case": case,
+    }
+
+
+def dataset(store: RunStore) -> dict[str, list[dict]]:
+    return Scorer(store).dataset()
+
+
+def score(store: RunStore) -> dict:
+    return Scorer(store).score()

@@ -317,6 +317,26 @@ def recorded_cost(
     return Cost(*row) if row else None
 
 
+@dataclass(frozen=True)
+class RecordedRun:
+    mechanism: str
+    repository: str
+    source_revision: str
+    target_revision: str
+    bank: str
+
+    @property
+    def key(self) -> tuple[str, str, str, str]:
+        return (self.mechanism, self.repository, self.source_revision, self.target_revision)
+
+
+def recorded_runs(store: RunStore) -> list[RecordedRun]:
+    """Every recorded mechanism run (one per mechanism, revision pair and bank)."""
+    _ensure_schema(store)
+    rows = store.conn.execute(f"SELECT {_KEY} FROM mechanism_costs ORDER BY mechanism, rowid")
+    return [RecordedRun(*row) for row in rows]
+
+
 def recorded_decisions(
     store: RunStore, mechanism: str, repository: str, source_revision: str, target_revision: str,
     bank: str = ORIGINAL,

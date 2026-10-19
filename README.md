@@ -41,6 +41,8 @@ uv run memrev --run ~/memrev-runs/r1 review-export review.csv           # then r
 uv run memrev --run ~/memrev-runs/r1 variant-bank                       # blinded variant memory bank per pair
 uv run memrev --run ~/memrev-runs/r1 run-mechanism file-change-invalidation --pair <pair_id>   # or --repository R --source S --target T
 uv run memrev --run ~/memrev-runs/r1 run-mechanism file-change-invalidation --pair <pair_id> --bank variant
+uv run memrev --run ~/memrev-runs/r1 report                             # report.md + report.json in the run dir (--out FILE)
+uv run memrev --run ~/memrev-runs/r1 export ~/memrev-runs/r1-dataset    # lessons, assumptions, evidence, final labels as JSONL + CSV
 ```
 
 The run directory holds `run.db` (SQLite) and `work/`, and must be outside any repository checkout. The lesson-bank format is in [docs/lesson-bank-schema.md](docs/lesson-bank-schema.md).
