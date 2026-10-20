@@ -1,0 +1,21 @@
+[project]
+name = "memrev"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "johnylamw", email = "johnylamw@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+memrev = "memrev:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=9.1.1",
+]
