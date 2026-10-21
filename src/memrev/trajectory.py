@@ -65,11 +65,7 @@ def format_transcript(trajectory, output=None):
     sb = io.StringIO()
     
     for index, message in enumerate(messages):
-        role, content = message["role"], message["content"]
-        sb.write(f"--- Message {index} | {role}")
-        sb.write("\n\n")
-        sb.write(content)
-        sb.write("\n\n")
+        sb.write(format_message(message, index))
     
     result = sb.getvalue()
     if output is not None:
@@ -79,6 +75,80 @@ def format_transcript(trajectory, output=None):
     sb.close()
     return result
 
+def format_message(message, message_index):
+    """Returns a readable representation of one original message."""
+    if not isinstance(message, dict):
+        raise ValueError(f"Message {message_index}: expected a dictionary")
+
+    role, content = message.get("role", "unknown"), message.get("content")
+    extra = message.get("extra")
+    if extra is None:
+        extra = dict()
+    elif not isinstance(extra, dict):
+        raise ValueError(f"Message {message_index}: extra must be a dictionary")
+
+    if content is None:
+        content = "[No text content]"
+    elif isinstance(content, (list, dict)):
+        content = json.dumps(content, indent=2, ensure_ascii=False)
+    elif not isinstance(content, str):
+        raise ValueError(f"Message {message_index}: unsupported content type")
+
+    sections = [("Content", content)]
+
+    # Keep action identifiers so tool observations can be traced to their calls.
+    for field, label in [
+        ("tool_calls", "Tool calls"),
+        ("function_call", "Legacy function call"),
+        ("tool_call_id", "Responds to tool call"),
+    ]:
+        value = message.get(field)
+        if value is not None:
+            sections.append((label, value))
+
+    if extra.get("actions") is not None:
+        sections.append(("Parsed actions", extra["actions"]))
+
+    # Prefer the exposed reasoning text; thinking blocks often duplicate it.
+    reasoning = message.get("reasoning_content")
+    if not isinstance(reasoning, str) or not reasoning.strip():
+        reasoning_parts = list()
+        thinking_blocks = message.get("thinking_blocks")
+        if isinstance(thinking_blocks, list):
+            for block in thinking_blocks:
+                if not isinstance(block, dict) or block.get("type") != "thinking":
+                    continue
+                text = block.get("thinking", block.get("text"))
+                if isinstance(text, str) and text.strip() and text not in reasoning_parts:
+                    reasoning_parts.append(text)
+        reasoning = "\n\n".join(reasoning_parts)
+    if reasoning:
+        sections.append(("Agent reasoning (not execution evidence)", reasoning))
+
+    # Select evidence fields instead of copying raw responses and provider data.
+    execution = dict()
+    for field in [
+        "returncode", "exception", "exception_type", "exception_info",
+        "raw_output", "exit_status", "submission",
+    ]:
+        if field in extra and extra[field] is not None:
+            execution[field] = extra[field]
+    if execution:
+        sections.append(("Execution metadata", execution))
+
+    sb = io.StringIO()
+    sb.write(f"--- Message {message_index} | {role} ---\n\n")
+    for label, value in sections:
+        sb.write(f"{label}:\n")
+        if isinstance(value, str):
+            sb.write(value)
+        else:
+            sb.write(json.dumps(value, indent=2, ensure_ascii=False))
+        sb.write("\n\n")
+
+    result = sb.getvalue()
+    sb.close()
+    return result
 
 def build_extract_prompt(trajectory, instructions):
     """Combines the extraction instruction w/ the formatted transcript"""
@@ -100,8 +170,9 @@ def build_extract_prompt(trajectory, instructions):
 
 if __name__ == "__main__":
     test_dir = 'pilot-a/fixtures/test/'
-    test_file = 'message_only_github_issue.traj'
-    path = f'{test_dir}{test_file}.json'
+    # test_file = 'message_only_github_issue.traj.json'
+    test_file = 'full_trajectory_example.traj.json'
+    path = f'{test_dir}{test_file}'
     trajectory = load_trajectory(path)
     
     prompt = build_extract_prompt(trajectory, "pilot-a/extract_prompt.md")
