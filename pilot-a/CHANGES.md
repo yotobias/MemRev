@@ -1,12 +1,12 @@
 # Pilot A change log
 
-Every deviation from `clusters.csv` or from the settings in `pilot_a/plan/Plan_v2.md` Section 4, with date and reason. Newest last.
+Every deviation from `clusters.csv` or from the settings in `pilot-a/plan/Plan_v2.md` Section 4, with date and reason. Newest last.
 
 Lane N reads this file. Entries never name gold-patch content, test names or test files of the 19 pilot tasks; those details stay in `env/gold_gate.jsonl` and `env/gold_gate_logs/` (Lane R only).
 
 ## 2026-10-22: selection frozen
 
-`clusters.csv` written by `scripts/pilot_a/build_clusters.py`: the 19 tasks of `pilot_a/plan/Kickoff.md` Section 5, unchanged. The script checks `kind` against `data/lite_task_file_overlap.csv`, that every task edits its cluster's file, that no two selected tasks share a same-PR group, and that exactly 22686/22711 and 3359/3362 have identical issue text. Same-PR siblings left out: 22706 (with 22711), 16953 (with 16342), 3481 (with 3359), 32450 (with 14016).
+`clusters.csv` written by `pilot-a/scripts/build_clusters.py`: the 19 tasks of `pilot-a/plan/Kickoff.md` Section 5, unchanged. The script checks `kind` against `data/lite_task_file_overlap.csv`, that every task edits its cluster's file, that no two selected tasks share a same-PR group, and that exactly 22686/22711 and 3359/3362 have identical issue text. Same-PR siblings left out: 22706 (with 22711), 16953 (with 16342), 3481 (with 3359), 32450 (with 14016).
 
 Data notes, no effect on the selection: in `SWEContextBench_Relationship.parquet`, `django__django-28147` carries two PRs (11383, 11587) and joins the group of both; the PR URL for `scikit-learn__scikit-learn-13241` is an `/issues/` link and is read as `/pull/13241`.
 
@@ -24,7 +24,7 @@ Decided by the user: the backbone (agent and extractor, pinned for the project) 
 
 Departures from the run command in v2 Section 4 and the Lane R handoff:
 - No temperature. Current Claude models reject non-default sampling parameters; the shipped config has `drop_params: true`. All runs use the provider's default sampling, as v2 Section 4 provides for this case.
-- No `-c` option. `mini-extra swebench` replaces the default config when `-c` is given, so the handoff's `-c model.model_kwargs.temperature=0` would have run without the shipped `swebench.yaml` (prompts, step and cost limits, 60 s timeout, `BASH_ENV`). The model is passed with `-m`. Command in `scripts/pilot_a/run_agent.sh`.
+- No `-c` option. `mini-extra swebench` replaces the default config when `-c` is given, so the handoff's `-c model.model_kwargs.temperature=0` would have run without the shipped `swebench.yaml` (prompts, step and cost limits, 60 s timeout, `BASH_ENV`). The model is passed with `-m`. Command in `pilot-a/scripts/run_agent.sh`.
 - Prompt caching: the shipped config sets no `set_cache_control`, so every step is billed for the full history. Left as shipped for the smoke run; token counts from it decide whether to enable it for the 19 runs (it changes cost, not what the model sees).
 
 ## 2026-10-22: `mcp` added to the lockfile; smoke-1 failed before any model output
@@ -59,7 +59,7 @@ The jiayuanz3 images build the package and then run a history-cutoff step whose 
 | matplotlib-22686 | `import matplotlib` fails (`_c_internal_utils` missing) | 51 s |
 | matplotlib-22482 | meson non-editable install: imports from `site-packages`, so edits in `/testbed` have no effect (tested: an appended attribute is invisible) | 52 s |
 
-The SCB harness repairs the same state before grading (`_python_rebuild_command`, then `docker commit` to a temporary image). Rebuilding exceeds the agent's 60 s command timeout, so the agent cannot repair it itself. `scripts/pilot_a/build_derived.sh` runs the SCB rebuild (editable install for 22482) and saves `pilot-a/<owner>.<repo>-<n>:built`; build artefacts left untracked (only meson's `subprojects/.wraplock`) are hidden through `.git/info/exclude`, so they cannot enter an agent patch. On all five derived images: package imports from `/testbed`, edits are visible, `git status` clean, 0 future commits, gold gate passes. Proposed: agent runs and probes for these five tasks use the derived image; `clusters.csv` keeps the original image name, the instance file carries the derived one.
+The SCB harness repairs the same state before grading (`_python_rebuild_command`, then `docker commit` to a temporary image). Rebuilding exceeds the agent's 60 s command timeout, so the agent cannot repair it itself. `pilot-a/scripts/build_derived.sh` runs the SCB rebuild (editable install for 22482) and saves `pilot-a/<owner>.<repo>-<n>:built`; build artefacts left untracked (only meson's `subprojects/.wraplock`) are hidden through `.git/info/exclude`, so they cannot enter an agent patch. On all five derived images: package imports from `/testbed`, edits are visible, `git status` clean, 0 future commits, gold gate passes. Proposed: agent runs and probes for these five tasks use the derived image; `clusters.csv` keeps the original image name, the instance file carries the derived one.
 
 Not affected: all eight swebench experience images, and the sympy, requests and django related images (pure Python). No image exposes commits after `base_commit` other than the swebench mode-only commit.
 

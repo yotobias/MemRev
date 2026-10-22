@@ -1,4 +1,4 @@
-# pilot_a/env
+# pilot-a/env
 
 `<id>.json` and `<id>.pip-freeze.txt`: container fingerprints. Safe for everyone.
 

@@ -1,10 +1,10 @@
-"""Write a mini-swe-agent instance directory: pilot_a/instances/<set>/instances.jsonl
+"""Write a mini-swe-agent instance directory: pilot-a/instances/<set>/instances.jsonl
 
-    uv run python -I scripts/pilot_a/build_instances.py main              # the 19 tasks in clusters.csv
-    uv run python -I scripts/pilot_a/build_instances.py smoke <id> [...]  # named Lite tasks
+    uv run python -I pilot-a/scripts/build_instances.py main              # the 19 tasks in clusters.csv
+    uv run python -I pilot-a/scripts/build_instances.py smoke <id> [...]  # named Lite tasks
 
 Where a local derived image pilot-a/<owner>.<repo>-<n>:built exists (build_derived.sh;
-decision of 2026-10-22 in pilot_a/CHANGES.md), image_name points to it instead of the
+decision of 2026-10-22 in pilot-a/CHANGES.md), image_name points to it instead of the
 original image; clusters.csv keeps the original name.
 
 mini-swe-agent reads only instance_id, problem_statement (the prompt) and image_name.
@@ -24,12 +24,12 @@ FORBIDDEN = {"patch", "test_patch", "hints_text", "FAIL_TO_PASS", "PASS_TO_PASS"
 
 
 def main(set_name, ids):
-    data = ROOT / "pilot_a/data"
+    data = ROOT / "pilot-a/data"
     lite = pd.concat([pd.read_parquet(data / "SWEContextBench_Lite_Experience.parquet").assign(kind="experience"),
                       pd.read_parquet(data / "SWEContextBench_Related_Lite.parquet").assign(kind="related")]
                      ).drop_duplicates("instance_id").set_index("instance_id", drop=False)
     if set_name == "main" and not ids:
-        sel = pd.read_csv(ROOT / "pilot_a/clusters.csv")
+        sel = pd.read_csv(ROOT / "pilot-a/clusters.csv")
         images = dict(zip(sel.instance_id, sel.image))
         ids = list(sel.instance_id)
     else:
@@ -42,7 +42,7 @@ def main(set_name, ids):
         if subprocess.run(["docker", "image", "inspect", derived], capture_output=True).returncode == 0:
             images[i] = derived
 
-    out = ROOT / "pilot_a/instances" / set_name
+    out = ROOT / "pilot-a/instances" / set_name
     if (out / "instances.jsonl").exists():
         sys.exit(f"{out}/instances.jsonl exists; instance sets are never overwritten")
     out.mkdir(parents=True)

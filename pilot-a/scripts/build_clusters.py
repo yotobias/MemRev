@@ -1,11 +1,11 @@
 """Write the frozen Pilot A task list and the same-PR groups.
 
-    uv run python -I scripts/pilot_a/build_clusters.py pilot_a/data pilot_a
+    uv run python -I pilot-a/scripts/build_clusters.py pilot-a/data pilot-a
 
-Inputs (in data dir): the SCB parquet files (scripts/data_prep/inspect_scb.py) and
-lite_task_file_overlap.csv (scripts/data_prep/clusters.py).
+Inputs (in data dir): the SCB parquet files (pilot-a/pilot-a/scripts/data_prep/inspect_scb.py) and
+lite_task_file_overlap.csv (pilot-a/pilot-a/scripts/data_prep/clusters.py).
 Outputs: <data>/same_pr_groups.csv (all 399 Lite tasks) and <out>/clusters.csv.
-Fails loudly if the selection breaks any rule of pilot_a/plan/Kickoff.md Section 5.
+Fails loudly if the selection breaks any rule of pilot-a/plan/Kickoff.md Section 5.
 """
 import itertools, pathlib, re, sys
 import pandas as pd
@@ -13,7 +13,7 @@ import pandas as pd
 sys.path.insert(0, str(pathlib.Path(__file__).parent))  # python -I leaves the script dir off the path
 from naming import image_for
 
-# pilot_a/plan/Kickoff.md Section 5. Short repo name -> full id prefix.
+# pilot-a/plan/Kickoff.md Section 5. Short repo name -> full id prefix.
 PREFIX = {"sklearn": "scikit-learn__scikit-learn", "matplotlib": "matplotlib__matplotlib",
           "sympy": "sympy__sympy", "requests": "psf__requests", "django": "django__django"}
 CLUSTERS = {  # cluster: (repo, files the cluster is defined by, experience ids, related ids)

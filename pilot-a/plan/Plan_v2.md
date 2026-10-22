@@ -40,9 +40,9 @@ The proposal says 10–20 base tasks from a few repositories. The selection targ
 - **Same-PR rule.** Two tasks are the same task if their gold patches are byte-identical, or if the PR URL of one (from `SWEContextBench_Relationship.parquet`, or `pull_number` in the case JSON) equals the PR URL of the other. At most one member of a same-PR group is selected; where the group contains an experience task, that one is kept. SWE-ContextBench's "same-commit pairs" are all same-PR groups, so there is no separate same-commit category. Tasks that share issue text but sit at different commits with different fixes (22686/22711, 3359/3362) are distinct tasks and are flagged as `same_text=true` in `clusters.csv`.
 - **Control set.** One experience task per repository that shares no edited file with any Lite task (`partners = 0` in `lite_task_file_overlap.csv`), chosen mechanically as the lowest instance number. Sharing between control notes and between controls and cluster notes gives the base rate against which the cluster rate is read.
 
-Scripts: `scripts/data_prep/inspect_scb.py` (downloads the parquet files), `scripts/data_prep/clusters.py` → `pilot_a/data/lite_task_file_overlap.csv`, plus a new `scripts/data_prep/same_pr.py` that writes the same-PR groups to `pilot_a/data/same_pr_groups.csv`. Over the 399 Lite tasks, 263 share an edited file with at least one other task; 36 of the 44 file clusters of three or more tasks survive the same-PR rule.
+Scripts: `pilot-a/pilot-a/scripts/data_prep/inspect_scb.py` (downloads the parquet files), `pilot-a/pilot-a/scripts/data_prep/clusters.py` → `pilot-a/data/lite_task_file_overlap.csv`, plus a new `pilot-a/pilot-a/scripts/data_prep/same_pr.py` that writes the same-PR groups to `pilot-a/data/same_pr_groups.csv`. Over the 399 Lite tasks, 263 share an edited file with at least one other task; 36 of the 44 file clusters of three or more tasks survive the same-PR rule.
 
-A third property is recorded but not optimised for: whether a task has a chronologically later related task in the benchmark (git ancestry of `base_commit`s in `pilot_a/data/revision_pairs/`; 73 distinct ordered pairs among the 100 distinct Lite pairs). It is listed in the "Why" column below for information; it played no part in choosing or ranking clusters, which were chosen by cluster size after the same-PR rule.
+A third property is recorded but not optimised for: whether a task has a chronologically later related task in the benchmark (git ancestry of `base_commit`s in `pilot-a/data/revision_pairs/`; 73 distinct ordered pairs among the 100 distinct Lite pairs). It is listed in the "Why" column below for information; it played no part in choosing or ranking clusters, which were chosen by cluster size after the same-PR rule.
 
 ### 3.1 Proposed selection (19 cluster tasks in 5 clusters, 5 controls, 5 optional)
 
@@ -60,24 +60,24 @@ D2 (`migrations/operations/models.py`) is dropped: after removing 34525 (PR 1682
 
 Related tasks (jiayuanz3 images, `image_name` field): 12622, 15093, 25637, 22482, 22686, 16342, 16946, 3359, 21204, 34570, 35356, and in the optional set 15059, 19235. Experience tasks (swebench images, official Lite grading): 10949, 22711, 16988, 2148, 3362, 14016, 14017, 16910, the five controls, and in the optional set 11897, 14774, 15609. The `kind` column of `lite_task_file_overlap.csv` is the authority.
 
-Ground rule from the proposal: tasks are chosen for *plausible* overlap, never pre-screened by looking at whether their notes would share a claim. The selection above is fixed in `pilot_a/clusters.csv` (columns: `instance_id, cluster, kind, image, same_text, same_pr_group, role ∈ {cluster, control, optional}`) before any agent run, and any later change to it is logged with a reason.
+Ground rule from the proposal: tasks are chosen for *plausible* overlap, never pre-screened by looking at whether their notes would share a claim. The selection above is fixed in `pilot-a/clusters.csv` (columns: `instance_id, cluster, kind, image, same_text, same_pr_group, role ∈ {cluster, control, optional}`) before any agent run, and any later change to it is logged with a reason.
 
 ## 4. Running the agent (WP2)
 
 - **Agent and model**: mini-swe-agent 2.4.6 pinned in a `uv` lockfile; one backbone model for the whole project (decision, Section 9); `step_limit 250`, `cost_limit 3` as shipped. Nothing in the agent's prompt is changed. Temperature is passed explicitly, `-c model.model_kwargs.temperature=0`, where the provider accepts it; if the provider rejects or ignores it, that is recorded in the run record and the model's default sampling is used for all runs. The model must be in litellm's price table (checked in WP0); `cost_tracking` stays at its default.
-- **Instance directory**: `pilot_a/instances/<set>/instances.jsonl` (one directory per run set, nothing else in it) built by `scripts/pilot_a/build_instances.py` from the parquet files: SWE-bench schema plus `image_name`. The `hints_text`, `patch` and `test_patch` fields are stripped from the file the agent reads; only `problem_statement` reaches the prompt. Run: `mini-extra swebench --subset pilot_a/instances/<set> --split train --workers 2 -o pilot_a/runs/<model>/<run>` with a fresh `-o` per run (never `--redo-existing` into an old one).
+- **Instance directory**: `pilot-a/instances/<set>/instances.jsonl` (one directory per run set, nothing else in it) built by `pilot-a/scripts/build_instances.py` from the parquet files: SWE-bench schema plus `image_name`. The `hints_text`, `patch` and `test_patch` fields are stripped from the file the agent reads; only `problem_statement` reaches the prompt. Run: `mini-extra swebench --subset pilot-a/instances/<set> --split train --workers 2 -o pilot-a/runs/<model>/<run>` with a fresh `-o` per run (never `--redo-existing` into an old one).
 - **Repeated runs**: 1 run for all tasks first; 3 runs per task if budget allows. mini-swe-agent has no seed; repeated runs at temperature 0 differ only by provider nondeterminism, and they measure within-task variance, not sharing across independently acquired notes. Section 7 reports them separately.
 - **Outcome**: `swebench eval lite -p preds.json --run-id <run> -j 2` for experience tasks; `run_evaluation.py --no-remove-instance-image` from the SCB fork for related tasks; store `resolved`, `FAIL_TO_PASS` and `PASS_TO_PASS` results per run. Empty submissions and `LimitsExceeded` exits are recorded as `resolved=false` with the exit status kept.
-- **Gold gate (WP0)**: before any agent run, apply gold + test patch in every selected image and run its `FAIL_TO_PASS`; a task whose gold does not pass is replaced from the same file cluster and the replacement logged. Results in `pilot_a/env/gold_gate.jsonl`.
+- **Gold gate (WP0)**: before any agent run, apply gold + test patch in every selected image and run its `FAIL_TO_PASS`; a task whose gold does not pass is replaced from the same file cluster and the replacement logged. Results in `pilot-a/env/gold_gate.jsonl`.
 - **Final workspace**: fresh container from the task image, `git apply` the `model_patch`, then record `git diff --stat <base_commit>`, untracked files the patch would miss (the agent's reproduce scripts are informative), and the output of the agent's own last test command re-run (the last trajectory action classified `verify` by the segmenter, Section 5).
-- **Environment fingerprint**: image digest, `git rev-parse HEAD` and `base_commit`, `python --version` in the testbed env, `pip freeze` hash, captured once per image by `scripts/pilot_a/fingerprint.sh`.
+- **Environment fingerprint**: image digest, `git rev-parse HEAD` and `base_commit`, `python --version` in the testbed env, `pip freeze` hash, captured once per image by `pilot-a/scripts/fingerprint.sh`.
 - **Isolation**: every run in its own container; no memory of any kind is given to the agent. Pilot A produces notes; it does not use them. Runs must finish inside the 2-hour container lifetime; a run that hits it is recorded and rerun once.
 
 Cost: 24 tasks (19 + 5 controls) × 1 run × ≤ \$3 cost limit ≈ \$72 worst case; 3 runs ≈ \$216; the optional five add \$15 per run. Extraction (Section 5) is a fraction of that. Disk: about 3 to 7 GB per image on disk, roughly 130 GB for 29 images.
 
 ## 5. Extracting notes and claims (WP3)
 
-**Unit of a note.** A trajectory is first segmented into phases using the four categories of Subtask-Level Memory (*analyse*, *reproduce*, *edit*, *verify*), but by a fixed rule on the commands rather than by the agent's own prompt, and keeping repository detail rather than stripping it, since the claims are the object of study. The rule, implemented in `scripts/pilot_a/segment.py` and shipped with a labelled edge-case file:
+**Unit of a note.** A trajectory is first segmented into phases using the four categories of Subtask-Level Memory (*analyse*, *reproduce*, *edit*, *verify*), but by a fixed rule on the commands rather than by the agent's own prompt, and keeping repository detail rather than stripping it, since the claims are the object of study. The rule, implemented in `pilot-a/scripts/segment.py` and shipped with a labelled edge-case file:
 
 - Each tool call is one action; a message with several tool calls contributes its actions in order. A command chained with `&&`, `;` or `|` is split and each part classified; the action takes the class of its last part that is not *analyse*.
 - *edit*: the part matches a write pattern (`sed -i`, `>`/`>>`/`tee` to a path under the repository, `python`/heredoc that opens a repository file for writing, `git apply`, `patch`, `git checkout -- <path>`, `cp`/`mv` whose target is under the repository), and the path is tracked at `base_commit`. The same patterns on an untracked path are *reproduce*.
@@ -124,7 +124,7 @@ Ca is not needed for the first three rows because a claim true at C0 or C1 is ab
 **How a cell is decided.** Where an existing pytest node at C0 or a probe of ≤30 lines can answer the claim, it is run inside the task's own image (note the image's Python version; 3.6 for some requests images):
 
 ```
-docker run --rm -v $PWD/pilot_a/probes:/probes:ro <image> bash -lc \
+docker run --rm -v $PWD/pilot-a/probes:/probes:ro <image> bash -lc \
   'cd /testbed && git apply /probes/<patch-or-none>.diff; python -m pytest -q -x -p no:cacheprovider <node or /probes/<claim_id>.py>'
 ```
 
@@ -145,12 +145,12 @@ Only `repo_history` claims are eligible for carrying forward to later revisions.
 | WP | Title | Outputs | Effort | Owner |
 |---|---|---|---|---|
 | 0 | Environment | WSL setup script (uv, Docker check, `.wslconfig`); `uv` lockfile (`mini-swe-agent==2.4.6`, `swebench==5.0.2`, `datasets`, `pandas`, `pyarrow`); clone of the SCB harness with our own `requirements.txt` for it; API key in `.env` (git-ignored); litellm price-table check and one temperature-0 call; image pull script for the 24 (+5) images; **gold gate** for every selected task in both harnesses; smoke test = one full agent run on one task, harness evaluation of its patch, one probe run at C0 and C1 | 2 days | user |
-| 1 | Instance files | `pilot_a/instances/<set>/instances.jsonl` with `image_name`; `pilot_a/clusters.csv` (the fixed selection, with `same_pr_group`, `same_text`, `role`); `pilot_a/data/same_pr_groups.csv` | 0.5 day | user |
+| 1 | Instance files | `pilot-a/instances/<set>/instances.jsonl` with `image_name`; `pilot-a/clusters.csv` (the fixed selection, with `same_pr_group`, `same_text`, `role`); `pilot-a/data/same_pr_groups.csv` | 0.5 day | user |
 | 2 | Agent runs + outcomes | `runs/<model>/<run>/<id>/<id>.traj.json`, `preds.json`, harness results, workspace records, env fingerprints | 2 days wall-clock, mostly unattended | user |
 | 3 | Note and claim extraction | phase segmenter with edge-case file, extractor prompt (versioned), `notes_raw.jsonl`, `claims_raw.jsonl`, second-model sample, then reviewed versions; rubric; κ; adjudication log | 4.5 days incl. review and adjudication | Nicholas + Johnny |
 | 4 | Source validity | `validity.jsonl` with C0/C1/Ca per claim; probe scripts; share of manual cells; about 3 container runs per probed claim on the WSL machine | 2.5 days | OCEAN + user |
 | 5 | Sharing review | claim groups with reasons; the counts of Section 7 incl. controls; blind re-grouping sample; bootstrap | 2 days | Robin + Nicholas |
-| 6 | Report | `pilot_a/report.md`: checkable share, source-validity split, sharing counts (i)–(iv), failed-step notes, cost per task, examples of good and bad notes; recommendation on the claim family to pursue and on which tasks' notes to carry into the revision study | 1 day | user |
+| 6 | Report | `pilot-a/report.md`: checkable share, source-validity split, sharing counts (i)–(iv), failed-step notes, cost per task, examples of good and bad notes; recommendation on the claim family to pursue and on which tasks' notes to carry into the revision study | 1 day | user |
 
 ## 9. Decisions needed from the team
 
@@ -174,7 +174,7 @@ Placeholders to fix in week 1 (the proposal's X and Y): continue to the revision
 ## 11. Storage layout
 
 ```
-pilot_a/
+pilot-a/
   data/                                  parquet files, lite_pairs.csv, lite_task_file_overlap.csv, same_pr_groups.csv
   data/revision_pairs/                   git-ancestry tables for the later revision study
   instances/<set>/instances.jsonl        one directory per run set (mini-swe-agent needs a directory)
@@ -206,7 +206,7 @@ Sources: the 2026-10-19 audit (A, by fact or flaw number) and the 2026-10-20 rev
 | 3 | 3.1, 4 | `psf__requests-2344` excluded (gold is Python-2 code in a Python 3.6 image); 2148 added to R1 | A fact 46, blocker 3; R §5 item 1 (cause corrected) |
 | 4 | 3.1, 7 | `same_text` flag for 22686/22711 and 3359/3362; counted separately, not as duplicates | R §4, §5 item 3 |
 | 5 | 3 | Ordered-pair information stated as informational only; counts corrected to 73 / 100 distinct; D1 has three ordered pairs among the surviving six (was "three" of four with 32450) | A facts 40, 44, flaw 11 |
-| 6 | 2, 4, 11 | `--subset` takes a directory; instances live in `pilot_a/instances/<set>/` | A fact 17 (both) |
+| 6 | 2, 4, 11 | `--subset` takes a directory; instances live in `pilot-a/instances/<set>/` | A fact 17 (both) |
 | 7 | 2, 4 | Experience tasks graded with `swebench eval lite` against the official dataset | A fact 27 (both); R §8 (`lite` resolved by the harness loader) |
 | 8 | 2, 4, 8 | SCB harness called directly with `--no-remove-instance-image`; own dependency list because `environment.yml` is HTML; no licence noted | A fact 29 (both) |
 | 9 | 2, 4, 6 | Diff and fingerprint against `base_commit`, not HEAD (mode-only "SWE-bench" commit) | A fact 15 (both); R §5 item 6 (severity) |

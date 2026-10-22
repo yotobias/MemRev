@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Environment fingerprint of one task image -> pilot_a/env/<instance_id>.json (+ .pip-freeze.txt)
-#   bash scripts/pilot_a/fingerprint.sh <instance_id> <image> <base_commit>
+# Environment fingerprint of one task image -> pilot-a/env/<instance_id>.json (+ .pip-freeze.txt)
+#   bash pilot-a/scripts/fingerprint.sh <instance_id> <image> <base_commit>
 # Runs the probe the way mini-swe-agent runs commands: bash -c with BASH_ENV=/root/.bashrc,
 # which activates the testbed conda env in both image families.
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 
 iid=$1 image=$2 base=$3
-out="$PILOT_ROOT/pilot_a/env"; mkdir -p "$out"
+out="$PILOT_ROOT/pilot-a/env"; mkdir -p "$out"
 case $iid in   # import check: the package, plus a compiled module where it has one
     scikit-learn__*) pkg=sklearn;    imp="import sklearn, sklearn.utils.murmurhash" ;;
     matplotlib__*)   pkg=matplotlib; imp="import matplotlib; from matplotlib import ft2font" ;;

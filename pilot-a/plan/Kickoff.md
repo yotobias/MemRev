@@ -1,6 +1,6 @@
 # Pilot A kickoff: a first plan for two people
 
-Status: initial plan, 2026-10-20. For current progress read `pilot_a/README.md` first; decisions taken since this plan are in `pilot_a/CHANGES.md`. `pilot_a/plan/Plan_v2.md` is the detailed reference; Section 11 below lists where v2 is out of date, so do not read v2 cover to cover on day one.
+Status: initial plan, 2026-10-20. For current progress read `pilot-a/README.md` first; decisions taken since this plan are in `pilot-a/CHANGES.md`. `pilot-a/plan/Plan_v2.md` is the detailed reference; Section 11 below lists where v2 is out of date, so do not read v2 cover to cover on day one.
 
 ## 1. The project in one paragraph
 
@@ -39,7 +39,7 @@ Pilot A has no pass or fail threshold. The proposal decides after Pilots A and B
 
 | What | What it is | Why we need it | Where |
 |---|---|---|---|
-| SWE-ContextBench Lite | 300 "experience" + 99 "related" Python bug-fix tasks from 12 repos, SWE-bench schema (`repo`, `base_commit`, `problem_statement`, `patch`, `test_patch`, tests). MIT. | Source of our 19 tasks and their gold patches | Hugging Face `jiayuanz3/SWEContextBench`, parquet files; downloaded by `scripts/data_prep/inspect_scb.py` into `pilot_a/data/` |
+| SWE-ContextBench Lite | 300 "experience" + 99 "related" Python bug-fix tasks from 12 repos, SWE-bench schema (`repo`, `base_commit`, `problem_statement`, `patch`, `test_patch`, tests). MIT. | Source of our 19 tasks and their gold patches | Hugging Face `jiayuanz3/SWEContextBench`, parquet files; downloaded by `pilot-a/pilot-a/scripts/data_prep/inspect_scb.py` into `pilot-a/data/` |
 | SWE-ContextBench GitHub repo | 99 related-task JSONs, a fork of the SWE-bench harness, and 300 public Claude Code transcripts of the experience tasks. No licence file. | Related-task metadata and harness. **The transcripts are off limits** to anyone doing review (Section 6). | `github.com/jiayuanz3/SWEContextBench` |
 | Docker images, two families | One prebuilt image per task with the repo checked out at `base_commit` in `/testbed`. Related tasks: `jiayuanz3/swecontextbench:<owner>.<repo>-<n>`. Experience tasks: `swebench/sweb.eval.x86_64.<owner>_1776_<repo>-<n>`. 3 to 7 GB each on disk. | Agent runs and probes execute inside them | Docker Hub; about 100 GB for 19 images |
 | mini-swe-agent 2.4.6 | A small, fixed coding agent (MIT, Python 3.10+). Runs a task with `mini-extra swebench --subset <dir> ... -o <dir>`, writes one trajectory JSON per task and `preds.json` with the patches. | The agent whose experience we study | PyPI `mini-swe-agent`; docs at mini-swe-agent.com |
@@ -47,7 +47,7 @@ Pilot A has no pass or fail threshold. The proposal decides after Pilots A and B
 | uv + Python 3.10+ | Package manager and lockfile | Pin `mini-swe-agent==2.4.6`, `datasets`, `pandas`, `pyarrow` | `uv` exists on Windows; install in WSL |
 | LLM API key, one backbone model | Same model for the agent and the extractor | Nothing after setup can start without it | **Decision needed** (Section 8). No key is configured yet |
 | SWE-bench harness 5.0.2 (optional) | Grades a patch against the task's tests. Experience tasks grade against the official `SWE-bench/SWE-bench_Lite`; related tasks through the SCB fork. | Not required by the proposal for Pilot A; Pilot D needs it. Do it only if time is left. | PyPI `swebench` |
-| Our scripts and data | `scripts/data_prep/` (download, file-overlap clusters, git ancestry) and `pilot_a/data/*.csv` | Task selection is reproducible from them | This repository; see `scripts/data_prep/README.md` |
+| Our scripts and data | `pilot-a/pilot-a/scripts/data_prep/` (download, file-overlap clusters, git ancestry) and `pilot-a/data/*.csv` | Task selection is reproducible from them | This repository; see `pilot-a/pilot-a/scripts/data_prep/README.md` |
 
 ## 5. The 19 tasks
 
@@ -66,7 +66,7 @@ Five clusters, each a set of distinct GitHub issues editing the same file. Tasks
 | D1 | django `db/models/query_utils.py`, `sql/query.py` | 14016, 14017, 16910 | experience |
 | | | 21204, 34570, 35356 | related |
 
-Full ids follow the pattern `scikit-learn__scikit-learn-10949`, `django__django-14016`, `psf__requests-2148`, `matplotlib__matplotlib-22711`, `sympy__sympy-16988`. Two pairs (22686/22711, 3359/3362) share issue text but sit at different commits with different fixes; they are distinct tasks and are flagged `same_text` so their sharing is counted separately. The list is frozen in `pilot_a/clusters.csv` before the first agent run; any change is logged with a reason.
+Full ids follow the pattern `scikit-learn__scikit-learn-10949`, `django__django-14016`, `psf__requests-2148`, `matplotlib__matplotlib-22711`, `sympy__sympy-16988`. Two pairs (22686/22711, 3359/3362) share issue text but sit at different commits with different fixes; they are distinct tasks and are flagged `same_text` so their sharing is counted separately. The list is frozen in `pilot-a/clusters.csv` before the first agent run; any change is logged with a reason.
 
 Budget: 19 runs at the agent's default cost cap of $3 is at most about $57, plus a smaller amount for extraction.
 
@@ -105,7 +105,7 @@ Effort, from the detailed plan: about 5 person-days in Lane R, about 6 in Lane N
 
 1. `docs/Final_Proposal_Tex.md`: Motivation, Research Idea, and the Pilot A paragraph. This is the contract.
 2. This document.
-3. `pilot_a/plan/Plan_v2.md`, Sections 3 to 7 only, as the detailed reference for your lane. Skip Section 2 (verification table) and Section 12 (change log) on first read; use Section 11 of this document to know what in v2 has changed.
+3. `pilot-a/plan/Plan_v2.md`, Sections 3 to 7 only, as the detailed reference for your lane. Skip Section 2 (verification table) and Section 12 (change log) on first read; use Section 11 of this document to know what in v2 has changed.
 4. `Literature_md/SWE_Context_Bench.md`, Section 2: how the tasks were built and why same-PR duplicates exist.
 5. `Literature_md/Structurally Aligned Subtask-Level Memory.md`, Sections 3.2 and 3.5: the four phase categories and the extractor idea we borrow (we keep repository detail that they strip).
 6. Lane R only: the mini-swe-agent docs page for `mini-extra swebench`. Lane N only: one mini-swe-agent `.traj.json` from any public run, to learn the message format.
@@ -121,14 +121,14 @@ Effort, from the detailed plan: about 5 person-days in Lane R, about 6 in Lane N
 - The SCB harness deletes each task image after grading unless `--no-remove-instance-image` is passed. Its `environment.yml` is a saved web page, not a real file.
 - Cost cap: mini-swe-agent checks the $3 limit before each call, so one run can overshoot by a step. Container lifetime is 2 hours.
 
-## 11. Where this plan departs from `pilot_a/plan/Plan_v2.md`
+## 11. Where this plan departs from `pilot-a/plan/Plan_v2.md`
 
 A review on 2026-10-20 compared v2 against the proposal. The proposal is the authority, and the following apply when v2 says otherwise:
 
 - **Kept, v2 was wrong to drop them:** claims true at C0 but changed by the official fix ("superseded") stay in the sharing review and carry their support revision (C0 or C1) in the label. Claims the agent observed in an intermediate workspace state are labelled by what was observed, not written off as "unsupported".
 - **No thresholds, no gate.** v2's go/no-go percentages are removed. Pilot A does not gate Pilot B; the proposal decides after A and B.
 - **Cut for the first round:** the control set of unrelated tasks, the optional S2 cluster, three repeated runs per task, second-model re-extraction, double review of every note, the bootstrap, the pre-registered secondary analysis, the separate environment-claim track. Each can return later if the first round shows it is needed.
-- **Deferred:** harness grading of agent patches (Pilot D), the git-ancestry revision pairs in `pilot_a/data/revision_pairs/` (Pilots B and D).
+- **Deferred:** harness grading of agent patches (Pilot D), the git-ancestry revision pairs in `pilot-a/data/revision_pairs/` (Pilots B and D).
 - **Added to the report:** exclusions, inconclusive cases, and the cost components that Pilot C will need (extraction, probing, container time).
 
 Everything else in v2 Sections 3 to 7 (selection rules, agent settings, segmentation rule, extractor schema, validity table, sharing key) stands and is the reference for the detailed work.

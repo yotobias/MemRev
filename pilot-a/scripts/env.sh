@@ -1,5 +1,5 @@
 # Shared settings for Lane R scripts. Source it, do not run it:
-#   source scripts/pilot_a/env.sh
+#   source pilot-a/scripts/env.sh
 # Must be sourced from inside WSL.
 
 # Project root = two levels above this file.

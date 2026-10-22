@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-time WSL setup for Pilot A Lane R. Safe to re-run.
-# Run inside WSL from the project root:  bash scripts/pilot_a/setup_wsl.sh
+# Run inside WSL from the project root:  bash pilot-a/scripts/setup_wsl.sh
 set -euo pipefail
 
 UV_VERSION=0.12.21          # same as uv on Windows; bump deliberately
@@ -31,7 +31,7 @@ echo "WSL currently sees: $(free -g | awk '/^Mem:/{print $2}') GB"
 echo "== 3. Python env ($UV_PROJECT_ENVIRONMENT)"
 uv python pin 3.12 >/dev/null
 # Install exactly the committed uv.lock; never re-resolve here (re-locking is a deliberate,
-# logged step: edit pyproject.toml, run `uv lock`, note it in pilot_a/CHANGES.md).
+# logged step: edit pyproject.toml, run `uv lock`, note it in pilot-a/CHANGES.md).
 uv sync --locked
 uv run --locked python -c "import importlib.metadata as m; print('mini-swe-agent', m.version('mini-swe-agent'))"
 uv run --locked mini-extra --help >/dev/null && echo "mini-extra OK"

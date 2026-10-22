@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 # Run mini-swe-agent on an instance set, with the shipped swebench config unchanged.
-#   bash scripts/pilot_a/run_agent.sh <set> <model> <run_name> [workers]
-#   e.g.  bash scripts/pilot_a/run_agent.sh smoke claude-haiku-5-5 smoke-1
-#         bash scripts/pilot_a/run_agent.sh main claude-sonnet-5-5 main-1 2
-# Output: pilot_a/runs/<model>/<run_name>/ (refuses to reuse an existing directory).
+#   bash pilot-a/scripts/run_agent.sh <set> <model> <run_name> [workers]
+#   e.g.  bash pilot-a/scripts/run_agent.sh smoke claude-haiku-5-5 smoke-1
+#         bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-1 2
+# Output: pilot-a/runs/<model>/<run_name>/ (refuses to reuse an existing directory).
 # Needs ANTHROPIC_API_KEY in <project root>/.env (git-ignored); the key is never printed.
 #
 # No -c option: mini-extra replaces the default config when -c is given, which would drop
 # the shipped swebench.yaml (prompts, limits, BASH_ENV). No temperature: current Claude
-# models reject non-default sampling (pilot_a/CHANGES.md).
+# models reject non-default sampling (pilot-a/CHANGES.md).
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
 cd "$PILOT_ROOT"
 
 set_name=$1 model=$2 run=$3 workers=${4:-1}
-subset="pilot_a/instances/$set_name"
-out="pilot_a/runs/$model/$run"
+subset="pilot-a/instances/$set_name"
+out="pilot-a/runs/$model/$run"
 [[ -f $subset/instances.jsonl ]] || { echo "no instance set $subset"; exit 2; }
 [[ -e $out ]] && { echo "$out exists; every run gets a fresh directory"; exit 2; }
 

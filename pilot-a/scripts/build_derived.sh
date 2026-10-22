@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Rebuild the compiled parts of a task's package inside its image and save the result
 # as a local derived image  pilot-a/<owner>.<repo>-<n>:built.  The original image is untouched.
-#   bash scripts/pilot_a/build_derived.sh <instance_id> <image>
+#   bash pilot-a/scripts/build_derived.sh <instance_id> <image>
 #
 # Why: the jiayuanz3 images compile the package (pip install -e .) and then run a
 # history-cutoff step whose `git clean -fdx` deletes the compiled extensions, so e.g.
@@ -46,6 +46,6 @@ start=$(date +%s)
 # needs no BASH_ENV: pip is called by absolute path, and the image PATH puts testbed first.)
 docker run --name "$name" "$image" bash -c "$rebuild"
 docker commit --change 'CMD ["/bin/bash"]' \
-    -m "pilot-a: rebuild package after history cutoff (scripts/pilot_a/build_derived.sh)" "$name" "$tag" >/dev/null
+    -m "pilot-a: rebuild package after history cutoff (pilot-a/scripts/build_derived.sh)" "$name" "$tag" >/dev/null
 docker rm "$name" >/dev/null
 echo "$iid: built $tag from $image in $(( $(date +%s) - start ))s"

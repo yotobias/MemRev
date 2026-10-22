@@ -6,7 +6,7 @@ runs/
 
 # Pilot A Lane R (branch pilot-a/laneR)
 # gold-gate results name the tests of the official fixes: Lane R only, Lane N stays blind
-pilot_a/env/gold_gate.jsonl
-pilot_a/env/gold_gate_logs/
-# benchmark data incl. gold patches; re-download with scripts/data_prep/inspect_scb.py
-pilot_a/data/*.parquet
+pilot-a/env/gold_gate.jsonl
+pilot-a/env/gold_gate_logs/
+# benchmark data incl. gold patches; re-download with pilot-a/scripts/data_prep/inspect_scb.py
+pilot-a/data/*.parquet

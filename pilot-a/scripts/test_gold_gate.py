@@ -1,6 +1,6 @@
 """Parser test for gold_gate.py (and the probe runner that will reuse it).
 
-    uv run --locked python scripts/pilot_a/test_gold_gate.py
+    uv run --locked python pilot-a/scripts/test_gold_gate.py
 
 Synthetic lines in the exact formats seen in the gate logs; no names from pilot tasks
 (Lane N may read this file).

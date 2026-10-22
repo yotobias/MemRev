@@ -1,6 +1,6 @@
 """Gold gate: does the official fix pass its own FAIL_TO_PASS tests in the task image?
 
-    uv run python -I scripts/pilot_a/gold_gate.py [--workers 2] [instance_id ...]
+    uv run python -I pilot-a/scripts/gold_gate.py [--workers 2] [instance_id ...]
 
 Per task, in a fresh container of its image (bash with BASH_ENV=/root/.bashrc, as
 mini-swe-agent runs commands): git apply the gold `patch`, git apply the `test_patch`,
@@ -13,8 +13,8 @@ Test commands follow the benchmark that grades the task:
               tests/runtests.py <module> -v 2 --parallel=1, else python -m pytest <file> -v
 Patches are applied as written (the SCB harness rewrites e.message -> str(e); we do not).
 
-Appends one JSON line per task to pilot_a/env/gold_gate.jsonl; full logs (gold-patched
-code and test names: Lane R only) go to pilot_a/env/gold_gate_logs/.
+Appends one JSON line per task to pilot-a/env/gold_gate.jsonl; full logs (gold-patched
+code and test names: Lane R only) go to pilot-a/env/gold_gate_logs/.
 """
 import argparse, concurrent.futures as cf, datetime, json, pathlib, re, subprocess, sys, tempfile, time
 import pandas as pd
@@ -34,15 +34,15 @@ def as_list(v):
 
 def load_tasks(ids):
     from datasets import load_dataset
-    sel = pd.read_csv(ROOT / "pilot_a/clusters.csv")
+    sel = pd.read_csv(ROOT / "pilot-a/clusters.csv")
     if ids:  # ids outside clusters.csv (e.g. the smoke task) get kind and image by the usual rule
         extra = [i for i in ids if i not in set(sel.instance_id)]
-        ov = pd.read_csv(ROOT / "pilot_a/data/lite_task_file_overlap.csv").set_index("instance_id")
+        ov = pd.read_csv(ROOT / "pilot-a/data/lite_task_file_overlap.csv").set_index("instance_id")
         sel = pd.concat([sel[sel.instance_id.isin(ids)], pd.DataFrame(
             [dict(instance_id=i, kind=ov.at[i, "kind"], image=image_for(i, ov.at[i, "kind"])) for i in extra])])
     lite = load_dataset("SWE-bench/SWE-bench_Lite", split="test").to_pandas().set_index("instance_id")
-    scb_exp = pd.read_parquet(ROOT / "pilot_a/data/SWEContextBench_Lite_Experience.parquet").set_index("instance_id")
-    scb_rel = pd.read_parquet(ROOT / "pilot_a/data/SWEContextBench_Related_Lite.parquet").set_index("instance_id")
+    scb_exp = pd.read_parquet(ROOT / "pilot-a/data/SWEContextBench_Lite_Experience.parquet").set_index("instance_id")
+    scb_rel = pd.read_parquet(ROOT / "pilot-a/data/SWEContextBench_Related_Lite.parquet").set_index("instance_id")
     tasks = []
     for t in sel.itertuples():
         if t.kind == "experience":
@@ -214,7 +214,7 @@ def main():
     ap.add_argument("--f2p-only", action="store_true",
                     help="sympy bin/test only: run just the FAIL_TO_PASS tests (-k), for slow test files")
     a = ap.parse_args()
-    env = ROOT / "pilot_a/env"; logdir = env / "gold_gate_logs"; logdir.mkdir(parents=True, exist_ok=True)
+    env = ROOT / "pilot-a/env"; logdir = env / "gold_gate_logs"; logdir.mkdir(parents=True, exist_ok=True)
     tasks = load_tasks(a.ids)
     for t in tasks:
         t["f2p_only"] = False
