@@ -1,0 +1,7 @@
+exceptiongroup @ file:///croot/exceptiongroup_1706031385326/work
+iniconfig @ file:///home/linux1/recipes/ci/iniconfig_1610983019677/work
+packaging @ file:///croot/packaging_1720101850331/work
+pluggy @ file:///tmp/build/80754af9/pluggy_1648024445381/work
+pytest @ file:///croot/pytest_1717793244625/work
+requests @ file:///testbed
+tomli @ file:///opt/conda/conda-bld/tomli_1657175507142/work
