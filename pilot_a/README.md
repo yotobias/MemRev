@@ -38,7 +38,7 @@ If you might ever review notes (Lane N), do not open `env/gold_gate.jsonl`, `env
 | 4. "Gold gate": does the official fix pass its own tests in each container? | R | done, all 19 pass |
 | 5. Agent input file (problem statements only) | R | done |
 | 6. Smoke test: one complete agent run on a non-pilot task | R | done (cost $0.0014) |
-| 7. The 19 agent runs, then rebuild each final workspace | R | **next**; up to about $57 |
+| 7. The 19 agent runs, then rebuild each final workspace | R | **on hold** until the team decides the task source (see `CHANGES.md`, 2026-10-22); up to about $57 |
 | 8. Probe runner for the validity labels | R | week 2 |
 | Rubric, segmenter, extractor prompt, note review, grouping | N | not recorded here yet |
 

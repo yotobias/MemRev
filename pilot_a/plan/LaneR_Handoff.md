@@ -35,6 +35,8 @@ On this machine only (a second Lane R machine must recreate them): the derived i
 
 ## Next steps
 
+**On hold (2026-10-22):** the team repository `yotobias/MemRev` decided (its V11, V12, ADR 0001) that lessons come from SWE-bench Verified django/sympy/scikit-learn tasks, so that Pilot B can use them; only 1 of our 19 SWE-ContextBench tasks is in Verified. Do not start step 7 until the team has decided the task source (see `pilot_a/CHANGES.md`). Lane R's work is on branch `pilot-a/laneR` of that repository.
+
 7. **The 19 runs.** Confirm with the user before starting (up to about $57, 1 to 3 hours, unattended), then run it in the background:
    `bash scripts/pilot_a/run_agent.sh main claude-sonnet-5-5 main-1 2`
    Afterwards: read `exit_statuses_*.yaml` and the cost per task from each trajectory's `info.model_stats`. Empty submissions and `LimitsExceeded` are results, not failures. A run killed by the 2 h container limit or by an infrastructure error is rerun once, into a new directory (`main-1-rerun`, with `--filter <instance_id>` added to the `mini-extra` call); never `--redo-existing`, never reuse a directory. Log every rerun in `CHANGES.md`.
