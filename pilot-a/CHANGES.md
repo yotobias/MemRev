@@ -102,3 +102,11 @@ The 19 images of the superseded list and the 5 derived images built from them we
 `runs/claude-sonnet-5-5/main-1` (git-ignored; `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-1 2`, started 17:19 UTC, detached with `setsid nohup`): all 16 tasks `Submitted` with a non-empty patch within 20 minutes; total cost $0.69 ($0.017 to $0.27 per task). 15 tasks took 4 to 7 model calls (5 to 8 commands); django-10554 took 24. Correctness of the patches is not checked yet.
 
 Every assistant message has empty text: no thinking blocks, `reasoning_tokens` 0, about 90 output tokens per call. With the shipped config, Sonnet 5.5 answers with bare tool calls, so a trajectory holds only commands and their outputs. Agents often went straight to the edited function with the first search and did not reproduce the bug. Open (user decision pending): keep main-1 as the pilot run, or run again with reasoning recorded.
+
+## 2026-10-24: smoke test with visible thinking (`smoke-thinking-1`)
+
+Cause of the empty messages in main-1: Sonnet 5.5 thinks adaptively by default (the model decides per call whether to think), and returns thinking and text between tool calls as blank blocks unless `thinking.display` is set ("omitted" is the default). `display: "summarized"` changes visibility only; the raw chain of thought is never returned.
+
+`pilot-a/config/thinking_summarized.yaml` sets `thinking: {type: adaptive, display: summarized}`; `run_agent.sh` takes it as an optional 5th argument, passes `-c swebench.yaml -c <file>` (shipped config kept, merged recursively) and stores the file in `run_meta.json`. Smoke run on `pallets__flask-4992` with Sonnet 5.5: `Submitted`, 3 calls, $0.029; the setting reached the API; the model thought on 1 of 3 calls (589 reasoning tokens, summary recorded in `reasoning_content`, shown by Lane N's parser as "Agent reasoning"); the other calls had 0 reasoning tokens. So main-1 most likely had little hidden thinking, and this setting alone records reasoning only where the model chooses to think.
+
+The recorded reasoning mentions "upstream Flask's actual implementation" and "hidden tests": the model knows the official fix of this public task. Evidence for training-data contamination, to be reported with Pilot A's results.

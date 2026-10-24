@@ -42,7 +42,7 @@ If you might ever review notes (Lane N), do not open `env/gold_gate.jsonl`, `env
 | 8. Probe runner for the validity labels | R | week 2 |
 | Rubric, segmenter, extractor prompt, note review, grouping | N | not recorded here yet |
 
-Cost so far: about $0.70 (smoke runs, test calls, run main-1 $0.69).
+Cost so far: about $0.73 (smoke runs, test calls, run main-1 $0.69, thinking smoke test $0.03).
 
 ## Decisions so far (details and reasons in `CHANGES.md`)
 

@@ -20,7 +20,7 @@ rule in bash). Parser test: `uv run --locked python pilot-a/scripts/test_gold_ga
 | 3b | `build_derived.sh <id> <image>` | rebuilds the compiled package in an image whose build was wiped by the history cutoff; saves `pilot-a/<id>:built` | local Docker image |
 | 4 | `gold_gate.py [--derived] [--f2p-only] [id ...]` | gold `patch` + `test_patch`, runs the tests, F2P/P2P per test. `--derived` uses `pilot-a/<id>:built` where present; `--f2p-only` restricts sympy `bin/test` to the F2P tests (needed for 16342) | `pilot-a/env/gold_gate.jsonl`, `gold_gate_logs/` |
 | 5 | `build_instances.py main` / `smoke <id>` | mini-swe-agent instance file without patch, test, hint or test-name fields; uses a derived image where one exists | `pilot-a/instances/<set>/instances.jsonl` |
-| 6–7 | `run_agent.sh <set> <model> <run> [workers]` | runs mini-swe-agent with the shipped config (no `-c`, no temperature), key from `.env`, fresh output directory | `pilot-a/runs/<model>/<run>/` incl. `run_meta.json` |
+| 6–7 | `run_agent.sh <set> <model> <run> [workers] [settings]` | runs mini-swe-agent with the shipped config (no temperature), key from `.env`, fresh output directory; optional settings file from `pilot-a/config/` merged on top (`-c swebench.yaml -c <file>`) | `pilot-a/runs/<model>/<run>/` incl. `run_meta.json` |
 
 **Lane N:** do not open `pilot-a/env/gold_gate_logs/`, `pilot-a/env/gold_gate.jsonl` (test names) or the
 parquet files (gold patches). `pilot-a/instances/` and the fingerprints are safe.
