@@ -38,11 +38,11 @@ If you might ever review notes (Lane N), do not open `env/gold_gate.jsonl`, `env
 | 4. "Gold gate": does the official fix pass its own tests in each container? | R | done: all 16 pass (official fix passes all its tests) |
 | 5. Agent input file (problem statements only) | R | done: `instances/main/` (16 tasks) |
 | 6. Smoke test: one complete agent run on a non-pilot task | R | done (cost $0.0014) |
-| 7. The agent runs, then rebuild each final workspace | R | runs done 2026-10-24: 16/16 submitted a patch, $0.69; trajectories hold no reasoning text, decision pending (`CHANGES.md`); workspaces not rebuilt yet |
+| 7. The agent runs, then rebuild each final workspace | R | runs done 2026-10-24: `main-2` (visible reasoning, 31 of 87 calls) is the pilot run, `main-1` kept as a record; 16/16 submitted; the model recalls upstream fixes in 10 tasks (`CHANGES.md`); workspaces not rebuilt yet |
 | 8. Probe runner for the validity labels | R | week 2 |
 | Rubric, segmenter, extractor prompt, note review, grouping | N | not recorded here yet |
 
-Cost so far: about $0.73 (smoke runs, test calls, run main-1 $0.69, thinking smoke test $0.03).
+Cost so far: about $1.32 (smoke runs and test calls, main-1 $0.69, thinking smoke test $0.03, main-2 $0.59).
 
 ## Decisions so far (details and reasons in `CHANGES.md`)
 
