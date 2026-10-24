@@ -10,7 +10,7 @@ Pilot A is the first step. It asks: **when one fixed agent solves real bugs, do 
 
 ## How it works
 
-1. **Tasks.** 10 to 20 real bug-fix tasks from SWE-bench Verified (django, sympy, scikit-learn) that SWE-ContextBench links to later related tasks, grouped in clusters whose fixes touch the same code, so shared claims are *possible*; the review decides whether they exist. The list is frozen in `clusters.csv` (being re-selected; the earlier 19-task list from SWE-ContextBench Lite is superseded).
+1. **Tasks.** 10 to 20 real bug-fix tasks from SWE-bench Verified (django, sympy, scikit-learn) that SWE-ContextBench links to later related tasks, grouped in clusters whose fixes touch the same code, so shared claims are *possible*; the review decides whether they exist. The list is frozen in `clusters.csv`: 16 tasks in 5 clusters, four in django's `db/models` and one in sympy's code printers (the earlier 19-task list from SWE-ContextBench Lite is superseded).
 2. **Agent runs.** One AI coding agent (mini-swe-agent, model Claude Sonnet 5.5) attempts each task once, inside a Docker container that holds the repository at the commit where the bug existed. Every step it takes is recorded (the "trajectory").
 3. **Notes and claims.** Each trajectory is cut into phases; an LLM writes one note per phase (advice plus claims, each pointing to the step that shows it), and a person checks every claim.
 4. **Validity.** For each claim: is it true in the original code, after the official fix, or only in the agent's own edits? Small test scripts ("probes") answer this where possible.
@@ -28,12 +28,12 @@ The work is split into two lanes so that the people judging the notes never see 
 
 If you might ever review notes (Lane N), do not open `env/gold_gate.jsonl`, `env/gold_gate_logs/` or the files in `data/` that end in `.parquet`, and do not look up the tasks' pull requests or issues on GitHub (a task id such as `django__django-14016` is the PR number): all of these reveal the official fixes or their tests.
 
-## Progress (updated 2026-10-22)
+## Progress (updated 2026-10-24)
 
 | Step | Lane | Status |
 |---|---|---|
 | 1. Linux environment (WSL, Docker, Python packages locked) | R | done |
-| 2. Freeze the task list, with checks against duplicates | R | **redo**: tasks now come from SWE-bench Verified (decision 2026-10-24, `CHANGES.md`) |
+| 2. Freeze the task list, with checks against duplicates | R | done: 16 tasks from SWE-bench Verified in 5 clusters (team decisions V31, V32; `CHANGES.md` 2026-10-24) |
 | 3. Download the task containers and record their fingerprints | R | redo for the new tasks |
 | 4. "Gold gate": does the official fix pass its own tests in each container? | R | redo for the new tasks |
 | 5. Agent input file (problem statements only) | R | redo for the new tasks |
@@ -46,10 +46,11 @@ Cost so far: under $0.01 (smoke runs and test calls).
 
 ## Decisions so far (details and reasons in `CHANGES.md`)
 
-- Tasks come from SWE-bench Verified (django, sympy, scikit-learn) with related tasks in SWE-ContextBench, so Pilot B can use the lessons (2026-10-24).
+- Tasks come from SWE-bench Verified (django, sympy, scikit-learn) with related tasks in SWE-ContextBench, so Pilot B can use the lessons (2026-10-24). The agent runs only these base tasks; related tasks are kept as links.
+- 16 tasks in 5 clusters in `django/db/models/` and `sympy/printing/`: a task is in if its fix shares a file or sub-package with another candidate (2026-10-24).
 - Agent and extractor model: Claude Sonnet 5.5, fixed for the whole project; Claude Haiku 5.5 for pipeline tests.
 - The agent runs with its standard settings, unchanged (no temperature setting, which current Claude models reject).
-- Five tasks run in locally repaired containers, because the published ones had their compiled code deleted.
+- All 16 tasks use the official SWE-bench containers; the locally repaired containers were only needed for the superseded list.
 - The smoke test used a task from outside the pilot (flask), so it cannot bias the review of any cluster.
 
 ## What Pilot B expects from Pilot A
@@ -65,7 +66,7 @@ From the team repository (`yotobias/MemRev`, decision V1): Pilot B reads lessons
 | source revision | Commit SHA the lesson was written at |
 | trajectory pointer | Path or URL to the recorded trajectory (may be empty for fixtures) |
 
-Extra fields are ignored by Pilot B. The exact field names are fixed in Pilot B ticket 01; check there before producing output. The team's decisions V11 and V12 ask for lessons from SWE-bench Verified Python instances in django, sympy or scikit-learn; Pilot A's tasks are being re-selected to meet it (decision 2026-10-24 in `CHANGES.md`).
+Extra fields are ignored by Pilot B. The exact field names are fixed in Pilot B ticket 01; check there before producing output. The team's decisions V11 and V12 ask for lessons from SWE-bench Verified Python instances in django, sympy or scikit-learn; Pilot A's 16 tasks meet it (V31, V32).
 
 The open decisions the team listed for Pilot A (agent and model, runs per task, lesson granularity, lessons from failed attempts, source validity, sharing review) were taken for Lane R in `plan/Kickoff.md` and `CHANGES.md`; they still need to be recorded as numbered decisions in the team's `docs/decisions.md`.
 
@@ -77,7 +78,7 @@ The open decisions the team listed for Pilot A (agent and model, runs per task, 
 | `plan/Plan_v2.md` | detailed reference plan (partly outdated; the Kickoff says where) | yes |
 | `plan/LaneR_Handoff.md` | where Lane R implementation continues | yes |
 | `CHANGES.md` | every decision and deviation, with date and reason | yes |
-| `clusters.csv` | the frozen 19-task list | yes |
+| `clusters.csv` | the frozen 16-task list (related tasks as links, not run) | yes |
 | `instances/` | what the agent is given (problem statements only) | yes |
 | `runs/` | agent trajectories and patches | yes |
 | `env/*.json` | container fingerprints | yes |

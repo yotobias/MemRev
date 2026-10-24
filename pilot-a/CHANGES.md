@@ -70,3 +70,17 @@ Lane R's work was pushed to branch `pilot-a/laneR` of the team repository `yotob
 ## 2026-10-24: tasks come from SWE-bench Verified (user decision)
 
 Pilot A runs on base tasks from the full SWE-ContextBench that are in SWE-bench Verified, in django, sympy or scikit-learn (team decisions V11, V12), and that have related tasks; the related tasks are kept as links for later pilots. The full SWE-ContextBench experience set contains all 500 Verified tasks; its Lite subset, used for the earlier list, is built on SWE-bench Lite. The 19-task list of 2026-10-22 is superseded (only `django__django-14017` qualifies); candidates: 64 base tasks with 105 related tasks. Steps 2 to 5 are redone for the new list; the pipeline is reused. To be recorded as a numbered decision in the team's `docs/decisions.md`.
+
+## 2026-10-24: task list re-selected, 16 tasks in 5 clusters (user decision)
+
+Team decisions V31 (task source) and V32 (this selection) in `docs/decisions.md`. Candidates: 64 Verified base tasks with related tasks (django 41, sympy 17, scikit-learn 6). File-level clusters are too small (at most 4 tasks share a file), so the user chose clusters in two modules, `django/db/models/` (17 candidates) and `sympy/printing/` (4), over a single django cluster of all 17 (one repository only) and over widening to Verified tasks without related tasks (changes the task-source rule). Inside the modules one rule applies: a candidate is selected iff its fix shares an edited file or sub-package with another candidate.
+
+| Cluster | Shared code | Tasks |
+|---|---|---|
+| D1 | `django/db/models/expressions.py` | django 15161, 15382, 15930, 16082 |
+| D2 | `django/db/models/sql/` | django 10554, 11555, 14122 |
+| D3 | `django/db/models/fields/` | django 11400, 11999, 15629, 16493 |
+| D4 | `django/db/models/base.py` | django 12209, 13964 |
+| S1 | `sympy/printing/pycode.py` | sympy 14976, 16766, 22914 |
+
+Left out by the rule (no shared file or sub-package in the module): django 11603, 13363, 14017, 16560; sympy 15976. Related tasks are not run in Pilot A (confirmed by the user); `clusters.csv` lists them in `related_ids` (30 links) and has only base-task rows, so the image, gate and instance scripts see only the 16. All 16 use official SWE-bench images. `build_clusters.py` now reads SWE-bench Verified and the full SWE-ContextBench files, checks that every task edits its cluster's code, that no candidate editing a cluster's code is left out, one task per same-PR group, and no identical issue texts. Same-PR groups now cover all SWE-ContextBench tasks; PR URLs are compared lowercased (the full set spells `briannesbitt/Carbon` both ways).

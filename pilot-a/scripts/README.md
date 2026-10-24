@@ -14,7 +14,7 @@ rule in bash). Parser test: `uv run --locked python pilot-a/scripts/test_gold_ga
 |---|---|---|---|
 | 0 | `setup_wsl.sh` | installs uv 0.12.21, creates `%USERPROFILE%\.wslconfig` (24 GB) if missing, `uv sync --locked` into `~/.venvs/paper2027-pilot-a`, Docker check | venv |
 | 1 | `pilot-a/pilot-a/scripts/data_prep/inspect_scb.py pilot-a/data` | downloads the SCB parquet files (not in the repo) | `pilot-a/data/*.parquet` |
-| 2 | `build_clusters.py pilot-a/data pilot-a` | same-PR groups over all Lite tasks; writes and checks the frozen 19-task list | `pilot-a/data/same_pr_groups.csv`, `pilot-a/clusters.csv` |
+| 2 | `build_clusters.py pilot-a/data pilot-a` | same-PR groups over all SCB tasks; writes and checks the frozen 16-task list (SWE-bench Verified, from Hugging Face) | `pilot-a/data/same_pr_groups.csv`, `pilot-a/clusters.csv` |
 | 3 | `pull_images.sh [id ...]` | pulls each image in `clusters.csv`, calls `fingerprint.sh` | `pilot-a/env/<id>.json`, `<id>.pip-freeze.txt` |
 | 3 | `fingerprint.sh <id> <image> <base_commit>` | digest, HEAD vs base, future commits, Python, package import check, pip-freeze hash | `pilot-a/env/<id>.json` |
 | 3b | `build_derived.sh <id> <image>` | rebuilds the compiled package in an image whose build was wiped by the history cutoff; saves `pilot-a/<id>:built` | local Docker image |
