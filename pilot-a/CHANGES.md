@@ -92,3 +92,7 @@ All 16 official SWE-bench images pulled and fingerprinted (`env/<id>.json`): `ba
 ## 2026-10-24: gold gate passes for all 16; new instance file
 
 Gold gate (`env/gold_gate.jsonl`, git-ignored): every task's official fix passes all its F2P tests and all its P2P tests, with no non-Python files in the fix and nothing reinstalled; no task replaced. Commands: the official SWE-bench Verified `eval_script` test line. `instances/main/instances.jsonl` rebuilt for the 16 tasks (same fields as before, official images); the never-used 19-task file is kept as `instances/main-lite19/`.
+
+## 2026-10-24: superseded images deleted (user decision)
+
+The 19 images of the superseded list and the 5 derived images built from them were deleted from WSL Docker; image storage went from 72.7 GB to 40.3 GB (layers shared with the 16 new django and sympy images stay). The derived images can be rebuilt with `build_derived.sh`; the fingerprints in `env/` remain as records. Kept: the smoke image (`pallets__flask-4992`) and other images outside both lists.
