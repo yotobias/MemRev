@@ -59,6 +59,7 @@ Superseded: `pilot-a/clusters.csv`, `pilot-a/instances/main/`, the fingerprints 
 ## Pitfalls already paid for
 
 - From Git Bash: `MSYS_NO_PATHCONV=1 wsl -e bash -lc '...'`. PowerShell 5.1 strips inner quotes passed to `wsl`.
+- A clone used by both Windows git and WSL git needs `git config core.autocrlf false` and `git config core.eol lf` (then `git rm -rq --cached . && git reset -q --hard`); otherwise WSL git sees every file as changed and could commit Windows line endings. Done in the user's clone `Documents/Uni/MSc/MemRev`.
 - `mini-extra swebench -c X` replaces the whole shipped config; pass the model with `-m`. Current Claude models reject `temperature`. litellm 1.106.2 needs `mcp` (already in the lockfile). Prompt caching happens without config.
 - `--subset` needs a directory containing `instances.jsonl`; a run into an existing output directory skips finished tasks.
 - swebench images have HEAD = `base_commit` + one mode-only "SWE-bench" commit: diff against `base_commit`, never HEAD. No image exposes later commits.
