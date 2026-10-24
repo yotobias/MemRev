@@ -66,3 +66,7 @@ Not affected: all eight swebench experience images, and the sympy, requests and 
 ## 2026-10-22: moved to the team repository; agent runs on hold
 
 Lane R's work was pushed to branch `pilot-a/laneR` of the team repository `yotobias/MemRev` (public; literature PDFs, proposal drafts and personal files left out). That repository's decisions V11/V12 and ADR 0001 take lessons from SWE-bench Verified django, sympy and scikit-learn tasks so that Pilot B can pair them with later revisions; only 1 of the 19 tasks here (`django__django-14017`) is in Verified, and two clusters (matplotlib, requests) are outside those repositories. ADR 0001's premise that SWE-ContextBench data is unreleased no longer holds (it is on Hugging Face under MIT). The 19 runs wait until the team decides the task source; the pipeline is reusable either way.
+
+## 2026-10-24: tasks come from SWE-bench Verified (user decision)
+
+Pilot A runs on base tasks from the full SWE-ContextBench that are in SWE-bench Verified, in django, sympy or scikit-learn (team decisions V11, V12), and that have related tasks; the related tasks are kept as links for later pilots. The full SWE-ContextBench experience set contains all 500 Verified tasks; its Lite subset, used for the earlier list, is built on SWE-bench Lite. The 19-task list of 2026-10-22 is superseded (only `django__django-14017` qualifies); candidates: 64 base tasks with 105 related tasks. Steps 2 to 5 are redone for the new list; the pipeline is reused. To be recorded as a numbered decision in the team's `docs/decisions.md`.

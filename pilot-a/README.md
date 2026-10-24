@@ -10,7 +10,7 @@ Pilot A is the first step. It asks: **when one fixed agent solves real bugs, do 
 
 ## How it works
 
-1. **Tasks.** 19 real bug-fix tasks from 5 Python repositories (scikit-learn, matplotlib, sympy, requests, django), taken from the SWE-ContextBench benchmark. Tasks are grouped in 5 clusters whose fixes touch the same file, so shared claims are *possible*; the review decides whether they exist. The list is frozen in `clusters.csv`.
+1. **Tasks.** 10 to 20 real bug-fix tasks from SWE-bench Verified (django, sympy, scikit-learn) that SWE-ContextBench links to later related tasks, grouped in clusters whose fixes touch the same code, so shared claims are *possible*; the review decides whether they exist. The list is frozen in `clusters.csv` (being re-selected; the earlier 19-task list from SWE-ContextBench Lite is superseded).
 2. **Agent runs.** One AI coding agent (mini-swe-agent, model Claude Sonnet 5.5) attempts each task once, inside a Docker container that holds the repository at the commit where the bug existed. Every step it takes is recorded (the "trajectory").
 3. **Notes and claims.** Each trajectory is cut into phases; an LLM writes one note per phase (advice plus claims, each pointing to the step that shows it), and a person checks every claim.
 4. **Validity.** For each claim: is it true in the original code, after the official fix, or only in the agent's own edits? Small test scripts ("probes") answer this where possible.
@@ -33,12 +33,12 @@ If you might ever review notes (Lane N), do not open `env/gold_gate.jsonl`, `env
 | Step | Lane | Status |
 |---|---|---|
 | 1. Linux environment (WSL, Docker, Python packages locked) | R | done |
-| 2. Freeze the 19-task list, with checks against duplicates | R | done |
-| 3. Download the task containers and record their fingerprints; repair 5 broken ones | R | done |
-| 4. "Gold gate": does the official fix pass its own tests in each container? | R | done, all 19 pass |
-| 5. Agent input file (problem statements only) | R | done |
+| 2. Freeze the task list, with checks against duplicates | R | **redo**: tasks now come from SWE-bench Verified (decision 2026-10-24, `CHANGES.md`) |
+| 3. Download the task containers and record their fingerprints | R | redo for the new tasks |
+| 4. "Gold gate": does the official fix pass its own tests in each container? | R | redo for the new tasks |
+| 5. Agent input file (problem statements only) | R | redo for the new tasks |
 | 6. Smoke test: one complete agent run on a non-pilot task | R | done (cost $0.0014) |
-| 7. The 19 agent runs, then rebuild each final workspace | R | **on hold** until the team decides the task source (see `CHANGES.md`, 2026-10-22); up to about $57 |
+| 7. The agent runs, then rebuild each final workspace | R | after steps 2 to 5; up to $3 per task |
 | 8. Probe runner for the validity labels | R | week 2 |
 | Rubric, segmenter, extractor prompt, note review, grouping | N | not recorded here yet |
 
@@ -46,6 +46,7 @@ Cost so far: under $0.01 (smoke runs and test calls).
 
 ## Decisions so far (details and reasons in `CHANGES.md`)
 
+- Tasks come from SWE-bench Verified (django, sympy, scikit-learn) with related tasks in SWE-ContextBench, so Pilot B can use the lessons (2026-10-24).
 - Agent and extractor model: Claude Sonnet 5.5, fixed for the whole project; Claude Haiku 5.5 for pipeline tests.
 - The agent runs with its standard settings, unchanged (no temperature setting, which current Claude models reject).
 - Five tasks run in locally repaired containers, because the published ones had their compiled code deleted.
@@ -64,7 +65,7 @@ From the team repository (`yotobias/MemRev`, decision V1): Pilot B reads lessons
 | source revision | Commit SHA the lesson was written at |
 | trajectory pointer | Path or URL to the recorded trajectory (may be empty for fixtures) |
 
-Extra fields are ignored by Pilot B. The exact field names are fixed in Pilot B ticket 01; check there before producing output. The team's decisions V11 and V12 ask for lessons from SWE-bench Verified Python instances in django, sympy or scikit-learn; Pilot A's current task list does not meet that yet (see "on hold" above and `CHANGES.md`).
+Extra fields are ignored by Pilot B. The exact field names are fixed in Pilot B ticket 01; check there before producing output. The team's decisions V11 and V12 ask for lessons from SWE-bench Verified Python instances in django, sympy or scikit-learn; Pilot A's tasks are being re-selected to meet it (decision 2026-10-24 in `CHANGES.md`).
 
 The open decisions the team listed for Pilot A (agent and model, runs per task, lesson granularity, lessons from failed attempts, source validity, sharing review) were taken for Lane R in `plan/Kickoff.md` and `CHANGES.md`; they still need to be recorded as numbered decisions in the team's `docs/decisions.md`.
 

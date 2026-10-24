@@ -1,55 +1,69 @@
-# Lane R handoff: where to continue
+# Lane R handoff: what to do next
 
-Updated 2026-10-22 for a fresh session that continues Lane R (runs and environment) of Pilot A. Build-order steps 1 to 6 are done and audited; the next step is 7, the 19 agent runs. Read `pilot-a/plan/Kickoff.md` first if you have not.
+Updated 2026-10-24 for a fresh session continuing Lane R (runs and environment) of Pilot A, working in a clone of the team repository `yotobias/MemRev`, branch `pilot-a/laneR`. This note is self-contained: notes from earlier sessions are not available in a new clone.
 
-## Read in this order
+## Working style
 
-1. `pilot-a/plan/Kickoff.md`, Sections 3 to 7 and 10.
-2. This note.
-3. `pilot-a/CHANGES.md`: every decision and deviation so far. It overrides `pilot-a/plan/Plan_v2.md` and earlier versions of this note where they differ.
-4. `pilot-a/scripts/README.md`: what each script does, in order, and the conventions.
-5. Reference only: `pilot-a/plan/Plan_v2.md` Section 4 (final workspace, fingerprint), Section 6 (probe command, validity table), Section 11 (storage layout).
-6. The auto-memory files, especially `pilot-a-lane-r-env-findings-2026-10-22.md` and `pilot-a-plan-audit-2026-10-19.md`.
+The user (Ocean, Lane R) wants to learn while the work is done. Before each step, explain in a few plain sentences what happens and why the pilot needs it; explain each new tool or concept once, briefly; after each step, say what the output shows. No lectures, no quizzes. Ask before anything that costs money (agent runs) or is hard to undo (pushes to shared branches, deleting images).
 
-Lane R never shows gold patches, test patches, test names or gate logs to Lane N, and never reads the public SCB transcripts.
+## Read first
 
-## Decisions already taken (do not reopen without the user)
+1. `pilot-a/README.md`: status page. Keep its progress table current.
+2. `pilot-a/CHANGES.md`: every decision and deviation, newest last. Overrides the plans below where they differ.
+3. `pilot-a/scripts/README.md`: what each script does and the conventions.
+4. `pilot-a/plan/Kickoff.md` (the plan) and `pilot-a/plan/Plan_v2.md` (detailed reference, partly outdated) only as needed.
+5. The team repo's `README.md` (workflow), `GLOSSARY.md` (use lesson / assumption / check, not note / claim / probe) and `docs/decisions.md`.
 
-- Backbone, pinned for the project: `claude-sonnet-5-5` (agent and extractor). Pipeline tests use `claude-haiku-5-5`.
-- No temperature (current Claude models reject it) and no `-c` option (`mini-extra` replaces the shipped config when `-c` is given). Prompt caching stays as shipped; it happens without `set_cache_control`.
-- Five related tasks run on local derived images `pilot-a/<owner>.<repo>-<n>:built` (sklearn 12622, 15093, 25637; matplotlib 22482, 22686), because the shipped images lost their compiled builds. `instances/main` already points to them.
-- Smoke task: `pallets__flask-4992` (not a pilot task, not a pilot repository).
+## The decision that sets the next steps (2026-10-24)
 
-## State on 2026-10-22
+The user decided that **Pilot A runs on SWE-bench Verified tasks**: base tasks from the full SWE-ContextBench that are in SWE-bench Verified, in django, sympy or scikit-learn (team decisions V11, V12), and that have related tasks in SWE-ContextBench. The agent runs on the base tasks; the related tasks are not run in Pilot A but are kept as the base-to-related link for later pilots. (Confirm with the user that related tasks are not run before freezing.)
 
-Done:
-- Step 1: WSL has 24 GB; venv `~/.venvs/paper2027-pilot-a` from `uv.lock` (mini-swe-agent 2.4.6, litellm 1.106.2, plus `mcp`, which litellm needs but does not declare).
-- Step 2: `pilot-a/clusters.csv`, 19 tasks, all selection rules checked by `build_clusters.py`.
-- Step 3: all 19 images pulled (51.6 GB) plus the 5 derived ones; fingerprints in `pilot-a/env/<id>.json`. No image exposes commits after `base_commit`.
-- Step 4: gold gate passes for all 19 + smoke (`pilot-a/env/gold_gate.jsonl`, latest line per task).
-- Step 5: `pilot-a/instances/main/instances.jsonl` (19) and `pilot-a/instances/smoke/` (flask-4992), without patch, test or test-name fields.
-- Step 6: smoke run `pilot-a/runs/claude-haiku-5-5/smoke-2`: Submitted in 4 calls, $0.0014. (`smoke-1` failed on the missing `mcp` package, cost $0, kept as a record.)
-- A ponytail audit of `pilot-a/scripts/` found 9 issues; all fixed and verified (see `pilot-a/CHANGES.md`). Parser test: `pilot-a/scripts/test_gold_gate.py`.
+This replaces the earlier 19-task list from SWE-ContextBench *Lite* (built on SWE-bench Lite, not Verified; only `django__django-14017` qualifies under the new rule). Everything except the task list is reused.
 
-On this machine only (a second Lane R machine must recreate them): the derived images (`build_derived.sh`), the downloaded parquet files (`pilot-a/pilot-a/scripts/data_prep/inspect_scb.py`), the venv (`setup_wsl.sh`), and `.env` with the user's `ANTHROPIC_API_KEY` (created by the user; never print, read or echo it).
+Record it in the team's `docs/decisions.md` as the next V-number, and note that ADR 0001's premise ("SWE-ContextBench data not released") is outdated: the data is on Hugging Face (`jiayuanz3/SWEContextBench`, MIT), and its full experience set contains all 500 Verified tasks.
+
+## State
+
+Done and reusable: WSL environment and locked packages (`pyproject.toml`, `uv.lock`), selection checks, fingerprinting, image repair, gold gate, instance builder, run script. Smoke test passed (`pallets__flask-4992`, Claude Haiku 5.5, $0.0014). Decided settings: backbone `claude-sonnet-5-5` (agent and extractor, pinned), `claude-haiku-5-5` for pipeline tests, mini-swe-agent 2.4.6 with its shipped config, no `-c` option, no temperature.
+
+Superseded: `pilot-a/clusters.csv`, `pilot-a/instances/main/`, the fingerprints and gold-gate results of the old 19 tasks, and their Docker images (about 50 GB in WSL; delete after the new list is frozen, ask first).
+
+## Setting up in a fresh clone
+
+- Clone inside a path WSL can reach (`/mnt/c/...` works). All Docker and repository work runs in WSL (Ubuntu 24.04, Docker 29 there; Windows cannot check out django or matplotlib).
+- `bash pilot-a/scripts/setup_wsl.sh` (uv 0.12.21, venv `~/.venvs/paper2027-pilot-a`, Docker check). Then `source pilot-a/scripts/env.sh` in each shell and use `uv run --locked`.
+- Create `.env` in the repo root with `ANTHROPIC_API_KEY=...` (the user does this; never print or read the key).
+- Download the SWE-ContextBench parquet files: `uv run --locked python -I pilot-a/scripts/data_prep/inspect_scb.py pilot-a/data`.
+- If the old local folder is still around, `pilot-a/env/gold_gate.jsonl`, `gold_gate_logs/` and `runs/` exist only there (git-ignored); they are records of the old 19 tasks and are not needed for the new selection.
 
 ## Next steps
 
-**On hold (2026-10-22):** the team repository `yotobias/MemRev` decided (its V11, V12, ADR 0001) that lessons come from SWE-bench Verified django/sympy/scikit-learn tasks, so that Pilot B can use them; only 1 of our 19 SWE-ContextBench tasks is in Verified. Do not start step 7 until the team has decided the task source (see `pilot-a/CHANGES.md`). Lane R's work is on branch `pilot-a/laneR` of that repository.
+1. **Re-select the tasks (new build step 2).** Candidates: 64 base tasks (django 41, sympy 17, scikit-learn 6) with 105 related tasks. Files edited by at least two candidate fixes (2026-10-24 count, test and doc files excluded):
 
-7. **The 19 runs.** Confirm with the user before starting (up to about $57, 1 to 3 hours, unattended), then run it in the background:
-   `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-1 2`
-   Afterwards: read `exit_statuses_*.yaml` and the cost per task from each trajectory's `info.model_stats`. Empty submissions and `LimitsExceeded` are results, not failures. A run killed by the 2 h container limit or by an infrastructure error is rerun once, into a new directory (`main-1-rerun`, with `--filter <instance_id>` added to the `mini-extra` call); never `--redo-existing`, never reuse a directory. Log every rerun in `CHANGES.md`.
-   Then rebuild each final workspace into `pilot-a/workspaces/<run_id>/` (script not written yet; spec in v2 Section 4): fresh container from the instance's `image_name`, `git apply` the `model_patch` from `preds.json`, record `git diff --stat <base_commit>` (never HEAD), and re-run the agent's last test command. Note: the agent writes its own submission with `git diff -- <files> > patch.txt`, so files it created (reproduction scripts, new source files) are not in `model_patch`; list them from the trajectory, since they decide whether Ca is defined. "Last test command" means the last action the segmenter classifies as verify; until Lane N's segmenter exists, take the last `pytest` / `runtests.py` / `bin/test` command and say so.
-   Hand the trajectories (`pilot-a/runs/claude-sonnet-5-5/main-1/<id>/<id>.traj.json`) to Lane N. Safe for them: trajectories, `preds.json`, `pilot-a/instances/`, fingerprints. Not safe: `pilot-a/env/gold_gate*`, the parquet files. Then tick step 7 in the progress table of `pilot-a/README.md`.
-8. **Probe runner** (week 2): one container run per (claim, revision) with the command in v2 Section 6, 600 s timeout, setup errors recorded apart from assertion failures, results appended to `pilot-a/validity.jsonl`. C1 applies the gold `patch` only. Reuse `gold_gate.py`'s `parse` and `lookup` (covered by `test_gold_gate.py`) for test output. For the five derived-image tasks, probe on the derived image.
+   | Tasks | File |
+   |---|---|
+   | 4 | `django/db/models/expressions.py` |
+   | 3 | `django/db/models/sql/compiler.py` |
+   | 3 | `django/utils/html.py` |
+   | 3 | `sympy/printing/pycode.py` |
+   | 2 each | `django/db/migrations/loader.py`, `django/db/models/fields/__init__.py`, `django/db/models/base.py`, `django/db/backends/base/schema.py`, `django/core/servers/basehttp.py` |
 
-## Pitfalls found so far (details in the memory file)
+   File-level clusters are small. Propose to the user how to reach 10 to 20 tasks (team decision V17), for example clusters at module level (`django/db/models/` incl. `sql/`), or widening to all Verified tasks in those files whether or not they have related tasks, and let the user decide. Keep the rules: clusters make shared assumptions possible, never pre-screened by looking at lessons; one task per PR; the list is frozen before any run. Adapt `pilot-a/scripts/build_clusters.py`: its `CLUSTERS` table and its file data (today from `pilot-a/data/lite_task_file_overlap.csv`, which covers SWE-ContextBench Lite only; take edited files from the Verified dataset's `patch` instead). Write the new `pilot-a/clusters.csv`.
+2. **Images and fingerprints.** All base tasks use official SWE-bench images (`swebench/sweb.eval.x86_64.<id with __ replaced by _1776_>:latest`, also in the Verified dataset's `image` column). `pull_images.sh` then `fingerprint.sh`; check `import_ok`, `import_from_testbed`, `future_commits` in each `pilot-a/env/<id>.json`. The repaired "derived" images were only needed for SWE-ContextBench related-task images, so they should not be needed now.
+3. **Gold gate.** `gold_gate.py` loads `SWE-bench/SWE-bench_Lite` and the SWE-ContextBench *Lite* parquet for experience tasks; switch both to `SWE-bench/SWE-bench_Verified` (it has `eval_script` for all 500 tasks) and the full experience parquet. Run it for all selected tasks; replace any task whose official fix fails, and log it.
+4. **Instance file.** `build_instances.py` reads the Lite parquet files; switch to the Verified dataset. Same rule: no patch, test or test-name fields.
+5. **The runs.** Ask the user before starting (up to $3 per task). `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-1 2` (fresh directory, never reuse one). Then rebuild each final workspace (spec in `Plan_v2.md` Section 4; the agent's patch is its own `git diff` of chosen files, so files it created are missing from it) and hand the trajectories to Lane N (Johnny). Update the status page.
+6. **Probe runner** (later): see `Plan_v2.md` Section 6; reuse `gold_gate.py`'s parser (tested by `test_gold_gate.py`).
+7. **Team alignment before a pull request:** record Pilot A's decisions as V-numbers; decide with the team whether the Lane R code moves into the shared `src/memrev` package and whether to switch from Python 3.12 to the team's 3.11; align document terms with `GLOSSARY.md`.
 
-- Run Docker and repositories inside WSL. From the Bash tool use `MSYS_NO_PATHCONV=1 wsl -e bash -lc '...'`; PowerShell 5.1 strips inner quotes passed to `wsl`.
-- Use `uv run --locked`; re-locking is a deliberate, logged step.
-- Never edit a shell script while it runs (bash reads it as it goes; this garbled one image build).
-- `docker commit` stores the container's command and `-e` variables in the new image; `build_derived.sh` handles this.
-- sympy 1.5 tests cannot run under the images' pytest; use `bin/test`. Django test ids come in three formats; the gold gate's parser handles all of them.
-- requests-2148's tests call the live httpbin.org and can fail for external reasons; the agent may meet the same.
-- `pilot-a/CHANGES.md` is read by Lane N: no test names, test files or gold content in it.
+## Pitfalls already paid for
+
+- From Git Bash: `MSYS_NO_PATHCONV=1 wsl -e bash -lc '...'`. PowerShell 5.1 strips inner quotes passed to `wsl`.
+- `mini-extra swebench -c X` replaces the whole shipped config; pass the model with `-m`. Current Claude models reject `temperature`. litellm 1.106.2 needs `mcp` (already in the lockfile). Prompt caching happens without config.
+- `--subset` needs a directory containing `instances.jsonl`; a run into an existing output directory skips finished tasks.
+- swebench images have HEAD = `base_commit` + one mode-only "SWE-bench" commit: diff against `base_commit`, never HEAD. No image exposes later commits.
+- SWE-bench django test names come in three formats (incl. docstring lines); sympy tests need `bin/test`, not pytest; the gold gate's parser handles all of them.
+- Some test suites call live web services (requests' httpbin.org) and can fail for external reasons.
+- Never edit a shell script while it runs (bash reads it as it goes). `docker commit` saves the container's command and `-e` variables into the image.
+- Lane N (Johnny) stays blind to official fixes: `pilot-a/CHANGES.md` and other shared documents never name test names, test files or fix content; gold-gate results stay git-ignored. The team repo is public.
+- Commit messages follow the team convention (`pilot-a laneR: <imperative>`); no pushes to `main`.
