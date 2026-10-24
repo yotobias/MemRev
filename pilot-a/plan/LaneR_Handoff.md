@@ -39,9 +39,9 @@ Superseded: `pilot-a/clusters.csv`, `pilot-a/instances/main/`, the fingerprints 
 ## Next steps
 
 1. **Done 2026-10-24: steps 2 to 5 for the new list.** 16 tasks in 5 clusters (`clusters.csv`; rule and options in `CHANGES.md`; team decisions V31, V32); all images fingerprinted clean; gold gate passes for all 16; `instances/main/` rebuilt (the old one is `instances/main-lite19/`). The scripts now read SWE-bench Verified and the full SWE-ContextBench files. Related tasks are not run (confirmed by the user). Still open: delete the superseded images (about 50 GB in WSL; ask first).
-5. **The runs.** Ask the user before starting (up to $3 per task, so up to $48 for the 16). `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-1 2` (fresh directory, never reuse one). Then rebuild each final workspace (spec in `Plan_v2.md` Section 4; the agent's patch is its own `git diff` of chosen files, so files it created are missing from it) and hand the trajectories to Lane N (Johnny). Update the status page.
-6. **Probe runner** (later): see `Plan_v2.md` Section 6; reuse `gold_gate.py`'s parser (tested by `test_gold_gate.py`).
-7. **Team alignment before a pull request:** record Pilot A's decisions as V-numbers; decide with the team whether the Lane R code moves into the shared `src/memrev` package and whether to switch from Python 3.12 to the team's 3.11; align document terms with `GLOSSARY.md`.
+2. **The runs.** Ask the user before starting (up to $3 per task, so up to $48 for the 16). `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-1 2` (fresh directory, never reuse one). Then rebuild each final workspace (spec in `Plan_v2.md` Section 4; the agent's patch is its own `git diff` of chosen files, so files it created are missing from it) and hand the trajectories to Lane N (Johnny). Update the status page.
+3. **Probe runner** (later): see `Plan_v2.md` Section 6; reuse `gold_gate.py`'s parser (tested by `test_gold_gate.py`).
+4. **Team alignment before a pull request:** record Pilot A's decisions as V-numbers; decide with the team whether the Lane R code moves into the shared `src/memrev` package and whether to switch from Python 3.12 to the team's 3.11; align document terms with `GLOSSARY.md`.
 
 ## Pitfalls already paid for
 
