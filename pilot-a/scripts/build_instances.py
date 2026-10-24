@@ -1,7 +1,7 @@
 """Write a mini-swe-agent instance directory: pilot-a/instances/<set>/instances.jsonl
 
-    uv run python -I pilot-a/scripts/build_instances.py main              # the 19 tasks in clusters.csv
-    uv run python -I pilot-a/scripts/build_instances.py smoke <id> [...]  # named Lite tasks
+    uv run python -I pilot-a/scripts/build_instances.py main              # the tasks in clusters.csv
+    uv run python -I pilot-a/scripts/build_instances.py smoke <id> [...]  # named SWE-ContextBench tasks
 
 Where a local derived image pilot-a/<owner>.<repo>-<n>:built exists (build_derived.sh;
 decision of 2026-10-22 in pilot-a/CHANGES.md), image_name points to it instead of the
@@ -25,18 +25,18 @@ FORBIDDEN = {"patch", "test_patch", "hints_text", "FAIL_TO_PASS", "PASS_TO_PASS"
 
 def main(set_name, ids):
     data = ROOT / "pilot-a/data"
-    lite = pd.concat([pd.read_parquet(data / "SWEContextBench_Lite_Experience.parquet").assign(kind="experience"),
-                      pd.read_parquet(data / "SWEContextBench_Related_Lite.parquet").assign(kind="related")]
+    scb = pd.concat([pd.read_parquet(data / "SWEContextBench_Experience.parquet").assign(kind="experience"),
+                      pd.read_parquet(data / "SWEContextBench_Related.parquet").assign(kind="related")]
                      ).drop_duplicates("instance_id").set_index("instance_id", drop=False)
     if set_name == "main" and not ids:
         sel = pd.read_csv(ROOT / "pilot-a/clusters.csv")
         images = dict(zip(sel.instance_id, sel.image))
         ids = list(sel.instance_id)
     else:
-        unknown = [i for i in ids if i not in lite.index]
+        unknown = [i for i in ids if i not in scb.index]
         if unknown:
-            sys.exit(f"not Lite tasks: {unknown}")
-        images = {i: image_for(i, lite.at[i, "kind"]) for i in ids}
+            sys.exit(f"not SWE-ContextBench tasks: {unknown}")
+        images = {i: image_for(i, scb.at[i, "kind"]) for i in ids}
     for i in ids:
         derived = derived_tag(i)
         if subprocess.run(["docker", "image", "inspect", derived], capture_output=True).returncode == 0:
@@ -48,7 +48,7 @@ def main(set_name, ids):
     out.mkdir(parents=True)
     rows = []
     for i in ids:
-        r = lite.loc[i].to_dict()
+        r = scb.loc[i].to_dict()
         r["image_name"] = images[i]
         r["created_at"] = str(r["created_at"])
         row = {k: r[k] for k in KEEP}

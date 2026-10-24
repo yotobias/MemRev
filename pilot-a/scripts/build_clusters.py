@@ -103,7 +103,7 @@ def main(data, out):
             if iid not in hits:
                 errors.append(f"{iid}: edits nothing under {code} (edits {sorted(edited[iid])})")
             rows.append(dict(instance_id=iid, cluster=cl, kind="experience", image=image_for(iid, "experience"),
-                             same_text=False, same_pr_group=by_id.at[iid, "same_pr_group"], role="cluster",
+                             base_commit=cand.at[iid, "base_commit"], same_text=False, same_pr_group=by_id.at[iid, "same_pr_group"], role="cluster",
                              related_ids=related[iid]))
         if hits - set(ids):  # the rule selects every candidate in the cluster's code
             errors.append(f"{cl}: candidates editing {code} left out: {sorted(hits - set(ids))}")

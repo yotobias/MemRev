@@ -8,7 +8,7 @@ run the tests, parse per-test status. Nothing is reinstalled: agent runs and pro
 the image as it is, so the gate does too (patches touching non-Python source are flagged).
 
 Test commands follow the benchmark that grades the task:
-  experience: the official SWE-bench Lite eval_script's test line, verbatim
+  experience: the official SWE-bench Verified eval_script's test line, verbatim
   related:    the SCB harness (swebench_memory/harness/run_evaluation.py): django via
               tests/runtests.py <module> -v 2 --parallel=1, else python -m pytest <file> -v
 Patches are applied as written (the SCB harness rewrites e.message -> str(e); we do not).
@@ -35,25 +35,25 @@ def as_list(v):
 def load_tasks(ids):
     from datasets import load_dataset
     sel = pd.read_csv(ROOT / "pilot-a/clusters.csv")
-    if ids:  # ids outside clusters.csv (e.g. the smoke task) get kind and image by the usual rule
+    scb_exp = pd.read_parquet(ROOT / "pilot-a/data/SWEContextBench_Experience.parquet").set_index("instance_id")
+    scb_rel = pd.read_parquet(ROOT / "pilot-a/data/SWEContextBench_Related.parquet").set_index("instance_id")
+    if ids:  # ids outside clusters.csv get kind and image by the usual rule
         extra = [i for i in ids if i not in set(sel.instance_id)]
-        ov = pd.read_csv(ROOT / "pilot-a/data/lite_task_file_overlap.csv").set_index("instance_id")
+        kinds = {i: "related" if i in scb_rel.index else "experience" for i in extra}
         sel = pd.concat([sel[sel.instance_id.isin(ids)], pd.DataFrame(
-            [dict(instance_id=i, kind=ov.at[i, "kind"], image=image_for(i, ov.at[i, "kind"])) for i in extra])])
-    lite = load_dataset("SWE-bench/SWE-bench_Lite", split="test").to_pandas().set_index("instance_id")
-    scb_exp = pd.read_parquet(ROOT / "pilot-a/data/SWEContextBench_Lite_Experience.parquet").set_index("instance_id")
-    scb_rel = pd.read_parquet(ROOT / "pilot-a/data/SWEContextBench_Related_Lite.parquet").set_index("instance_id")
+            [dict(instance_id=i, kind=k, image=image_for(i, k)) for i, k in kinds.items()])])
+    official = load_dataset("SWE-bench/SWE-bench_Verified", split="test").to_pandas().set_index("instance_id")
     tasks = []
     for t in sel.itertuples():
         if t.kind == "experience":
-            r = lite.loc[t.instance_id]
+            r = official.loc[t.instance_id]
             s = scb_exp.loc[t.instance_id]   # SCB copy must agree with the official one
-            for col in ["base_commit", "patch", "test_patch"]:
+            for col in ["base_commit", "patch", "test_patch", "problem_statement"]:
                 assert r[col] == s[col], f"{t.instance_id}: official vs SCB {col} differ"
             assert as_list(r.FAIL_TO_PASS) == as_list(s.FAIL_TO_PASS), f"{t.instance_id}: F2P differ"
             lines = r.eval_script.splitlines()
             a, b = lines.index(": '>>>>> Start Test Output'"), lines.index(": '>>>>> End Test Output'")
-            cmds, source = lines[a + 1:b], "swebench_lite_eval_script"
+            cmds, source = lines[a + 1:b], "swebench_verified_eval_script"
         else:
             r = scb_rel.loc[t.instance_id]
             cmds, source = scb_commands(r.repo, as_list(r.FAIL_TO_PASS) + as_list(r.PASS_TO_PASS)), "scb_harness"

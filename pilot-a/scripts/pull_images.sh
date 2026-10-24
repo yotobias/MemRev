@@ -7,12 +7,10 @@ set -uo pipefail
 source "$(dirname "$0")/env.sh"
 cd "$PILOT_ROOT"
 
-overlap=pilot-a/data/lite_task_file_overlap.csv
 failed=()
-while IFS=, read -r iid _cluster _kind image _rest; do
+while IFS=, read -r iid _cluster _kind image base _rest; do
     [[ $iid == instance_id ]] && continue
     [[ $# -gt 0 && " $* " != *" $iid "* ]] && continue
-    base=$(awk -F, -v id="$iid" '$1 == id {print $4}' "$overlap")
     echo "== $(date +%H:%M:%S) $iid  $image"
     if ! docker pull -q "$image"; then failed+=("$iid (pull)"); continue; fi
     bash pilot-a/scripts/fingerprint.sh "$iid" "$image" "$base" || failed+=("$iid (fingerprint)")
