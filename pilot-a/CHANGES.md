@@ -96,3 +96,9 @@ Gold gate (`env/gold_gate.jsonl`, git-ignored): every task's official fix passes
 ## 2026-10-24: superseded images deleted (user decision)
 
 The 19 images of the superseded list and the 5 derived images built from them were deleted from WSL Docker; image storage went from 72.7 GB to 40.3 GB (layers shared with the 16 new django and sympy images stay). The derived images can be rebuilt with `build_derived.sh`; the fingerprints in `env/` remain as records. Kept: the smoke image (`pallets__flask-4992`) and other images outside both lists.
+
+## 2026-10-24: run main-1 finished; trajectories carry no reasoning
+
+`runs/claude-sonnet-5-5/main-1` (git-ignored; `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-1 2`, started 17:19 UTC, detached with `setsid nohup`): all 16 tasks `Submitted` with a non-empty patch within 20 minutes; total cost $0.69 ($0.017 to $0.27 per task). 15 tasks took 4 to 7 model calls (5 to 8 commands); django-10554 took 24. Correctness of the patches is not checked yet.
+
+Every assistant message has empty text: no thinking blocks, `reasoning_tokens` 0, about 90 output tokens per call. With the shipped config, Sonnet 5.5 answers with bare tool calls, so a trajectory holds only commands and their outputs. Agents often went straight to the edited function with the first search and did not reproduce the bug. Open (user decision pending): keep main-1 as the pilot run, or run again with reasoning recorded.
