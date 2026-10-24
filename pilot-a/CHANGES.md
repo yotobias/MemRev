@@ -88,3 +88,7 @@ Left out by the rule (no shared file or sub-package in the module): django 11603
 ## 2026-10-24: images and fingerprints of the 16 tasks; scripts switched to Verified
 
 All 16 official SWE-bench images pulled and fingerprinted (`env/<id>.json`): `base_commit` present, HEAD is base plus the mode-only "SWE-bench" commit with no content change, no other commits reachable, working tree clean, package imports from `/testbed`. Python 3.6 to 3.11 depending on the django version. No derived images needed. `clusters.csv` gained a `base_commit` column (read by `pull_images.sh`, which used the Lite-only overlap file). `gold_gate.py` now takes official data from SWE-bench Verified and the full SWE-ContextBench files, and also checks that the SWE-ContextBench issue text equals the official one; `build_instances.py` reads the full SWE-ContextBench files.
+
+## 2026-10-24: gold gate passes for all 16; new instance file
+
+Gold gate (`env/gold_gate.jsonl`, git-ignored): every task's official fix passes all its F2P tests and all its P2P tests, with no non-Python files in the fix and nothing reinstalled; no task replaced. Commands: the official SWE-bench Verified `eval_script` test line. `instances/main/instances.jsonl` rebuilt for the 16 tasks (same fields as before, official images); the never-used 19-task file is kept as `instances/main-lite19/`.

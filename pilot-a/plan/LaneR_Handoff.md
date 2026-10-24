@@ -1,6 +1,6 @@
 # Lane R handoff: what to do next
 
-Updated 2026-10-24 for a fresh session continuing Lane R (runs and environment) of Pilot A, working in a clone of the team repository `yotobias/MemRev`, branch `pilot-a/laneR`. This note is self-contained: notes from earlier sessions are not available in a new clone.
+Updated 2026-10-24 (after the re-selection) for a fresh session continuing Lane R (runs and environment) of Pilot A, working in a clone of the team repository `yotobias/MemRev`, branch `pilot-a/laneR`. This note is self-contained: notes from earlier sessions are not available in a new clone.
 
 ## Working style
 
@@ -38,21 +38,8 @@ Superseded: `pilot-a/clusters.csv`, `pilot-a/instances/main/`, the fingerprints 
 
 ## Next steps
 
-1. **Re-select the tasks (new build step 2).** Candidates: 64 base tasks (django 41, sympy 17, scikit-learn 6) with 105 related tasks. Files edited by at least two candidate fixes (2026-10-24 count, test and doc files excluded):
-
-   | Tasks | File |
-   |---|---|
-   | 4 | `django/db/models/expressions.py` |
-   | 3 | `django/db/models/sql/compiler.py` |
-   | 3 | `django/utils/html.py` |
-   | 3 | `sympy/printing/pycode.py` |
-   | 2 each | `django/db/migrations/loader.py`, `django/db/models/fields/__init__.py`, `django/db/models/base.py`, `django/db/backends/base/schema.py`, `django/core/servers/basehttp.py` |
-
-   File-level clusters are small. Propose to the user how to reach 10 to 20 tasks (team decision V17), for example clusters at module level (`django/db/models/` incl. `sql/`), or widening to all Verified tasks in those files whether or not they have related tasks, and let the user decide. Keep the rules: clusters make shared assumptions possible, never pre-screened by looking at lessons; one task per PR; the list is frozen before any run. Adapt `pilot-a/scripts/build_clusters.py`: its `CLUSTERS` table and its file data (today from `pilot-a/data/lite_task_file_overlap.csv`, which covers SWE-ContextBench Lite only; take edited files from the Verified dataset's `patch` instead). Write the new `pilot-a/clusters.csv`.
-2. **Images and fingerprints.** All base tasks use official SWE-bench images (`swebench/sweb.eval.x86_64.<id with __ replaced by _1776_>:latest`, also in the Verified dataset's `image` column). `pull_images.sh` then `fingerprint.sh`; check `import_ok`, `import_from_testbed`, `future_commits` in each `pilot-a/env/<id>.json`. The repaired "derived" images were only needed for SWE-ContextBench related-task images, so they should not be needed now.
-3. **Gold gate.** `gold_gate.py` loads `SWE-bench/SWE-bench_Lite` and the SWE-ContextBench *Lite* parquet for experience tasks; switch both to `SWE-bench/SWE-bench_Verified` (it has `eval_script` for all 500 tasks) and the full experience parquet. Run it for all selected tasks; replace any task whose official fix fails, and log it.
-4. **Instance file.** `build_instances.py` reads the Lite parquet files; switch to the Verified dataset. Same rule: no patch, test or test-name fields.
-5. **The runs.** Ask the user before starting (up to $3 per task). `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-1 2` (fresh directory, never reuse one). Then rebuild each final workspace (spec in `Plan_v2.md` Section 4; the agent's patch is its own `git diff` of chosen files, so files it created are missing from it) and hand the trajectories to Lane N (Johnny). Update the status page.
+1. **Done 2026-10-24: steps 2 to 5 for the new list.** 16 tasks in 5 clusters (`clusters.csv`; rule and options in `CHANGES.md`; team decisions V31, V32); all images fingerprinted clean; gold gate passes for all 16; `instances/main/` rebuilt (the old one is `instances/main-lite19/`). The scripts now read SWE-bench Verified and the full SWE-ContextBench files. Related tasks are not run (confirmed by the user). Still open: delete the superseded images (about 50 GB in WSL; ask first).
+5. **The runs.** Ask the user before starting (up to $3 per task, so up to $48 for the 16). `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-1 2` (fresh directory, never reuse one). Then rebuild each final workspace (spec in `Plan_v2.md` Section 4; the agent's patch is its own `git diff` of chosen files, so files it created are missing from it) and hand the trajectories to Lane N (Johnny). Update the status page.
 6. **Probe runner** (later): see `Plan_v2.md` Section 6; reuse `gold_gate.py`'s parser (tested by `test_gold_gate.py`).
 7. **Team alignment before a pull request:** record Pilot A's decisions as V-numbers; decide with the team whether the Lane R code moves into the shared `src/memrev` package and whether to switch from Python 3.12 to the team's 3.11; align document terms with `GLOSSARY.md`.
 

@@ -35,8 +35,8 @@ If you might ever review notes (Lane N), do not open `env/gold_gate.jsonl`, `env
 | 1. Linux environment (WSL, Docker, Python packages locked) | R | done |
 | 2. Freeze the task list, with checks against duplicates | R | done: 16 tasks from SWE-bench Verified in 5 clusters (team decisions V31, V32; `CHANGES.md` 2026-10-24) |
 | 3. Download the task containers and record their fingerprints | R | done: all 16 clean (`env/<id>.json`) |
-| 4. "Gold gate": does the official fix pass its own tests in each container? | R | redo for the new tasks |
-| 5. Agent input file (problem statements only) | R | redo for the new tasks |
+| 4. "Gold gate": does the official fix pass its own tests in each container? | R | done: all 16 pass (official fix passes all its tests) |
+| 5. Agent input file (problem statements only) | R | done: `instances/main/` (16 tasks) |
 | 6. Smoke test: one complete agent run on a non-pilot task | R | done (cost $0.0014) |
 | 7. The agent runs, then rebuild each final workspace | R | after steps 2 to 5; up to $3 per task |
 | 8. Probe runner for the validity labels | R | week 2 |
