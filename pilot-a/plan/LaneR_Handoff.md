@@ -26,7 +26,7 @@ Record it in the team's `docs/decisions.md` as the next V-number, and note that 
 
 Done and reusable: WSL environment and locked packages (`pyproject.toml`, `uv.lock`), selection checks, fingerprinting, image repair, gold gate, instance builder, run script. Smoke test passed (`pallets__flask-4992`, Claude Haiku 5.5, $0.0014). Decided settings: backbone `claude-sonnet-5-5` (agent and extractor, pinned), `claude-haiku-5-5` for pipeline tests, mini-swe-agent 2.4.6 with its shipped config, no `-c` option, no temperature.
 
-Superseded: `pilot-a/clusters.csv`, `pilot-a/instances/main/`, the fingerprints and gold-gate results of the old 19 tasks; their Docker images were deleted on 2026-10-24.
+Superseded: the old 19-task list (now `instances/main-lite19/`; the old `clusters.csv` is in git history before commit 1e2be93), the fingerprints and gold-gate results of the old 19 tasks; their Docker images were deleted on 2026-10-24.
 
 ## Setting up in a fresh clone
 
