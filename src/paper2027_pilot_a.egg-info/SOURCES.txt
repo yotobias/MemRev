@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/memrev/__init__.py
+src/memrev/trajectory.py
+src/paper2027_pilot_a.egg-info/PKG-INFO
+src/paper2027_pilot_a.egg-info/SOURCES.txt
+src/paper2027_pilot_a.egg-info/dependency_links.txt
+src/paper2027_pilot_a.egg-info/requires.txt
+src/paper2027_pilot_a.egg-info/top_level.txt
+tests/test_trajectory.py
