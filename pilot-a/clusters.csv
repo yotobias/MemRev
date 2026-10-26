@@ -1,0 +1,17 @@
+instance_id,cluster,kind,image,base_commit,same_text,same_pr_group,role,related_ids
+django__django-15161,D1,experience,swebench/sweb.eval.x86_64.django_1776_django-15161:latest,96e7ff5e9ff6362d9a886545869ce4496ca4b0fb,False,django/django#15161,cluster,django__django-33216
+django__django-15382,D1,experience,swebench/sweb.eval.x86_64.django_1776_django-15382:latest,770d3e6a4ce8e0a91a9e27156036c1985e74d4a3,False,django/django#15382,cluster,django__django-15407;django__django-33018;django__django-33482
+django__django-15930,D1,experience,swebench/sweb.eval.x86_64.django_1776_django-15930:latest,63884829acd207404f2a5c3cc1d6b4cd0a822b70,False,django/django#15930,cluster,django__django-16266;django__django-26430;django__django-26433;django__django-26517;django__django-33374
+django__django-16082,D1,experience,swebench/sweb.eval.x86_64.django_1776_django-16082:latest,bf47c719719d0e190a99fa2e7f959d5bbb7caf8a,False,django/django#16082,cluster,django__django-33397
+django__django-10554,D2,experience,swebench/sweb.eval.x86_64.django_1776_django-10554:latest,14d026cccb144c6877294ba4cd4e03ebf0842498,False,django/django#10554,cluster,django__django-29692
+django__django-11555,D2,experience,swebench/sweb.eval.x86_64.django_1776_django-11555:latest,8dd5877f58f84f2b11126afbd0813e24545919ed,False,django/django#11555,cluster,django__django-30557
+django__django-14122,D2,experience,swebench/sweb.eval.x86_64.django_1776_django-14122:latest,bc04941bf811d1ea2c79fb7fc20457ed2c7e3410,False,django/django#14122,cluster,django__django-14357
+django__django-11400,D3,experience,swebench/sweb.eval.x86_64.django_1776_django-11400:latest,1f8382d34d54061eddc41df6994e20ee38c60907,False,django/django#11400,cluster,django__django-30703
+django__django-11999,D3,experience,swebench/sweb.eval.x86_64.django_1776_django-11999:latest,84633905273fc916e3d17883810d9969c03f73c2,False,django/django#11999,cluster,django__django-30254
+django__django-15629,D3,experience,swebench/sweb.eval.x86_64.django_1776_django-15629:latest,694cf458f16b8d340a3195244196980b2dec34fd,False,django/django#15629,cluster,django__django-33671
+django__django-16493,D3,experience,swebench/sweb.eval.x86_64.django_1776_django-16493:latest,e3a4cee081cf60650b8824f0646383b79cb110e7,False,django/django#16493,cluster,django__django-31941
+django__django-12209,D4,experience,swebench/sweb.eval.x86_64.django_1776_django-12209:latest,5a68f024987e6d16c2626a31bf653a2edddea579,False,django/django#12209,cluster,django__django-18305;django__django-29129;django__django-29260;django__django-31297
+django__django-13964,D4,experience,swebench/sweb.eval.x86_64.django_1776_django-13964:latest,f39634ff229887bf7790c069d0c411b38494ca38,False,django/django#13964,cluster,django__django-11587;django__django-28147;django__django-29896
+sympy__sympy-14976,S1,experience,swebench/sweb.eval.x86_64.sympy_1776_sympy-14976:latest,9cbea134220b0b951587e11b63e2c832c7246cbc,False,sympy/sympy#14976,cluster,sympy__sympy-14822;sympy__sympy-14973;sympy__sympy-14975;sympy__sympy-7229
+sympy__sympy-16766,S1,experience,swebench/sweb.eval.x86_64.sympy_1776_sympy-16766:latest,b8fe457a02cc24b3470ff678d0099c350b7fef43,False,sympy/sympy#16766,cluster,sympy__sympy-22908
+sympy__sympy-22914,S1,experience,swebench/sweb.eval.x86_64.sympy_1776_sympy-22914:latest,c4e836cdf73fc6aa7bab6a86719a0f08861ffb1d,False,sympy/sympy#22914,cluster,sympy__sympy-16669

@@ -1,4 +1,5 @@
 [project]
+<<<<<<< HEAD
 name = "memrev"
 version = "0.1.0"
 description = "Add your description here"
@@ -19,3 +20,20 @@ build-backend = "hatchling.build"
 dev-dependencies = [
     "pytest>=9.1.1",
 ]
+=======
+name = "paper2027-pilot-a"
+version = "0.1.0"
+description = "Pilot A, Lane R: agent runs, environment, gold gate, probes"
+requires-python = ">=3.10"
+dependencies = [
+    "mini-swe-agent==2.4.6",
+    "datasets",
+    "pandas",
+    "pyarrow",
+    # litellm 1.106.2 imports mcp on every call that passes tools, without declaring it
+    "mcp",
+]
+
+[tool.uv]
+package = false
+>>>>>>> origin/pilot-a/laneR

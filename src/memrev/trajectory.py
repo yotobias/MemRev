@@ -168,6 +168,13 @@ def build_extract_prompt(trajectory, instructions):
     sb.close()
     return prompt
 
+def load_extraction(path):
+    pass
+
+
+def validate_extraction(extraction, trajectory):
+    pass
+
 if __name__ == "__main__":
     test_dir = 'pilot-a/fixtures/test/'
     # test_file = 'message_only_github_issue.traj.json'

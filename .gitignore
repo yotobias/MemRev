@@ -3,3 +3,10 @@
 __pycache__/
 *.pyc
 runs/
+
+# Pilot A Lane R (branch pilot-a/laneR)
+# gold-gate results name the tests of the official fixes: Lane R only, Lane N stays blind
+pilot-a/env/gold_gate.jsonl
+pilot-a/env/gold_gate_logs/
+# benchmark data incl. gold patches; re-download with pilot-a/scripts/data_prep/inspect_scb.py
+pilot-a/data/*.parquet

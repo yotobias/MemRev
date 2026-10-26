@@ -1,0 +1,8 @@
+flake8 @ file:///croot/flake8_1726157165993/work
+flake8-comprehensions==3.15.0
+mccabe @ file:///opt/conda/conda-bld/mccabe_1644221741721/work
+mpmath @ file:///croot/mpmath_1690848262763/work
+pycodestyle @ file:///croot/pycodestyle_1726150303809/work
+pyflakes @ file:///croot/pyflakes_1708962956225/work
+# Editable Git install with no remote (sympy==1.2.1.dev0)
+-e /testbed
