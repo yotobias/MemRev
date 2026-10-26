@@ -15,7 +15,7 @@ specs/_done/           finished specs are moved here
 pilot-a/               Pilot A: experience acquisition (part 1)
 ```
 
-Code for the shared pipeline will live in a Python package at the root once the first ticket lands.
+Lane N's pipeline lives in `src/memrev/`, with tests in `tests/`. Lane R's scripts live in `pilot-a/scripts/`. Follow the [Pilot A runbook](pilot-a/START_HERE.md) for setup and commands in order. Launch prerequisites and remaining Lane R work are in [RUN_READINESS.md](pilot-a/RUN_READINESS.md).
 
 ## Workflow
 
@@ -82,7 +82,7 @@ After a feature is done, spend ten minutes on what went wrong in the workflow it
 ## Conventions
 
 - Python 3.11, [uv](https://docs.astral.sh/uv/) for environments, pytest for tests, SQLite for run data.
-- Each run gets its own database and work directory outside any repository checkout.
+- Each run gets its own database and work directory outside any repository checkout. Pilot A acquisition packages may instead use this project's gitignored `runs/acquisitions/` directory (V39); keep artifacts separate from the benchmark repository under test.
 - LLM calls go through the shared client interface so model, tokens and cost are logged.
 - Results from natural and constructed cases are always reported separately.
 
@@ -90,5 +90,5 @@ After a feature is done, spend ten minutes on what went wrong in the workflow it
 
 | Feature | Spec | Status |
 |---------|------|--------|
-| Pilot A: experience acquisition | [pilot-a/](pilot-a/) | not started |
+| Pilot A: experience acquisition | [pilot-a/](pilot-a/) | extraction/evaluation and offline handoff plumbing implemented ([guide](pilot-a/HANDOFF.md)); contracts proposed, production runs and research judgments pending |
 | Pilot B: assumption applicability across revisions | [specs/pilot-b/spec.md](specs/pilot-b/spec.md) | 11 tickets ready, start with 01 |

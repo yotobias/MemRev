@@ -1,0 +1,290 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When fixing separability for nested Astropy CompoundModels joined with '&', inspect `_cstack` for an already-computed right-hand coordinate matrix. In the ndarray branch, copy the actual `right` values into the lower-right block using `cright[-right.shape[0]:, -right.shape[1]:] = right`, rather than filling that block with `1`. Preserve the separate handling of Model operands and the existing upper-left placement of left-hand matrices.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "When `right` is not a Model, the original `_cstack` implementation initializes `cright` with zeros and fills its lower-right block with `1`, discarding the entries of an already-computed right-hand coordinate matrix.",
+          "symbol": "_cstack",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "other",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "left is a Model or coordinate ndarray; right is a coordinate ndarray, including a matrix representing a nested compound model",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [25, 35, 37],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original /testbed source checkout before the agent edited separable.py."
+        },
+        {
+          "statement": "When `left` is a coordinate ndarray, `_cstack` copies its actual values into the upper-left block of `cleft`; when `right` is a Model, it constructs `cright` through `_coord_matrix(right, 'right', noutp)`.",
+          "symbol": "_cstack",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "left is an ndarray for the upper-left copy; right is a Model for the `_coord_matrix` call",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [25, 37],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original /testbed source checkout before the edit. The agent subsequently changed only the right-hand ndarray assignment."
+        },
+        {
+          "statement": "For a CompoundModel whose `_calculate_separability_matrix()` returns `NotImplemented`, `_separable` recursively evaluates both children and combines their coordinate matrices using the function selected by the compound operator; '&' dispatches to `_cstack`.",
+          "symbol": "_separable",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "CompoundModel with operator '&' and no custom separability-matrix result",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [25],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original /testbed checkout. The inspected implementation first checks the model-specific separability override before recursively processing CompoundModel children."
+        }
+      ]
+    },
+    {
+      "advice": "Validate a nested CompoundModel fix against the equivalent flattened '&' expression, comparing the complete boolean dependency matrices rather than only their dimensions or diagonal entries. Use `cm = m.Linear1D(10) & m.Linear1D(5)` and verify that `separability_matrix(m.Pix2Sky_TAN() & cm)` equals the flattened `m.Pix2Sky_TAN() & m.Linear1D(10) & m.Linear1D(5)` result. Also exercise left-nested and doubly nested expressions, since different grouping can put an ndarray on either side of `_cstack`.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "With the patched `_cstack`, `separability_matrix(m.Pix2Sky_TAN() & (m.Linear1D(10) & m.Linear1D(5)))` and its flattened equivalent both produce `[[True, True, False, False], [True, True, False, False], [False, False, True, False], [False, False, False, True]]`.",
+          "symbol": "separability_matrix",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "m.Pix2Sky_TAN() combined with m.Linear1D(10) and m.Linear1D(5), in both nested and flattened '&' expressions",
+            "config": null,
+            "env": "Python 3.11; installed Astropy 7.2.0 containing the copied patched separable.py"
+          },
+          "evidence_message_indices": [52, 56, 57],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "After the agent edited /testbed/astropy/modeling/separable.py and copied it into /opt/miniconda3/lib/python3.11/site-packages/astropy/modeling/separable.py. The reproduction script was run from /tmp against the installed package, not against the original checkout."
+        },
+        {
+          "statement": "With the patched module, `(m.Linear1D(1) & m.Linear1D(2)) & (m.Linear1D(3) & m.Linear1D(4))` produces a 4-by-4 identity separability matrix, and `(m.Linear1D(1) & m.Linear1D(2)) & m.Linear1D(3)` produces a 3-by-3 identity separability matrix.",
+          "symbol": "separability_matrix",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "The specified doubly nested and left-nested Linear1D compound models",
+            "config": null,
+            "env": "Installed Astropy package after copying the patched separable.py"
+          },
+          "evidence_message_indices": [64, 65],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Post-edit installed package, tested from /tmp using a separately created regression script. The original /testbed checkout remained unbuilt."
+        },
+        {
+          "statement": "With the patched module, `separability_matrix(cm & m.Pix2Sky_TAN())`, where `cm = m.Linear1D(10) & m.Linear1D(5)`, returns `[[True, False, False, False], [False, True, False, False], [False, False, True, True], [False, False, True, True]]`.",
+          "symbol": "separability_matrix",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A nested pair of Linear1D models on the left and Pix2Sky_TAN on the right",
+            "config": null,
+            "env": "Installed Astropy package after copying the patched separable.py"
+          },
+          "evidence_message_indices": [64, 65],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Post-edit installed package. The custom regression script asserted the exact expected matrix."
+        }
+      ]
+    },
+    {
+      "advice": "Test `_cstack` directly with both operands as coordinate ndarrays, with a matrix on the left and a Model on the right, and with a Model on the left and a matrix on the right. Include both a diagonal right-hand matrix and a dense right-hand matrix. Assert the complete numeric outputs so the tests detect accidental replacement of existing zeros or other dependency values with ones.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "With the patched `_cstack`, combining two 2-by-2 identity ndarrays returns a 4-by-4 identity matrix, while combining a 2-by-2 identity left ndarray with `m.Linear1D(5)` returns a 3-by-3 identity matrix.",
+          "symbol": "_cstack",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "left and right both equal np.array([[1., 0.], [0., 1.]]), or left equals that array and right equals m.Linear1D(5)",
+            "config": null,
+            "env": "Installed Astropy package after the patched module was copied into site-packages"
+          },
+          "evidence_message_indices": [68, 69],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Post-edit installed package. Assertions ran in /tmp/test_edge_cases.py rather than against the original checkout."
+        },
+        {
+          "statement": "With the patched `_cstack`, combining `m.Pix2Sky_TAN()` on the left with the right ndarray `[[1., 0.], [0., 1.]]` returns `[[1., 1., 0., 0.], [1., 1., 0., 0.], [0., 0., 1., 0.], [0., 0., 0., 1.]]`.",
+          "symbol": "_cstack",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "left=m.Pix2Sky_TAN(); right=np.array([[1., 0.], [0., 1.]])",
+            "config": null,
+            "env": "Installed Astropy package after the patched module was copied into site-packages"
+          },
+          "evidence_message_indices": [68, 69],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Post-edit installed package. The regression script asserted equality with the specified four-row matrix."
+        },
+        {
+          "statement": "With the patched `_cstack`, combining `m.Linear1D(5)` on the left with the right ndarray `[[1., 1.], [1., 1.]]` returns `[[1., 0., 0.], [0., 1., 1.], [0., 1., 1.]]`.",
+          "symbol": "_cstack",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "left=m.Linear1D(5); right=np.array([[1., 1.], [1., 1.]])",
+            "config": null,
+            "env": "Installed Astropy package after the patched module was copied into site-packages"
+          },
+          "evidence_message_indices": [68, 69],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Post-edit installed package. The custom edge-case test verified preservation of the specified dense right-hand dependency block."
+        }
+      ]
+    },
+    {
+      "advice": "When extending separability handling, preserve the specialized conditions already implemented in `is_separable`, `separability_matrix`, `_coord_matrix`, and `_separable`. In particular, account for the single-input, multiple-output early return, the model-specific `_calculate_separability_matrix` override, Mapping-specific coordinate construction, and the distinction between simple separable and nonseparable models. Test boolean correlation matrices and per-output separability flags separately rather than assuming they always express identical information.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "When `transform.n_inputs == 1` and `transform.n_outputs > 1`, `separability_matrix` returns an all-True matrix of shape `(transform.n_outputs, 1)` without calling `_separable`.",
+          "symbol": "separability_matrix",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "transform.n_inputs == 1 and transform.n_outputs > 1",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [25],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original /testbed checkout before source edits. This early-return condition was inspected but not separately executed in the trajectory."
+        },
+        {
+          "statement": "When `transform.n_inputs == 1` and `transform.n_outputs > 1`, `is_separable` returns a False value for every output without calling `_separable`.",
+          "symbol": "is_separable",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "transform.n_inputs == 1 and transform.n_outputs > 1",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [25],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original /testbed checkout before source edits. The separate early-return branch was visible in the inspected code."
+        },
+        {
+          "statement": "`_separable` returns a model's `_calculate_separability_matrix()` result directly when that result is not `NotImplemented`; otherwise it recursively processes CompoundModels or constructs a coordinate matrix for a simple Model.",
+          "symbol": "_separable",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Model or CompoundModel with `_calculate_separability_matrix()` returning either a concrete matrix or NotImplemented",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [25],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original /testbed checkout. The agent's patch did not modify these dispatch conditions."
+        },
+        {
+          "statement": "`_coord_matrix` builds coordinate rows from `model.mapping` for Mapping instances; otherwise, nonseparable models receive ones in their positioned dependency block, while separable models receive diagonal dependencies with a right-position roll when applicable.",
+          "symbol": "_coord_matrix",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Mapping instances, nonseparable Models, or separable Models with pos='left' or pos='right' and a supplied noutp",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [25],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original /testbed checkout. The inspected code also comments that its nonseparable-model construction does not work for more than two coordinates; no broader correctness was established."
+        }
+      ]
+    },
+    {
+      "advice": "If Astropy reproduction tests fail during import, diagnose environment and build failures separately from the separability bug. Missing `erfa`, an unbuilt `_compiler` extension, and unavailable build dependencies blocked direct checkout execution in this trajectory. Do not treat a zero shell pipeline exit status as a successful build when the output contains a traceback. If testing a patched source module inside an installed Astropy package, run the reproduction script outside the unbuilt source tree and explicitly distinguish that installed-package validation from validation of the checkout itself.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The initial attempt to import Astropy from the /testbed checkout failed because the Python environment lacked the `erfa` module.",
+          "symbol": null,
+          "file": "astropy/utils/exceptions.py",
+          "predicate": "raises",
+          "kind": "environment",
+          "scope": {
+            "inputs": "Running /testbed/reproduce_issue.py before installing pyerfa",
+            "config": null,
+            "env": "Original Python environment before dependency installation"
+          },
+          "evidence_message_indices": [8, 9],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Original /testbed checkout before the separability source edit and before installing pyerfa."
+        },
+        {
+          "statement": "After installing pyerfa and numpy, importing Astropy from the /testbed checkout still raised an ImportError because `astropy.utils._compiler` was unavailable and the source checkout's compiled extensions had not been built.",
+          "symbol": "_initialize_astropy",
+          "file": "astropy/__init__.py",
+          "predicate": "raises",
+          "kind": "environment",
+          "scope": {
+            "inputs": "Importing astropy.modeling from the source checkout",
+            "config": null,
+            "env": "Checkout without required built extension modules, after installing pyerfa and numpy"
+          },
+          "evidence_message_indices": [12, 13, 14, 15],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Original /testbed checkout before the source-code fix. Python dependencies had been partially installed, but compiled extensions were unavailable."
+        },
+        {
+          "statement": "The command `python setup.py build_ext --inplace 2>&1 | tail -20` returned shell status zero while its output contained `ModuleNotFoundError: No module named 'extension_helpers'`, so the reported pipeline status did not establish that the build succeeded.",
+          "symbol": null,
+          "file": "setup.py",
+          "predicate": "other",
+          "kind": "procedure",
+          "scope": {
+            "inputs": "Running the build command with output piped through tail",
+            "config": null,
+            "env": "Source checkout before installing extension-helpers"
+          },
+          "evidence_message_indices": [16, 17],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Original /testbed checkout, before the separability edit. The failing build output was masked by the successful exit status of the shell pipeline."
+        },
+        {
+          "statement": "After copying the patched separable.py into the installed Astropy package and running the reproduction script from /tmp, the script produced the expected nested separability matrix; executing the original script by its /testbed path had continued to import the unbuilt checkout.",
+          "symbol": "separability_matrix",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "returns",
+          "kind": "environment",
+          "scope": {
+            "inputs": "The original nested Pix2Sky_TAN and Linear1D reproduction, run from a script copied into /tmp",
+            "config": null,
+            "env": "Installed Astropy 7.2.0 with patched separable.py copied into site-packages; pyerfa, astropy-iers-data, and PyYAML installed"
+          },
+          "evidence_message_indices": [48, 49, 50, 51, 52, 53, 54, 55, 56, 57],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "The agent had edited /testbed/astropy/modeling/separable.py and copied that file into the separately installed Astropy package. The successful execution used the installed package from /tmp, not the original checkout. Subsequent tests against the installed package do not independently establish checkout execution."
+        }
+      ]
+    }
+  ]
+}

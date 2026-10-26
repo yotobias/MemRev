@@ -1,9 +1,10 @@
 # Pilot A, Lane R scripts
 
-Run everything inside WSL from the project root. Python scripts run in the project venv:
+Run Linux/container scripts inside Linux or WSL from the project root. `setup_wsl.sh` specifically needs WSL and Windows interoperability. Python scripts run in the selected project venv:
 `source pilot-a/scripts/env.sh` once per shell, then `uv run --locked python -I pilot-a/scripts/<script>.py`
 (`--locked` refuses to run if `uv.lock` is out of date instead of silently re-resolving).
 Outputs go to `pilot-a/`; nothing is overwritten (see `pilot-a/CHANGES.md` for deviations).
+`env.sh` honors `UV_PROJECT_ENVIRONMENT`, then prefers an existing root `.venv`, then the original WSL environment. New native-Linux checkouts default to root `.venv`. See [RUN_READINESS.md](../RUN_READINESS.md) for prerequisites and unfinished workspace capture/check execution.
 Do not edit a shell script while it runs: bash reads scripts as it goes, so the running copy
 executes garbled lines (happened once with `build_derived.sh`).
 
@@ -13,7 +14,7 @@ rule in bash). Parser test: `uv run --locked python pilot-a/scripts/test_gold_ga
 | Order | Script | Does | Writes |
 |---|---|---|---|
 | 0 | `setup_wsl.sh` | installs uv 0.12.21, creates `%USERPROFILE%\.wslconfig` (24 GB) if missing, `uv sync --locked` into `~/.venvs/paper2027-pilot-a`, Docker check | venv |
-| 1 | `pilot-a/pilot-a/scripts/data_prep/inspect_scb.py pilot-a/data` | downloads the SCB parquet files (not in the repo) | `pilot-a/data/*.parquet` |
+| 1 | `data_prep/inspect_scb.py pilot-a/data` | downloads the SCB parquet files (not in the repo) | `pilot-a/data/*.parquet` |
 | 2 | `build_clusters.py pilot-a/data pilot-a` | same-PR groups over all SCB tasks; writes and checks the frozen 16-task list (SWE-bench Verified, from Hugging Face) | `pilot-a/data/same_pr_groups.csv`, `pilot-a/clusters.csv` |
 | 3 | `pull_images.sh [id ...]` | pulls each image in `clusters.csv`, calls `fingerprint.sh` | `pilot-a/env/<id>.json`, `<id>.pip-freeze.txt` |
 | 3 | `fingerprint.sh <id> <image> <base_commit>` | digest, HEAD vs base, future commits, Python, package import check, pip-freeze hash | `pilot-a/env/<id>.json` |

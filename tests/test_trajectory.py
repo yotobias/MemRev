@@ -1,6 +1,8 @@
 import copy
 import json
 from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 
@@ -103,3 +105,16 @@ def test_real_fixtures_preserve_indices_calls_and_saved_output(filename, count, 
     assert trajectory == original
     prompt = build_extract_prompt(trajectory, ROOT / "pilot-a/extract_prompt.md")
     assert '<trajectory>\n' + result + '</trajectory>' in prompt
+
+
+def test_prompt_cli_uses_explicit_input_and_preserves_existing_output(tmp_path):
+    output = tmp_path / "prompt.txt"
+    command = [sys.executable, "-m", "memrev.trajectory", "--trajectory",
+               str(ROOT / "pilot-a/fixtures/test/message_only_github_issue.traj.json"), "--output", str(output)]
+    first = subprocess.run(command, capture_output=True, text=True, cwd=ROOT)
+    assert first.returncode == 0, first.stderr
+    assert "--- Message 21 |" in output.read_text()
+    original = output.read_bytes()
+    second = subprocess.run(command, capture_output=True, text=True, cwd=ROOT)
+    assert second.returncode == 2
+    assert output.read_bytes() == original

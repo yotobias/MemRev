@@ -1,0 +1,18 @@
+{
+  "extraction_run_id": "dev-astropy-12907-manual-102526",
+  "purpose": "development",
+  "agent_run_id": null,
+  "task_id": "astropy__astropy-12907",
+  "repository": null,
+  "source_revision": null,
+  "extractor": {
+    "method": "manual_browser",
+    "provider": null,
+    "model_id": null,
+    "reported_label": "gpt-6-high",
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_usd": null
+  },
+  "notes": "Development response supplied by the user. Task ID matches the trajectory's instance_id. The model label is taken from the response filename, not verified provider metadata. Source revision, repository metadata, agent run ID, exact extractor model, usage and cost are unavailable. The exact submitted prompt has not been confirmed; the current generated prompt is not substituted for it."
+}

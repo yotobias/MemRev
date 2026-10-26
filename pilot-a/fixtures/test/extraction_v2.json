@@ -1,0 +1,46 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When tracing compound-model separability, check the custom matrix override before following the recursive operator dispatch. Inspect both matrix-operand branches of _cstack when investigating asymmetric nesting behavior.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "When _calculate_separability_matrix() returns NotImplemented and transform is a CompoundModel, _separable recursively evaluates its children and dispatches their results through _operators[transform.op].",
+          "symbol": "astropy.modeling.separable._separable",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A CompoundModel whose _calculate_separability_matrix() returns NotImplemented, with an operator present in _operators.",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [25],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout source as inspected before the agent's source-code edit."
+        },
+        {
+          "statement": "For a right operand that is a coordinate ndarray, the inspected _cstack fills the bottom-right block of cright with ones rather than copying right's values.",
+          "symbol": "astropy.modeling.separable._cstack",
+          "file": "astropy/modeling/separable.py",
+          "predicate": "mutates",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Right operand is a two-dimensional coordinate ndarray rather than a Model.",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [35, 37],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout source before the agent replaced the assignment of 1 with right."
+        }
+      ]
+    },
+    {
+      "advice": "Inspect build output as well as the shell status when piping a build command through tail. Preserve the build failure status with pipefail before treating a zero return code as evidence of a successful build.",
+      "from_failed_step": true,
+      "assumptions": []
+    }
+  ]
+}

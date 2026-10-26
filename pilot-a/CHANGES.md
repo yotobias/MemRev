@@ -96,3 +96,53 @@ Gold gate (`env/gold_gate.jsonl`, git-ignored): every task's official fix passes
 ## 2026-10-24: superseded images deleted (user decision)
 
 The 19 images of the superseded list and the 5 derived images built from them were deleted from WSL Docker; image storage went from 72.7 GB to 40.3 GB (layers shared with the 16 new django and sympy images stay). The derived images can be rebuilt with `build_derived.sh`; the fingerprints in `env/` remain as records. Kept: the smoke image (`pallets__flask-4992`) and other images outside both lists.
+
+## 2026-10-25: Lane N raw extraction contract v2
+
+Implemented the user-requested contract revision (V33–V35). Full indexed trajectories replace mandatory per-phase extraction; phase labels never gate verification. The prompt now includes structured scope, symbol/file, predicate, kind and failed-step origin. Null denotes unknown detail, and `no_evidence` with empty indices retains unsupported candidates without assigning a source-validity verdict. Missing evidence and a cited unverified assertion are distinct.
+
+`load_extraction` reads strict JSON; `validate_extraction` validates v2 fields and original message indices without changing the response or judging truth. The raw format rejects unknown fields. The original unversioned development response remains unchanged; a separate hand-authored Astropy fixture demonstrates v2 and is not a production result. Formatting and extraction tests: 54 passed.
+
+The contract is in `specs/pilot-a-extraction/spec.md`. IDs, task/run provenance and the six-field Pilot B JSONL export remain separate pipeline work. B's exact export key names are still pending ticket 01, and B's own assumption extraction/source checks are unchanged. No model runs, gold inspection, or C0/C1/Ca evaluations were performed in this step.
+
+## 2026-10-25: provenance packages and pending review drafts
+
+Implemented V36–V38 after the user requested the next step. `memrev.provenance` validates the raw response, assigns deterministic occurrence IDs, snapshots input bytes and hashes, records operator-supplied metadata and explicit unknowns, and creates a separate pending review draft. Repreparing the same package preserves human review edits; changed frozen artifacts require a new output directory. Outputs live outside Git checkouts.
+
+Prepared the user's development response `gpt-6-high_test_lessons_102526.json`: 5 lessons and 17 assumptions in `../pilot-a-artifacts/astropy-manual-102526/`. Its model filename label is unverified; source SHA, repository metadata, agent-run ID, exact extractor model, usage/cost and exact prompt remain unknown. The curated regression fixture had already been restored and was preserved. All 69 formatting, extraction and provenance tests pass; generated snapshot hashes were checked independently.
+
+See `PROVENANCE.md` and ticket 02 for the workflow. Review import/sign-off, split-child IDs, C0/C1/Ca checks, sharing and Pilot B export remain later work. This package is development data and every review row is pending. No model calls or gold inspection were performed.
+
+## 2026-10-25: evaluation-only review export and import
+
+Implemented V40–V41 following the user's concern that reviewer-written replacements can bias extraction evaluation. Primary review now records six rubric ratings, an outcome, issue codes, reasons and reviewer evidence pointers without changing original text. The legacy action-based draft remains for compatibility; use `memrev.evaluation draft` and `import` as described in `EVALUATION.md`.
+
+Imports verify acquisition snapshots and original candidates, reject incomplete or inconsistent reviews, preserve reviewer type and self-reported independence, and retain every original candidate in an evaluated bank. Exact review bytes, protocol/record snapshots, recomputed counts, a report and a hash manifest are saved together. Changed imports require a new output directory. There is no automatic repair, review merging, or source-validity sign-off.
+
+The existing AI evaluation imported unchanged under `runs/acquisitions/astropy-manual-102526/evaluations/ai-codex/`: 5 lessons, 17 assumptions; 7 usable, 6 needing repair, 2 uncertain and 2 context-only. This remains AI-attributed development data. A pending form with placeholder reviewer details is ready in the acquisition directory. Artifacts are inside MemRev and gitignored, as requested in V39.
+
+Validation: 106 tests pass (37 evaluation tests plus the prior 69), and both new CLI commands ran on the development package. Freeze the development rubric with the team before production review. Human evaluation, selected-task acquisition, revision-specific checks, sharing analysis/reporting and Pilot B's separate lesson export remain. No model calls, gold inspection or benchmark execution were performed.
+
+## 2026-10-25: offline handoff while human review is deferred
+
+At the user's request, implemented the remaining Lane N interface plumbing without requiring any human trajectory review (V42–V44). `memrev.handoff build` combines verified acquisition packages and optional explicit evaluations, preserves all candidates, prepares Lane R requests and pending validity returns, validates later validity/sharing submissions, produces status/count reports, and exports original advice in a proposed six-field Pilot B JSONL with exclusions and review-status sidecars. A review is not required merely to exercise the export; A does not gate B, and B performs its own assumption review/checks.
+
+`sample` prepares a deterministic 30% sample by group, rounded up, with all members and a separate private primary partition. The recipient receives only `blind/`, including portable trajectory evidence. `compare` measures changes in member sets independent of group names, retains reviewer attribution and requires gold-exposure disclosure. No automatic semantic grouping or adjudication is performed.
+
+All wire contracts remain proposed for team alignment. Missing work is pending, setup errors cannot become target contradictions, superseded assumptions remain eligible for sharing, and negatives at checked workspaces do not erase intermediate observations. Evidence references and hashes are declarations; the importer does not open gold evidence or certify executions. Production acquisition metadata must match the frozen selection; development fixtures cannot count as production task coverage.
+
+Current local demonstration: `runs/handoffs/astropy-design-v2/` contains 5 lessons and 17 assumptions with no evaluation imported, 51 pending validity cells and 17 pending grouping rows. Five lessons are excluded from B's draft for missing provenance. A separate `astropy-with-ai-example/` collection reuses the existing AI example without any new review. Outputs remain gitignored.
+
+Validation: 149 tests pass, including 43 new tests covering synthetic completed inputs and the all-pending path. The six proposed B keys are documented in `HANDOFF.md` and linked from B ticket 01 without marking that ticket complete. No paid calls, gold inspection, real check execution or new human judgments. Research work, real Lane R/B integrations and final contract agreement remain separate from this completed implementation slice.
+
+## 2026-10-25: repository cleanup and Lane R readiness audit
+
+Implemented user-requested cleanup (V45). Removed tracked generated egg-info metadata, the redundant rendered transcript fixture, the placeholder package greeting and obsolete action-review generation. Added ignore rules for build/test outputs. Acquisition preparation now snapshots only; `memrev.evaluation draft` explicitly generates the current review format. Existing packages and review edits remain compatible. The trajectory module's hardcoded fixture demo is now an explicit-input CLI that refuses to overwrite a prompt.
+
+Preserved historical research material: moved the original browser-exported kickoff HTML into `plan/archive/`, and moved the development acquisition's action draft and rewriting examples into its ignored `archive/`. Removed the obsolete `astropy-design-v1` bundle only after verifying its manifest and confirming no extra files. Retained raw fixtures, input snapshots, current handoff bundles, generated prompt provenance and decision history. `START_HERE.md` and the fixture index explain the active layout.
+
+Lane R audit: all 16 selected task IDs match the sanitized instance file, no gold/hint/test-label fields are present there, and all 16 fingerprint files exist. The local venv's four checked runtime packages match locked versions. Docker access is denied even outside the tool sandbox, `.env` is absent, and local uv differs from the original recorded toolchain. Image availability and provider access remain unverified. `env.sh` now selects an existing local or original WSL environment while honoring overrides; the WSL setup script fails clearly on native Linux and preserves its external-venv default on WSL.
+
+The launcher exists, but the installed agent saves trajectories/submitted patches and cleans up containers without full workspace capture. Capture must precede cleanup to preserve untracked files and Ca evidence; the actual validity-check runner also remains unimplemented. See `RUN_READINESS.md` for the distinction between basic launch prerequisites, full-batch workspace preservation and later validity work. No paid calls, containers, image pulls or gold inspections were performed.
+
+Validation: 150 offline tests pass; shell syntax and environment-override behavior checked. The current all-pending handoff rebuilt byte-for-byte after cleanup; `git diff --check` passes.

@@ -6,6 +6,12 @@ set -euo pipefail
 UV_VERSION=0.12.21          # same as uv on Windows; bump deliberately
 WSL_MEMORY=24GB
 
+if ! command -v wslpath >/dev/null || ! command -v cmd.exe >/dev/null; then
+    echo "This setup script requires WSL with Windows interoperability. See pilot-a/RUN_READINESS.md for native Linux."
+    exit 2
+fi
+# Keep a newly provisioned WSL environment off the Windows checkout by default.
+export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$HOME/.venvs/paper2027-pilot-a}"
 source "$(dirname "$0")/env.sh"
 cd "$PILOT_ROOT"
 

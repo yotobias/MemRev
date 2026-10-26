@@ -1,5 +1,0 @@
-mini-swe-agent==2.4.6
-datasets
-pandas
-pyarrow
-mcp

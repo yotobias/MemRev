@@ -19,3 +19,5 @@ Covers stories 1, 2, 3, 41.
 - [ ] pilot-a/README.md is updated with the final field names.
 
 ## Notes
+
+Lane N now supplies a draft producer for interface discussion (V44): `lesson_id`, `lesson_text`, `task_id`, `repository`, `source_revision`, `trajectory_pointer`. See `pilot-a/HANDOFF.md`. This ticket still owns final field-name agreement, valid-repository/source-SHA checks and the real B importer. The draft sidecar distinguishes pending/AI/human extraction review; A review does not silently become B sign-off. This proposal does not mark any acceptance criterion complete.

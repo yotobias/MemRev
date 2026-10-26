@@ -1,5 +1,8 @@
+import argparse
+import io
 import json
 from pathlib import Path
+import shutil
 
 
 def load_trajectory(path):
@@ -56,8 +59,6 @@ def extract_segment(trajectory, start_index=None, end_index=None):
         raise ValueError("extract_segment: invalidate segment range: expected 0 <= start_index <= end_index < message count")
         
 
-import io
-import shutil
 def format_transcript(trajectory, output=None):
     """Returns a readable transcript of the messages"""
     messages = trajectory["messages"]
@@ -168,22 +169,148 @@ def build_extract_prompt(trajectory, instructions):
     sb.close()
     return prompt
 
-def load_extraction(path):
-    pass
+def parse_extraction(text):
+    """Parse strict JSON, retaining the same rules for files and snapshots."""
+    def read_object(pairs):
+        result = dict()
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"Extraction JSON: duplicate key {key!r}")
+            result[key] = value
+        return result
+
+    def reject_constant(value):
+        raise ValueError(f"Extraction JSON: {value} is not a valid JSON constant")
+
+    return json.loads(text, object_pairs_hook=read_object, parse_constant=reject_constant)
+
+
+def load_extraction(extraction_file):
+    """Load strict JSON without repairing or changing the model response."""
+    with open(extraction_file, "r", encoding="utf-8") as file:
+        return parse_extraction(file.read())
+
+
+def _validate_fields(value, fields, path):
+    """Require the documented raw-response fields, including nullable ones."""
+    if not isinstance(value, dict):
+        raise ValueError(f"{path}: expected a dictionary")
+    missing = set(fields) - set(value)
+    if missing:
+        raise ValueError(f"{path}: missing fields: {', '.join(sorted(missing))}")
+    unexpected = set(value) - set(fields)
+    if unexpected:
+        raise ValueError(f"{path}: unexpected fields: {', '.join(sorted(map(str, unexpected)))}")
+
+
+def _validate_text(value, path, nullable=False):
+    if nullable and value is None:
+        return
+    if not isinstance(value, str) or not value.strip():
+        expected = "a nonempty string or null" if nullable else "a nonempty string"
+        raise ValueError(f"{path}: expected {expected}")
+
+
+def _validate_choice(value, choices, path):
+    if not isinstance(value, str) or value not in choices:
+        raise ValueError(f"{path}: expected one of {', '.join(choices)}")
+
+
+def _validate_assumption(assumption, message_count, path):
+    _validate_fields(assumption, [
+        "statement", "symbol", "file", "predicate", "kind", "scope",
+        "evidence_message_indices", "evidence_basis", "workspace_context",
+    ], path)
+    for field in ["statement", "workspace_context"]:
+        _validate_text(assumption[field], f"{path}.{field}")
+    for field in ["symbol", "file"]:
+        _validate_text(assumption[field], f"{path}.{field}", nullable=True)
+    _validate_choice(assumption["predicate"], [
+        "returns", "raises", "accepts", "mutates", "calls", "type_is", "default_is", "other",
+    ], f"{path}.predicate")
+    _validate_choice(assumption["kind"], [
+        "repo_behaviour", "procedure", "environment",
+    ], f"{path}.kind")
+
+    scope = assumption["scope"]
+    _validate_fields(scope, ["inputs", "config", "env"], f"{path}.scope")
+    for field in ["inputs", "config", "env"]:
+        _validate_text(scope[field], f"{path}.scope.{field}", nullable=True)
+
+    basis = assumption["evidence_basis"]
+    _validate_choice(basis, [
+        "execution_observation", "code_observation", "unverified_assertion", "no_evidence",
+    ], f"{path}.evidence_basis")
+    indices = assumption["evidence_message_indices"]
+    index_path = f"{path}.evidence_message_indices"
+    if not isinstance(indices, list):
+        raise ValueError(f"{index_path}: expected a list")
+    if basis == "no_evidence":
+        if indices:
+            raise ValueError(f"{index_path}: must be empty for no_evidence")
+    elif not indices:
+        raise ValueError(f"{index_path}: at least one citation is required for {basis}")
+
+    seen = set()
+    for position, index in enumerate(indices):
+        if type(index) is not int:
+            raise ValueError(f"{index_path}[{position}]: expected an integer, not a boolean or other type")
+        if not 0 <= index < message_count:
+            raise ValueError(f"{index_path}[{position}]: index {index} outside trajectory with {message_count} messages")
+        if index in seen:
+            raise ValueError(f"{index_path}[{position}]: duplicate index {index}")
+        seen.add(index)
 
 
 def validate_extraction(extraction, trajectory):
-    pass
+    """Validate raw v2 structure and citations, not truth; return input unchanged."""
+    if not isinstance(trajectory, dict) or not isinstance(trajectory.get("messages"), list):
+        raise ValueError("trajectory.messages: expected a list")
+    _validate_fields(extraction, ["schema_version", "lessons"], "extraction")
+    if type(extraction["schema_version"]) is not int or extraction["schema_version"] != 2:
+        raise ValueError("extraction.schema_version: expected integer 2; legacy responses require explicit migration")
+    lessons = extraction["lessons"]
+    if not isinstance(lessons, list):
+        raise ValueError("extraction.lessons: expected a list")
+
+    for lesson_index, lesson in enumerate(lessons):
+        path = f"lessons[{lesson_index}]"
+        _validate_fields(lesson, ["advice", "from_failed_step", "assumptions"], path)
+        _validate_text(lesson["advice"], f"{path}.advice")
+        failed = lesson["from_failed_step"]
+        if failed is not None and type(failed) is not bool:
+            raise ValueError(f"{path}.from_failed_step: expected a boolean or null")
+        assumptions = lesson["assumptions"]
+        if not isinstance(assumptions, list):
+            raise ValueError(f"{path}.assumptions: expected a list")
+        for assumption_index, assumption in enumerate(assumptions):
+            _validate_assumption(assumption, len(trajectory["messages"]), f"{path}.assumptions[{assumption_index}]")
+
+    return extraction
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Format a saved trajectory into an extraction prompt.")
+    parser.add_argument("--trajectory", required=True, type=Path)
+    parser.add_argument("--prompt-template", type=Path,
+                        default=Path(__file__).resolve().parents[2] / "pilot-a/extract_prompt.md")
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--extraction", type=Path, help="Optionally validate an existing response against this trajectory")
+    args = parser.parse_args()
+    try:
+        trajectory = load_trajectory(args.trajectory)
+        prompt = build_extract_prompt(trajectory, args.prompt_template)
+        if args.extraction is not None:
+            validate_extraction(load_extraction(args.extraction), trajectory)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open("x", encoding="utf-8") as stream:
+            stream.write(prompt)
+    except (ValueError, OSError) as error:
+        parser.exit(2, f"Cannot prepare prompt: {error}\n")
+    print(f"Saved extraction prompt to {args.output.resolve()}")
+    if args.extraction is not None:
+        print("Extraction structure validated; semantic correctness remains unassessed.")
+
 
 if __name__ == "__main__":
-    test_dir = 'pilot-a/fixtures/test/'
-    # test_file = 'message_only_github_issue.traj.json'
-    test_file = 'full_trajectory_example.traj.json'
-    path = f'{test_dir}{test_file}'
-    trajectory = load_trajectory(path)
-    
-    prompt = build_extract_prompt(trajectory, "pilot-a/extract_prompt.md")
-    output_path = Path("runs/extraction_prompt.txt")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(prompt, encoding="utf-8")
-    print(f"Saved extraction prompt to {output_path}")
+    main()

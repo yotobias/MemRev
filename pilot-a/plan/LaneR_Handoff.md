@@ -2,6 +2,8 @@
 
 Updated 2026-10-24 (after the re-selection) for a fresh session continuing Lane R (runs and environment) of Pilot A, working in a clone of the team repository `yotobias/MemRev`, branch `pilot-a/laneR`. This note is self-contained: notes from earlier sessions are not available in a new clone.
 
+**2026-10-25 addendum:** read [RUN_READINESS.md](../RUN_READINESS.md) before launching on the merged checkout. Local prerequisites differ from the original WSL machine. Capture the actual final workspace before cleanup; applying only the submitted patch afterward cannot recover omitted files. `env.sh` now honors an override and reuses an existing local or original WSL environment. The current Lane N contract is in [HANDOFF.md](../HANDOFF.md).
+
 ## Working style
 
 The user (Ocean, Lane R) wants to learn while the work is done. Before each step, explain in a few plain sentences what happens and why the pilot needs it; explain each new tool or concept once, briefly; after each step, say what the output shows. No lectures, no quizzes. Ask before anything that costs money (agent runs) or is hard to undo (pushes to shared branches, deleting images).
@@ -16,7 +18,7 @@ The user (Ocean, Lane R) wants to learn while the work is done. Before each step
 
 ## The decision that sets the next steps (2026-10-24)
 
-The user decided that **Pilot A runs on SWE-bench Verified tasks**: base tasks from the full SWE-ContextBench that are in SWE-bench Verified, in django, sympy or scikit-learn (team decisions V11, V12), and that have related tasks in SWE-ContextBench. The agent runs on the base tasks; the related tasks are not run in Pilot A but are kept as the base-to-related link for later pilots. (Confirm with the user that related tasks are not run before freezing.)
+The user decided that **Pilot A runs on SWE-bench Verified tasks**: base tasks from the full SWE-ContextBench that are in SWE-bench Verified, in django, sympy or scikit-learn (team decisions V11, V12), and that have related tasks in SWE-ContextBench. The agent runs on the base tasks; related tasks remain links for later pilots. This was confirmed before the 16-task list was frozen; do not request confirmation again.
 
 This replaces the earlier 19-task list from SWE-ContextBench *Lite* (built on SWE-bench Lite, not Verified; only `django__django-14017` qualifies under the new rule). Everything except the task list is reused.
 
