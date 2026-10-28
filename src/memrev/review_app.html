@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson Review</title>
+<style>
+:root {
+  --bg: #f6f6f4; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6b66; --line: #e2e1dc;
+  --accent: #2f5bd3; --accent-soft: #e6ecfb; --yes: #1f8a4c; --yes-soft: #e3f4ea;
+  --no: #c2412d; --no-soft: #fbe7e3; --unc: #a56a00; --unc-soft: #fbf0d9;
+  --mark: #fff0a8; --code: #f1f0ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161615; --panel: #1f1f1d; --ink: #ecebe6; --muted: #9a9993; --line: #33322f;
+    --accent: #7c9cf5; --accent-soft: #263255; --yes: #5cc58a; --yes-soft: #1d3527;
+    --no: #f08a76; --no-soft: #3d221d; --unc: #e3b04f; --unc-soft: #3a2f17;
+    --mark: #5c4f12; --code: #262624;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; flex-direction: column; }
+code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+header { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+header .task { color: var(--muted); }
+.progress { flex: 1; display: flex; align-items: center; gap: 10px; }
+.bar { flex: 1; max-width: 260px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar > div { height: 100%; background: var(--yes); width: 0; transition: width .2s; }
+.saved { color: var(--muted); font-size: 12px; min-width: 70px; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 10px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+main { flex: 1; display: grid; grid-template-columns: 220px minmax(400px, 1fr) minmax(340px, 1fr); min-height: 0; }
+nav { border-right: 1px solid var(--line); overflow: auto; padding: 8px 0; background: var(--panel); }
+nav .lesson { padding: 6px 12px 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+nav .item { display: flex; align-items: center; gap: 8px; padding: 4px 12px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+nav .item:hover { background: var(--bg); }
+nav .item.active { background: var(--accent-soft); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--line); }
+.dot.partial { background: var(--unc); } .dot.invalid { background: var(--no); } .dot.done { background: var(--yes); }
+nav .label { overflow: hidden; text-overflow: ellipsis; }
+#review { overflow: auto; padding: 16px 20px 40px; }
+#evidence { border-left: 1px solid var(--line); overflow: auto; background: var(--panel); display: flex; flex-direction: column; }
+.kind { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 4px; }
+.statement { font-size: 16px; line-height: 1.5; margin: 0 0 10px; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; font-size: 12.5px; margin-bottom: 14px; padding: 8px 10px; background: var(--code); border-radius: 6px; }
+.facts dt { color: var(--muted); } .facts dd { margin: 0; overflow-wrap: anywhere; }
+h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 18px 0 6px; font-weight: 600; }
+.rubric-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 6px; border: 1px solid transparent; }
+.rubric-row.active { border-color: var(--accent); background: var(--accent-soft); }
+.rubric-row .name { font-weight: 500; }
+.rubric-row .hint { font-size: 12px; color: var(--muted); display: none; }
+.rubric-row.active .hint { display: block; }
+.seg { display: inline-flex; white-space: nowrap; flex: none;border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 3px 10px; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button.on.yes { background: var(--yes-soft); color: var(--yes); font-weight: 600; }
+.seg button.on.no { background: var(--no-soft); color: var(--no); font-weight: 600; }
+.seg button.on.uncertain { background: var(--unc-soft); color: var(--unc); font-weight: 600; }
+.seg kbd, .outcomes kbd { font-size: 10px; color: var(--muted); margin-left: 4px; }
+.outcomes { display: flex; flex-wrap: wrap; gap: 6px; }
+.outcomes button { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 5px 10px; text-align: left; }
+.outcomes button.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.outcomes button.suggested:not(.on) { border-style: dashed; border-color: var(--accent); }
+.def { font-size: 12px; color: var(--muted); margin-top: 4px; min-height: 1em; }
+.issues { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 2px 9px; font-size: 12px; }
+.chip.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.chip.match { border-color: var(--accent); }
+input[type=text], textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--panel); color: var(--ink); font: inherit; }
+textarea { min-height: 70px; resize: vertical; }
+input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.quick { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.quick button { border: 1px dashed var(--line); background: transparent; border-radius: 6px; padding: 2px 8px; font-size: 12px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.problems { margin-top: 14px; padding: 8px 10px; border-radius: 6px; background: var(--no-soft); color: var(--no); font-size: 12.5px; }
+.problems:empty { display: none; }
+.problems.ok { background: var(--yes-soft); color: var(--yes); }
+.nextbar { display: flex; gap: 8px; margin-top: 16px; align-items: center; color: var(--muted); font-size: 12px; }
+.ev-head { position: sticky; top: 0; background: var(--panel); border-bottom: 1px solid var(--line); padding: 10px 12px; display: flex; gap: 8px; align-items: center; z-index: 1; }
+.ev-head input { flex: 1; }
+.ev-body { padding: 10px 12px; }
+.msg { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+.msg.cited { border-color: var(--accent); }
+.msg.mine { border-color: var(--yes); }
+.msg-head { display: flex; gap: 8px; align-items: center; padding: 5px 10px; background: var(--code); font-size: 12px; cursor: pointer; }
+.msg-head .idx { font-weight: 600; } .msg-head .role { color: var(--muted); }
+.msg-head .tags { flex: 1; display: flex; gap: 4px; }
+.tag { font-size: 10.5px; padding: 0 6px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }
+.tag.mine { background: var(--yes-soft); color: var(--yes); }
+.msg-head .pv { flex: 1; color: var(--muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.msg pre { margin: 0; padding: 8px 10px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 420px; overflow: auto; }
+mark { background: var(--mark); color: inherit; border-radius: 2px; }
+.section-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
+.empty { color: var(--muted); font-size: 13px; padding: 6px 0; }
+#help { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: center; justify-content: center; z-index: 10; }
+#help.open { display: flex; }
+#help .card { background: var(--panel); border-radius: 10px; padding: 18px 22px; max-width: 520px; width: calc(100% - 32px); }
+#help table { border-collapse: collapse; width: 100%; } #help td { padding: 3px 6px; border-bottom: 1px solid var(--line); }
+#help td:first-child { white-space: nowrap; }
+kbd { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--code); }
+#checkResult { position: fixed; right: 16px; bottom: 16px; max-width: 460px; padding: 10px 14px; border-radius: 8px; display: none; font-size: 13px; z-index: 5; box-shadow: 0 4px 16px rgba(0,0,0,.15); }
+#checkResult.show { display: block; }
+#checkResult.ok { background: var(--yes-soft); color: var(--yes); } #checkResult.bad { background: var(--no-soft); color: var(--no); }
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; overflow: auto; }
+  nav { max-height: 160px; border-right: 0; border-bottom: 1px solid var(--line); }
+  #evidence { border-left: 0; border-top: 1px solid var(--line); }
+  header { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Lesson review</h1>
+  <span class="task" id="task"></span>
+  <div class="progress"><div class="bar"><div id="barFill"></div></div><span id="progressText"></span></div>
+  <span class="saved" id="saved"></span>
+  <button class="btn" id="nextPending" title="Next unfinished row (x)">Next unfinished</button>
+  <button class="btn primary" id="checkButton" title="Run the importer's validation">Check for import</button>
+  <button class="btn" id="helpButton" title="Keyboard shortcuts (?)">?</button>
+</header>
+<main>
+  <nav id="nav"></nav>
+  <section id="review"></section>
+  <section id="evidence">
+    <div class="ev-head"><input type="text" id="search" placeholder="Search the whole trajectory (/)"><span id="searchCount" class="saved"></span></div>
+    <div class="ev-body" id="evidenceBody"></div>
+  </section>
+</main>
+<div id="checkResult"></div>
+<div id="help"><div class="card">
+  <h2 style="margin-top:0">Keyboard</h2>
+  <table>
+    <tr><td><kbd>y</kbd> <kbd>n</kbd> <kbd>u</kbd></td><td>Rate the highlighted criterion yes / no / uncertain, then move to the next</td></tr>
+    <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Move between criteria</td></tr>
+    <tr><td><kbd>1</kbd>–<kbd>4</kbd></td><td>Pick the outcome (a dashed border marks the one the ratings suggest)</td></tr>
+    <tr><td><kbd>i</kbd></td><td>Filter issue codes; <kbd>Enter</kbd> toggles the top match</td></tr>
+    <tr><td><kbd>r</kbd></td><td>Write the reason</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Leave a text field</td></tr>
+    <tr><td><kbd>j</kbd> / <kbd>k</kbd> or <kbd>⌘/Ctrl</kbd>+<kbd>Enter</kbd></td><td>Next / previous row (⌘+Enter works inside text fields)</td></tr>
+    <tr><td><kbd>x</kbd></td><td>Jump to the next unfinished row</td></tr>
+    <tr><td><kbd>/</kbd></td><td>Search the trajectory</td></tr>
+    <tr><td><kbd>?</kbd></td><td>This help</td></tr>
+  </table>
+  <p class="def">Every change is saved to the form file straight away. Click a message header to fold it; use "cite" to add your own evidence pointer.</p>
+</div></div>
+<script>
+const RATINGS = ["yes", "no", "uncertain"];
+const RATING_KEYS = {y: "yes", n: "no", u: "uncertain"};
+const ASSUMPTION_OUTCOMES = ["usable_as_extracted", "needs_repair", "uncertain", "context_only"];
+const LESSON_OUTCOMES = ["usable_as_extracted", "needs_clarification", "uncertain"];
+const QUALITY_CRITERIA = ["specific_enough_to_check", "single_behaviour", "supported_by_cited_messages", "scope_sufficient", "workspace_attribution_correct"];
+
+let session = null;
+let rows = [];
+let currentIndex = 0;
+let activeCriterion = 0;
+let manualOutcome = new Set();
+let expandedMessages = new Set();
+let collapsedMessages = new Set();
+let saveTimer = null;
+
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, character => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[character]));
+}
+function escapeRegex(text) { return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+function humanize(key) { return key.replace(/_/g, " ").replace(/^\w/, character => character.toUpperCase()); }
+function shortId(id) { return id.split("/").slice(1).join("/"); }
+
+function readStorage(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch (error) { return fallback; }
+}
+function writeStorage(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (error) {}
+}
+
+function buildRows() {
+  rows = [];
+  session.form.lessons.forEach((lesson, lessonNumber) => {
+    rows.push({type: "lesson", lesson, lessonNumber, evaluation: lesson.evaluation, id: lesson.lesson_id});
+    lesson.assumptions.forEach((assumption, assumptionNumber) => {
+      rows.push({type: "assumption", lesson, lessonNumber, assumption, assumptionNumber, evaluation: assumption.evaluation, id: assumption.assumption_id});
+    });
+  });
+}
+
+function suggestedOutcome(row) {
+  if (row.type !== "assumption") return null;
+  const rubric = row.evaluation.rubric;
+  const values = Object.values(rubric);
+  if (rubric.repository_behaviour === "no") return "context_only";
+  if (QUALITY_CRITERIA.some(key => rubric[key] === "no")) return "needs_repair";
+  if (values.some(value => value === null)) return null;
+  if (values.some(value => value === "uncertain")) return "uncertain";
+  return "usable_as_extracted";
+}
+
+function problemsFor(row) {
+  const evaluation = row.evaluation;
+  const problems = [];
+  if (row.type === "assumption") {
+    const missing = Object.entries(evaluation.rubric).filter(([, value]) => value === null).map(([key]) => humanize(key));
+    if (missing.length) problems.push("Not rated yet: " + missing.join(", "));
+  }
+  if (evaluation.outcome === "pending") { problems.push("Pick an outcome"); return problems; }
+  if (!evaluation.reason || !evaluation.reason.trim()) problems.push("Write a reason");
+  const hasIssues = evaluation.issue_codes.length > 0;
+  if (evaluation.outcome === "usable_as_extracted" && hasIssues) problems.push("Usable rows must have no issue codes");
+  if (evaluation.outcome !== "usable_as_extracted" && !hasIssues) problems.push("Pick at least one issue code for this outcome");
+  if (row.type === "assumption") {
+    const rubric = evaluation.rubric;
+    const values = Object.values(rubric);
+    if (evaluation.outcome === "usable_as_extracted" && values.some(value => value !== "yes" && value !== null)) problems.push("Usable requires all six ratings to be yes");
+    if (evaluation.outcome === "needs_repair" && !QUALITY_CRITERIA.some(key => rubric[key] === "no")) problems.push("Needs repair requires one of the first five criteria rated no");
+    if (evaluation.outcome === "uncertain" && !values.includes("uncertain")) problems.push("Uncertain requires at least one criterion rated uncertain");
+    if (evaluation.outcome === "context_only" && rubric.repository_behaviour !== "no") problems.push("Context only requires repository behaviour = no");
+  }
+  return problems;
+}
+
+function statusFor(row) {
+  const evaluation = row.evaluation;
+  const untouched = evaluation.outcome === "pending" && !evaluation.reason && !evaluation.issue_codes.length
+    && (row.type === "lesson" || Object.values(evaluation.rubric).every(value => value === null));
+  if (untouched) return "pending";
+  const problems = problemsFor(row);
+  if (!problems.length) return "done";
+  const incompleteOnly = problems.every(problem => /^(Not rated|Pick an outcome|Write a reason|Pick at least)/.test(problem));
+  return incompleteOnly ? "partial" : "invalid";
+}
+
+function citedIndices(row) {
+  if (row.type === "assumption") return row.assumption.original.evidence_message_indices || [];
+  const all = new Set();
+  row.lesson.assumptions.forEach(assumption => (assumption.original.evidence_message_indices || []).forEach(index => all.add(index)));
+  return [...all].sort((left, right) => left - right);
+}
+
+function highlightTerms(row) {
+  const terms = [];
+  const assumptions = row.type === "assumption" ? [row.assumption] : row.lesson.assumptions;
+  assumptions.forEach(assumption => {
+    const original = assumption.original;
+    if (original.symbol) terms.push(original.symbol.split(".").pop());
+    if (original.file) terms.push(original.file.split("/").pop());
+  });
+  const advice = row.type === "lesson" ? row.lesson.original_advice : row.assumption.original.statement;
+  (advice.match(/`([^`]{3,60})`/g) || []).map(code => code.slice(1, -1)).filter(code => /[_.(\[]/.test(code)).forEach(code => terms.push(code));
+  return [...new Set(terms.filter(term => term && term.length >= 4))];
+}
+
+function highlight(text, terms, searchTerm) {
+  let html = escapeHtml(text);
+  const all = [...terms];
+  if (searchTerm) all.push(searchTerm);
+  if (!all.length) return html;
+  const pattern = new RegExp("(" + all.map(term => escapeRegex(escapeHtml(term))).sort((left, right) => right.length - left.length).join("|") + ")", "gi");
+  return html.replace(pattern, "<mark>$1</mark>");
+}
+
+function renderNav() {
+  const nav = document.getElementById("nav");
+  let html = "";
+  rows.forEach((row, index) => {
+    if (row.type === "lesson") html += `<div class="lesson">Lesson ${row.lessonNumber + 1}</div>`;
+    const label = row.type === "lesson" ? "Advice" : `A${row.assumptionNumber + 1} · ${escapeHtml(row.assumption.original.symbol || row.assumption.original.statement)}`;
+    html += `<div class="item ${index === currentIndex ? "active" : ""}" data-index="${index}"><span class="dot ${statusFor(row)}"></span><span class="label">${label}</span></div>`;
+  });
+  nav.innerHTML = html;
+  nav.querySelectorAll(".item").forEach(element => element.addEventListener("click", () => go(Number(element.dataset.index))));
+  const active = nav.querySelector(".item.active");
+  if (active) active.scrollIntoView({block: "nearest"});
+  const done = rows.filter(row => statusFor(row) === "done").length;
+  document.getElementById("barFill").style.width = (100 * done / rows.length) + "%";
+  document.getElementById("progressText").textContent = `${done} / ${rows.length} done`;
+}
+
+function renderReview() {
+  const row = rows[currentIndex];
+  const evaluation = row.evaluation;
+  const form = session.form;
+  let html = "";
+  if (row.type === "lesson") {
+    html += `<div class="kind">Lesson ${row.lessonNumber + 1} · advice</div>`;
+    html += `<p class="statement">${escapeHtml(row.lesson.original_advice)}</p>`;
+    html += `<div class="facts"><dt>Assumptions</dt><dd>${row.lesson.assumptions.length}</dd><dt>ID</dt><dd class="mono">${escapeHtml(shortId(row.id))}</dd></div>`;
+  } else {
+    const original = row.assumption.original;
+    html += `<div class="kind">Lesson ${row.lessonNumber + 1} · assumption ${row.assumptionNumber + 1} of ${row.lesson.assumptions.length}</div>`;
+    html += `<p class="statement">${escapeHtml(original.statement)}</p>`;
+    const scope = original.scope || {};
+    const facts = [
+      ["Symbol", original.symbol], ["File", original.file], ["Kind", original.kind], ["Predicate", original.predicate],
+      ["Scope: inputs", scope.inputs], ["Scope: config", scope.config], ["Scope: env", scope.env],
+      ["Evidence basis", original.evidence_basis], ["Workspace", original.workspace_context],
+      ["Cited messages", (original.evidence_message_indices || []).join(", ")],
+    ];
+    html += `<dl class="facts">${facts.map(([label, value]) => `<dt>${label}</dt><dd>${value === null || value === undefined || value === "" ? "<span style='color:var(--muted)'>—</span>" : escapeHtml(value)}</dd>`).join("")}</dl>`;
+    html += `<h2>Ratings</h2>`;
+    Object.keys(form.rubric_definitions).forEach((criterion, criterionIndex) => {
+      const value = evaluation.rubric[criterion];
+      html += `<div class="rubric-row ${criterionIndex === activeCriterion ? "active" : ""}" data-criterion="${criterionIndex}">
+        <div><div class="name">${humanize(criterion)}</div><div class="hint">${escapeHtml(form.rubric_definitions[criterion])}</div></div>
+        <div class="seg">${RATINGS.map(rating => `<button class="${rating} ${value === rating ? "on" : ""}" data-criterion="${criterion}" data-rating="${rating}">${rating}<kbd>${rating[0]}</kbd></button>`).join("")}</div>
+      </div>`;
+    });
+  }
+  const outcomes = row.type === "lesson" ? LESSON_OUTCOMES : ASSUMPTION_OUTCOMES;
+  const definitions = row.type === "lesson" ? form.lesson_outcome_definitions : form.outcome_definitions;
+  const suggestion = suggestedOutcome(row);
+  html += `<h2>Outcome</h2><div class="outcomes">${outcomes.map((outcome, outcomeIndex) =>
+    `<button class="${evaluation.outcome === outcome ? "on" : ""} ${suggestion === outcome ? "suggested" : ""}" data-outcome="${outcome}" title="${escapeHtml(definitions[outcome])}">${humanize(outcome)}<kbd>${outcomeIndex + 1}</kbd></button>`).join("")}</div>`;
+  html += `<div class="def">${evaluation.outcome !== "pending" ? escapeHtml(definitions[evaluation.outcome]) : (suggestion ? "Suggested from the ratings: " + humanize(suggestion) : "")}</div>`;
+  const issueNeeded = evaluation.outcome !== "usable_as_extracted";
+  html += `<h2>Issue codes ${issueNeeded ? "" : "<span style='text-transform:none;letter-spacing:0'>(none allowed for usable)</span>"}</h2>`;
+  html += `<input type="text" id="issueFilter" placeholder="Filter issue codes (i), Enter toggles the top match">`;
+  html += `<div class="issues" id="issues"></div>`;
+  html += `<h2>Reason</h2><textarea id="reason" placeholder="Why this outcome? (r)">${escapeHtml(evaluation.reason || "")}</textarea>`;
+  html += `<div class="quick" id="quick"></div>`;
+  const mine = evaluation.reviewer_evidence_message_indices;
+  html += `<h2>Your extra evidence</h2><div class="empty">${mine.length ? "Messages " + mine.join(", ") + " (click cite / uncite on a message)" : "None. Click \"cite\" on a message to add one."}</div>`;
+  html += `<div class="problems" id="problems"></div>`;
+  html += `<div class="nextbar"><button class="btn" id="previousButton">← Previous (k)</button><button class="btn primary" id="nextButton">Next (j / ⌘↵)</button></div>`;
+  const review = document.getElementById("review");
+  review.innerHTML = html;
+
+  review.querySelectorAll(".seg button").forEach(button => button.addEventListener("click", () => {
+    const criterionNames = Object.keys(form.rubric_definitions);
+    activeCriterion = criterionNames.indexOf(button.dataset.criterion);
+    rate(button.dataset.rating);
+  }));
+  review.querySelectorAll(".outcomes button").forEach(button => button.addEventListener("click", () => pickOutcome(button.dataset.outcome)));
+  const reason = document.getElementById("reason");
+  reason.addEventListener("input", () => { evaluation.reason = reason.value.trim() ? reason.value : null; changed(false); });
+  const filter = document.getElementById("issueFilter");
+  filter.addEventListener("input", renderIssues);
+  filter.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.metaKey && !event.ctrlKey) {
+      event.preventDefault();
+      const first = document.querySelector("#issues .chip.match") || document.querySelector("#issues .chip");
+      if (first) { filter.value = ""; toggleIssue(first.dataset.code); }
+    }
+  });
+  document.getElementById("previousButton").addEventListener("click", () => go(currentIndex - 1));
+  document.getElementById("nextButton").addEventListener("click", () => go(currentIndex + 1));
+  renderIssues();
+  renderQuick();
+  renderProblems();
+}
+
+function renderIssues() {
+  const row = rows[currentIndex];
+  const filter = (document.getElementById("issueFilter").value || "").toLowerCase();
+  const definitions = session.form.issue_definitions;
+  const codes = Object.keys(definitions);
+  const matches = filter ? codes.filter(code => (code + " " + definitions[code]).toLowerCase().includes(filter)) : [];
+  const ordered = filter ? [...matches, ...codes.filter(code => !matches.includes(code))] : codes;
+  const container = document.getElementById("issues");
+  container.innerHTML = ordered.map(code =>
+    `<button class="chip ${row.evaluation.issue_codes.includes(code) ? "on" : ""} ${matches.includes(code) ? "match" : ""}" data-code="${code}" title="${escapeHtml(definitions[code])}">${humanize(code)}</button>`).join("");
+  container.querySelectorAll(".chip").forEach(chip => chip.addEventListener("click", () => toggleIssue(chip.dataset.code)));
+}
+
+function ratingSummary(row) {
+  if (row.type !== "assumption") return null;
+  const rubric = row.evaluation.rubric;
+  const parts = [];
+  const noes = Object.keys(rubric).filter(key => rubric[key] === "no").map(humanize);
+  const uncertain = Object.keys(rubric).filter(key => rubric[key] === "uncertain").map(humanize);
+  if (noes.length) parts.push("Rated no: " + noes.join(", ").toLowerCase() + ".");
+  if (uncertain.length) parts.push("Uncertain: " + uncertain.join(", ").toLowerCase() + ".");
+  if (!noes.length && !uncertain.length && Object.values(rubric).every(value => value === "yes")) parts.push("All six criteria hold; the cited messages support the statement within its stated scope.");
+  return parts.join(" ") || null;
+}
+
+function renderQuick() {
+  const row = rows[currentIndex];
+  const remembered = readStorage("memrev-review-reasons", {});
+  const options = [];
+  const summary = ratingSummary(row);
+  if (summary) options.push(summary);
+  row.evaluation.issue_codes.forEach(code => (remembered[code] || []).forEach(reason => options.push(reason)));
+  if (row.evaluation.outcome === "usable_as_extracted") (remembered.__usable || []).forEach(reason => options.push(reason));
+  const unique = [...new Set(options)].slice(0, 6);
+  const container = document.getElementById("quick");
+  container.innerHTML = unique.map((option, optionIndex) => `<button data-option="${optionIndex}" title="${escapeHtml(option)}">+ ${escapeHtml(option)}</button>`).join("");
+  container.querySelectorAll("button").forEach(button => button.addEventListener("click", () => {
+    const reason = document.getElementById("reason");
+    const text = unique[Number(button.dataset.option)];
+    reason.value = reason.value.trim() ? reason.value.trimEnd() + " " + text : text;
+    row.evaluation.reason = reason.value;
+    changed(false);
+    reason.focus();
+  }));
+}
+
+function renderProblems() {
+  const row = rows[currentIndex];
+  const problems = problemsFor(row);
+  const element = document.getElementById("problems");
+  element.className = "problems" + (problems.length ? "" : " ok");
+  element.innerHTML = problems.length ? problems.map(escapeHtml).join("<br>") : "Complete. This row will pass the importer's checks.";
+}
+
+function renderEvidence() {
+  const row = rows[currentIndex];
+  const body = document.getElementById("evidenceBody");
+  const searchTerm = document.getElementById("search").value.trim();
+  const terms = highlightTerms(row);
+  const cited = citedIndices(row);
+  const mine = row.evaluation.reviewer_evidence_message_indices;
+  const messages = session.messages;
+  let html = "";
+  if (searchTerm.length >= 2) {
+    const lower = searchTerm.toLowerCase();
+    const hits = messages.filter(message => message.text.toLowerCase().includes(lower));
+    document.getElementById("searchCount").textContent = hits.length + " hits";
+    html += `<div class="section-label">Search results</div>`;
+    html += hits.length ? hits.map(message => messageCard(message, cited, mine, terms, searchTerm, true)).join("") : `<div class="empty">No message contains this text.</div>`;
+  } else {
+    document.getElementById("searchCount").textContent = "";
+    html += `<div class="section-label">Cited by the extraction${row.type === "lesson" ? " (all assumptions of this lesson)" : ""}</div>`;
+    html += cited.length ? cited.map(index => messageCard(messages[index], cited, mine, terms, null, true)).join("") : `<div class="empty">No cited messages.</div>`;
+    const extra = mine.filter(index => !cited.includes(index));
+    if (extra.length) {
+      html += `<div class="section-label">Your extra evidence</div>` + extra.map(index => messageCard(messages[index], cited, mine, terms, null, true)).join("");
+    }
+    html += `<div class="section-label">Whole trajectory (${messages.length} messages)</div>`;
+    html += messages.map(message => messageCard(message, cited, mine, terms, null, false)).join("");
+  }
+  body.innerHTML = html;
+  body.querySelectorAll(".msg-head").forEach(head => head.addEventListener("click", event => {
+    if (event.target.closest("button")) return;
+    const key = head.dataset.key;
+    const index = Number(head.dataset.index);
+    if (head.dataset.open === "1") { collapsedMessages.add(key); expandedMessages.delete(index); }
+    else { collapsedMessages.delete(key); expandedMessages.add(index); }
+    renderEvidence();
+  }));
+  body.querySelectorAll("[data-cite]").forEach(button => button.addEventListener("click", () => toggleCite(Number(button.dataset.cite))));
+  body.querySelectorAll("[data-context]").forEach(button => button.addEventListener("click", () => {
+    const index = Number(button.dataset.context);
+    [index - 1, index + 1].forEach(neighbour => { if (neighbour >= 0 && neighbour < messages.length) expandedMessages.add(neighbour); });
+    renderEvidence();
+    const target = body.querySelector(`.msg[data-whole="${index - 1}"]`) || body.querySelector(`.msg[data-whole="${index}"]`);
+    if (target) target.scrollIntoView({block: "start"});
+  }));
+  body.querySelectorAll("pre").forEach(pre => { const first = pre.querySelector("mark"); if (first) pre.scrollTop = Math.max(0, first.offsetTop - pre.offsetTop - 40); });
+}
+
+function messageCard(message, cited, mine, terms, searchTerm, openByDefault) {
+  const key = (openByDefault ? "top-" : "whole-") + message.index + "-" + currentIndex;
+  const open = openByDefault ? !collapsedMessages.has(key) : expandedMessages.has(message.index);
+  const isCited = cited.includes(message.index);
+  const isMine = mine.includes(message.index);
+  const tags = (isCited ? `<span class="tag">cited</span>` : "") + (isMine ? `<span class="tag mine">your evidence</span>` : "");
+  return `<div class="msg ${isCited ? "cited" : ""} ${isMine ? "mine" : ""}" ${openByDefault ? "" : `data-whole="${message.index}"`}>
+    <div class="msg-head" data-key="${key}" data-index="${message.index}" data-open="${open ? 1 : 0}">
+      <span class="idx">#${message.index}</span><span class="role">${escapeHtml(message.role)}</span>
+      ${open ? `<span class="tags">${tags}</span>` : `${tags}<span class="pv">${escapeHtml(message.preview)}</span>`}
+      <button class="btn" data-context="${message.index}" title="Open the messages before and after in the whole trajectory">±1</button>
+      <button class="btn" data-cite="${message.index}">${isMine ? "uncite" : "cite"}</button>
+    </div>
+    ${open ? `<pre>${highlight(message.text, terms, searchTerm)}</pre>` : ""}
+  </div>`;
+}
+
+function rate(rating) {
+  const row = rows[currentIndex];
+  if (row.type !== "assumption") return;
+  const criteria = Object.keys(session.form.rubric_definitions);
+  row.evaluation.rubric[criteria[activeCriterion]] = rating;
+  activeCriterion = Math.min(activeCriterion + 1, criteria.length - 1);
+  if (!manualOutcome.has(row.id)) {
+    const suggestion = suggestedOutcome(row);
+    if (suggestion) applyOutcome(row, suggestion);
+  }
+  changed(true);
+}
+
+function applyOutcome(row, outcome) {
+  row.evaluation.outcome = outcome;
+  if (outcome === "usable_as_extracted") row.evaluation.issue_codes = [];
+}
+
+function pickOutcome(outcome) {
+  const row = rows[currentIndex];
+  manualOutcome.add(row.id);
+  applyOutcome(row, outcome);
+  changed(true);
+}
+
+function toggleIssue(code) {
+  const row = rows[currentIndex];
+  const codes = row.evaluation.issue_codes;
+  const position = codes.indexOf(code);
+  if (position >= 0) codes.splice(position, 1); else codes.push(code);
+  changed(true);
+}
+
+function toggleCite(index) {
+  const indices = rows[currentIndex].evaluation.reviewer_evidence_message_indices;
+  const position = indices.indexOf(index);
+  if (position >= 0) indices.splice(position, 1); else { indices.push(index); indices.sort((left, right) => left - right); }
+  changed(true);
+}
+
+function rememberReason(row) {
+  const reason = row.evaluation.reason;
+  if (!reason || !reason.trim() || row.evaluation.outcome === "pending") return;
+  const remembered = readStorage("memrev-review-reasons", {});
+  const keys = row.evaluation.outcome === "usable_as_extracted" ? ["__usable"] : row.evaluation.issue_codes;
+  keys.forEach(key => { remembered[key] = [reason.trim(), ...(remembered[key] || []).filter(existing => existing !== reason.trim())].slice(0, 3); });
+  writeStorage("memrev-review-reasons", remembered);
+}
+
+function changed(rerender) {
+  if (rerender) {
+    const filter = document.getElementById("issueFilter");
+    const focusedId = document.activeElement && document.activeElement.id;
+    const filterValue = filter ? filter.value : "";
+    renderReview();
+    if (focusedId === "issueFilter") { const element = document.getElementById("issueFilter"); element.value = filterValue; renderIssues(); element.focus(); }
+    renderEvidence();
+  } else {
+    renderProblems();
+  }
+  renderNav();
+  scheduleSave();
+}
+
+function scheduleSave() {
+  document.getElementById("saved").textContent = "Saving…";
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(save, 400);
+}
+
+async function save() {
+  const lessons = {};
+  const assumptions = {};
+  rows.forEach(row => { (row.type === "lesson" ? lessons : assumptions)[row.id] = row.evaluation; });
+  try {
+    const response = await fetch("/api/save", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({lessons, assumptions})});
+    const result = await response.json();
+    document.getElementById("saved").textContent = response.ok ? "Saved" : "Not saved: " + result.error;
+  } catch (error) {
+    document.getElementById("saved").textContent = "Not saved: server unreachable";
+  }
+}
+
+function go(index) {
+  if (index < 0 || index >= rows.length) return;
+  rememberReason(rows[currentIndex]);
+  currentIndex = index;
+  const row = rows[currentIndex];
+  activeCriterion = 0;
+  if (row.type === "assumption") {
+    const firstUnrated = Object.values(row.evaluation.rubric).findIndex(value => value === null);
+    activeCriterion = firstUnrated >= 0 ? firstUnrated : 0;
+  }
+  document.getElementById("search").value = "";
+  renderReview();
+  renderEvidence();
+  renderNav();
+  document.getElementById("review").scrollTop = 0;
+  document.getElementById("evidenceBody").parentElement.scrollTop = 0;
+  if (document.activeElement) document.activeElement.blur();
+  try { history.replaceState(null, "", "#" + currentIndex); } catch (error) {}
+}
+
+function nextUnfinished() {
+  for (let step = 1; step <= rows.length; step++) {
+    const index = (currentIndex + step) % rows.length;
+    if (statusFor(rows[index]) !== "done") { go(index); return; }
+  }
+}
+
+async function runCheck() {
+  await save();
+  const element = document.getElementById("checkResult");
+  const response = await fetch("/api/check");
+  const result = await response.json();
+  if (result.ok) {
+    const outcomes = result.summary.assumption_outcomes;
+    element.className = "show ok";
+    element.innerHTML = `<b>Ready to import.</b> ${result.summary.original_assumptions_evaluated} assumptions: ` +
+      Object.entries(outcomes).map(([key, count]) => `${count} ${humanize(key).toLowerCase()}`).join(", ") + ".";
+  } else {
+    element.className = "show bad";
+    element.innerHTML = "<b>Not importable yet.</b> " + escapeHtml(result.error || "unknown error");
+  }
+  clearTimeout(element.hideTimer);
+  element.hideTimer = setTimeout(() => element.className = "", 7000);
+}
+
+document.addEventListener("keydown", event => {
+  const target = event.target;
+  const typing = target.tagName === "TEXTAREA" || target.tagName === "INPUT";
+  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") { event.preventDefault(); go(currentIndex + 1); return; }
+  if (event.key === "Escape") { if (typing) target.blur(); document.getElementById("help").classList.remove("open"); return; }
+  if (typing || event.metaKey || event.ctrlKey || event.altKey) return;
+  const row = rows[currentIndex];
+  const key = event.key;
+  if (RATING_KEYS[key] && row.type === "assumption") { event.preventDefault(); rate(RATING_KEYS[key]); return; }
+  if (key === "ArrowDown" || key === "ArrowUp") {
+    if (row.type !== "assumption") return;
+    event.preventDefault();
+    const count = Object.keys(session.form.rubric_definitions).length;
+    activeCriterion = Math.max(0, Math.min(count - 1, activeCriterion + (key === "ArrowDown" ? 1 : -1)));
+    renderReview();
+    return;
+  }
+  const outcomes = row.type === "lesson" ? LESSON_OUTCOMES : ASSUMPTION_OUTCOMES;
+  if (/^[1-4]$/.test(key) && Number(key) <= outcomes.length) { event.preventDefault(); pickOutcome(outcomes[Number(key) - 1]); return; }
+  if (key === "i") { event.preventDefault(); document.getElementById("issueFilter").focus(); return; }
+  if (key === "r") { event.preventDefault(); const reason = document.getElementById("reason"); reason.focus(); reason.setSelectionRange(reason.value.length, reason.value.length); return; }
+  if (key === "j") { go(currentIndex + 1); return; }
+  if (key === "k") { go(currentIndex - 1); return; }
+  if (key === "x") { nextUnfinished(); return; }
+  if (key === "/") { event.preventDefault(); document.getElementById("search").focus(); return; }
+  if (key === "?") { document.getElementById("help").classList.toggle("open"); return; }
+});
+
+document.getElementById("search").addEventListener("input", renderEvidence);
+document.getElementById("nextPending").addEventListener("click", nextUnfinished);
+document.getElementById("checkButton").addEventListener("click", runCheck);
+document.getElementById("helpButton").addEventListener("click", () => document.getElementById("help").classList.toggle("open"));
+document.getElementById("help").addEventListener("click", event => { if (event.target.id === "help") event.target.classList.remove("open"); });
+
+(async function start() {
+  const response = await fetch("/api/session");
+  session = await response.json();
+  if (!response.ok) { document.getElementById("review").innerHTML = `<div class="problems">${escapeHtml(session.error)}</div>`; return; }
+  const reviewer = session.form.reviewer;
+  const metadata = session.metadata;
+  document.getElementById("task").textContent = `${metadata.task_id || "unknown task"} · ${metadata.purpose} · reviewer ${reviewer.id} (${reviewer.type})`;
+  buildRows();
+  const fromHash = Number(location.hash.slice(1));
+  currentIndex = Number.isInteger(fromHash) && fromHash >= 0 && fromHash < rows.length ? fromHash : 0;
+  go(currentIndex);
+  document.getElementById("saved").textContent = "";
+  if (!readStorage("memrev-review-seen-help", false)) { document.getElementById("help").classList.add("open"); writeStorage("memrev-review-seen-help", true); }
+})();
+</script>
+</body>
+</html>

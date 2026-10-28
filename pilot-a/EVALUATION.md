@@ -42,6 +42,30 @@ Every evaluation needs a nonempty `reason`. Choose zero or more distinct issue c
 
 If no existing issue code captures a material defect, discuss a protocol revision instead of silently editing definitions. The importer requires the versioned definitions to match. Do not set `source_validity` to anything other than `not_assessed`: this review does not run a check at a repository revision.
 
+## Fill it in with the review app
+
+Instead of editing the JSON by hand, open the form in a local browser app:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m memrev.review_app \
+  --package runs/acquisitions/astropy-manual-102526 \
+  --form runs/acquisitions/astropy-manual-102526/evaluation.mine.json
+```
+
+It opens `http://127.0.0.1:8765/` (change with `--port`). The page shows one lesson or assumption at a time, with the messages the extraction cites next to it and the symbol and file highlighted. Every change is written straight back to the form file, so you can stop and continue later.
+
+| Key | Action |
+|---|---|
+| `y` `n` `u` | Rate the highlighted criterion yes / no / uncertain and move to the next |
+| `1`–`4` | Pick the outcome; the ratings pre-select the outcome they imply |
+| `i` | Filter issue codes; `Enter` toggles the top match |
+| `r` | Write the reason |
+| `j` / `k`, `⌘/Ctrl+Enter` | Next / previous row |
+| `x` | Next unfinished row |
+| `/` | Search the whole trajectory |
+
+"cite" on a message adds it to your `reviewer_evidence_message_indices`. Rows that break an outcome rule are marked red with the rule. "Check for import" runs the importer's own validation without writing anything. The app only changes evaluation fields; originals, definitions and reviewer attribution are left as `draft` wrote them. It runs only on 127.0.0.1 and makes no model calls.
+
 ## Import a completed review
 
 ```bash
