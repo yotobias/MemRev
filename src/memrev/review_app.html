@@ -539,14 +539,27 @@ function scheduleSave() {
   saveTimer = setTimeout(save, 400);
 }
 
-async function save() {
+let saveChain = Promise.resolve();
+function save() {
+  saveChain = saveChain.then(sendSave);
+  return saveChain;
+}
+
+async function sendSave() {
   const lessons = {};
   const assumptions = {};
   rows.forEach(row => { (row.type === "lesson" ? lessons : assumptions)[row.id] = row.evaluation; });
   try {
-    const response = await fetch("/api/save", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({lessons, assumptions})});
+    const response = await fetch("/api/save", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({version: session.version, lessons, assumptions})});
     const result = await response.json();
+    if (response.ok) session.version = result.version;
     document.getElementById("saved").textContent = response.ok ? "Saved" : "Not saved: " + result.error;
+    if (response.status === 409) {
+      const element = document.getElementById("checkResult");
+      clearTimeout(element.hideTimer);
+      element.className = "show bad";
+      element.innerHTML = "<b>Not saved.</b> " + escapeHtml(result.error) + ".";
+    }
   } catch (error) {
     document.getElementById("saved").textContent = "Not saved: server unreachable";
   }

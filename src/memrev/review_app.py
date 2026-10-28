@@ -12,10 +12,11 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from urllib.parse import urlsplit
 import webbrowser
 
 from memrev.evaluation import PROTOCOL, _evaluate
-from memrev.provenance import _json_bytes, load_acquisition
+from memrev.provenance import _json_bytes, _sha256, load_acquisition
 from memrev.trajectory import format_message, load_trajectory, parse_extraction
 
 
@@ -48,14 +49,15 @@ def _message_view(message, message_index):
 def load_session(package_dir, form_path):
     """Verify the acquisition and return what the page needs to show one review."""
     record = load_acquisition(package_dir)
-    form = parse_extraction(Path(form_path).read_text(encoding="utf-8"))
+    form_bytes = Path(form_path).read_bytes()
+    form = parse_extraction(form_bytes.decode("utf-8"))
     if form.get("acquisition_id") != record["acquisition_id"]:
         raise ValueError("form: acquisition_id does not match the package")
     trajectory = load_trajectory(Path(package_dir) / record["artifacts"]["trajectory"]["path"])
     messages = [_message_view(message, index) for index, message in enumerate(trajectory["messages"])]
     if len(messages) != record["message_count"]:
         raise ValueError("trajectory: message count does not match the record")
-    return {"form": form, "messages": messages, "metadata": record["metadata"],
+    return {"form": form, "version": _sha256(form_bytes), "messages": messages, "metadata": record["metadata"],
             "assumption_outcome_definitions": PROTOCOL["assumption_outcome_definitions"]}
 
 
@@ -93,12 +95,21 @@ def apply_evaluations(form, lesson_evaluations, assumption_evaluations):
     return updated
 
 
-def save_form(form_path, form):
+class StaleFormError(ValueError):
+    pass
+
+
+def save_form(form_path, form, base_version):
+    """Write the form unless it changed on disk since the page loaded it; return the new version."""
     path = Path(form_path)
+    if _sha256(path.read_bytes()) != base_version:
+        raise StaleFormError("the form file changed since this page loaded it; reload the page")
+    content = _json_bytes(form)
     with tempfile.NamedTemporaryFile("wb", dir=path.parent, prefix=".review-", delete=False) as stream:
-        stream.write(_json_bytes(form))
+        stream.write(content)
         temporary = stream.name
     os.replace(temporary, path)
+    return _sha256(content)
 
 
 def check_form(package_dir, form):
@@ -132,12 +143,13 @@ def make_handler(package_dir, form_path):
             return parse_extraction(Path(form_path).read_text(encoding="utf-8"))
 
         def do_GET(self):
+            path = urlsplit(self.path).path
             try:
-                if self.path == "/":
+                if path == "/":
                     self._send(200, PAGE.read_bytes(), "text/html; charset=utf-8")
-                elif self.path == "/api/session":
+                elif path == "/api/session":
                     self._send(200, load_session(package_dir, form_path))
-                elif self.path == "/api/check":
+                elif path == "/api/check":
                     self._send(200, check_form(package_dir, self._current_form()))
                 else:
                     self._send(404, {"error": "not found"})
@@ -145,7 +157,7 @@ def make_handler(package_dir, form_path):
                 self._send(500, {"error": str(error)})
 
         def do_POST(self):
-            if self.path != "/api/save":
+            if urlsplit(self.path).path != "/api/save":
                 self._send(404, {"error": "not found"})
                 return
             try:
@@ -153,8 +165,10 @@ def make_handler(package_dir, form_path):
                 body = json.loads(self.rfile.read(length).decode("utf-8"))
                 updated = apply_evaluations(self._current_form(), body.get("lessons", {}),
                                             body.get("assumptions", {}))
-                save_form(form_path, updated)
-                self._send(200, {"saved": True})
+                version = save_form(form_path, updated, body.get("version"))
+                self._send(200, {"saved": True, "version": version})
+            except StaleFormError as error:
+                self._send(409, {"error": str(error)})
             except (ValueError, OSError, json.JSONDecodeError) as error:
                 self._send(400, {"error": str(error)})
 

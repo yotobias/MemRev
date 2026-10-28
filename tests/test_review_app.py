@@ -84,8 +84,9 @@ def test_saved_form_imports_and_keeps_every_original(review, tmp_path):
     assert check["ok"] is False and "pending" in check["error"]
 
     lessons, assumptions = completed_evaluations(original)
-    status, result = post(url + "/api/save", {"lessons": lessons, "assumptions": assumptions})
-    assert status == 200 and result == {"saved": True}
+    version = get(url + "/api/session")["version"]
+    status, result = post(url + "/api/save", {"version": version, "lessons": lessons, "assumptions": assumptions})
+    assert status == 200 and result["saved"] is True and result["version"] != version
 
     saved = read(form)
     for before, after in zip(original["lessons"], saved["lessons"]):
@@ -108,12 +109,27 @@ def test_save_rejects_unknown_ids_and_extra_fields_without_writing(review):
     package, form, url = review
     before = form.read_bytes()
     lessons, assumptions = completed_evaluations(read(form))
+    version = get(url + "/api/session")["version"]
 
-    status, result = post(url + "/api/save", {"lessons": {"not-a-lesson": next(iter(lessons.values()))}})
+    status, result = post(url + "/api/save", {"version": version,
+                                              "lessons": {"not-a-lesson": next(iter(lessons.values()))}})
     assert status == 400 and "unknown IDs" in result["error"]
 
     first_id = next(iter(assumptions))
     tampered = dict(assumptions[first_id], original={"statement": "rewritten"})
-    status, result = post(url + "/api/save", {"assumptions": {first_id: tampered}})
+    status, result = post(url + "/api/save", {"version": version, "assumptions": {first_id: tampered}})
     assert status == 400 and "expected exactly the fields" in result["error"]
     assert form.read_bytes() == before
+
+
+def test_save_from_a_page_loaded_before_the_file_changed_is_refused(review):
+    package, form, url = review
+    stale_version = get(url + "/api/session")["version"]
+    lessons, assumptions = completed_evaluations(read(form))
+    status, result = post(url + "/api/save", {"version": stale_version, "lessons": lessons})
+    assert status == 200
+    changed_on_disk = form.read_bytes()
+
+    status, result = post(url + "/api/save", {"version": stale_version, "assumptions": assumptions})
+    assert status == 409 and "reload" in result["error"]
+    assert form.read_bytes() == changed_on_disk
