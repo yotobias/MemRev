@@ -2,11 +2,12 @@
 
     uv run --locked python -I pilot-a/scripts/build_clusters.py pilot-a/data pilot-a
 
-Inputs: the SCB parquet files in the data dir (data_prep/inspect_scb.py) and SWE-bench Verified
-from Hugging Face (edited files come from its `patch`).
+Inputs: the SCB parquet files in the data dir (data_prep/inspect_scb.py), <data>/v33_forward_links.csv
+(the revision-pair analysis, CHANGES.md 2026-11-09) and full SWE-bench from Hugging Face (edited files
+come from its `patch`; 6 of the tasks are not in Verified).
 Outputs: <data>/same_pr_groups.csv (all SCB tasks) and <out>/clusters.csv (base tasks only;
-`related_ids` keeps the SCB links, which Pilot A does not run).
-Fails loudly if the selection breaks a rule (CHANGES.md 2026-10-24).
+`related_ids` keeps all SCB links, `targets` the forward ones that form revision pairs; neither is run).
+Fails loudly if the selection breaks a rule (team decisions V33, V34).
 """
 import itertools, pathlib, re, sys
 import pandas as pd
@@ -16,16 +17,17 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))  # python -I leaves the s
 from naming import image_for
 
 REPOS = {"django/django", "sympy/sympy", "scikit-learn/scikit-learn"}  # team decisions V11, V12
-# Rule (CHANGES.md 2026-10-24): candidates = Verified base tasks with SCB related tasks; a candidate
-# is selected iff it shares an edited file or sub-package of its module with another candidate.
-CLUSTERS = {  # cluster: (code the cluster is defined by, instance ids)
-    "D1": ("django/db/models/expressions.py", ["django__django-15161", "django__django-15382",
-                                               "django__django-15930", "django__django-16082"]),
-    "D2": ("django/db/models/sql/", ["django__django-10554", "django__django-11555", "django__django-14122"]),
-    "D3": ("django/db/models/fields/", ["django__django-11400", "django__django-11999",
-                                        "django__django-15629", "django__django-16493"]),
-    "D4": ("django/db/models/base.py", ["django__django-12209", "django__django-13964"]),
-    "S1": ("sympy/printing/pycode.py", ["sympy__sympy-14976", "sympy__sympy-16766", "sympy__sympy-22914"]),
+# Rule (V33, V34): candidates = SWE-bench base tasks with at least one forward SCB link (a valid
+# revision pair); a candidate is selected iff its fix edits a file in a directory where the fix of
+# another candidate also edits one. Clusters are those directories (django/db/models/ joined with sql/).
+CLUSTERS = {  # cluster: (directories of the fix's files, instance ids)
+    "D1": (["django/db/models", "django/db/models/sql"],
+           ["django__django-11555", "django__django-12209", "django__django-12589",
+            "django__django-15382", "django__django-15930", "django__django-16910"]),
+    "S1": (["sympy/printing"], ["sympy__sympy-14774", "sympy__sympy-14976", "sympy__sympy-15976", "sympy__sympy-16766"]),
+    "S2": (["sympy/core"], ["sympy__sympy-18057", "sympy__sympy-20801"]),
+    "K1": (["sklearn/utils"], ["scikit-learn__scikit-learn-10949", "scikit-learn__scikit-learn-25638"]),
+    "D2": (["django/utils"], ["django__django-11276", "django__django-14792"]),
 }
 
 
@@ -88,26 +90,37 @@ def main(data, out):
         ["same_pr_group", "group_size", "instance_id", "kind", "pr_url"]
     ].to_csv(data / "same_pr_groups.csv", index=False)
 
-    ver = load_dataset("SWE-bench/SWE-bench_Verified", split="test").to_pandas()
+    swe = load_dataset("SWE-bench/SWE-bench", split="test").to_pandas()
     related = link.groupby("experience_instance_id").related_instance_id.agg(lambda s: ";".join(sorted(set(s))))
-    cand = ver[ver.repo.isin(REPOS) & ver.instance_id.isin(related.index)].set_index("instance_id")
+    fwd = pd.read_csv(data / "v33_forward_links.csv")
+    targets = fwd.groupby("base").related.agg(lambda s: ";".join(sorted(set(s))))
+    cand = swe[swe.repo.isin(REPOS) & swe.instance_id.isin(targets.index)].set_index("instance_id")
     edited = cand.patch.map(lambda p: set(re.findall(r"^diff --git a/(\S+)", p, re.M)))
+    dirs = edited.map(lambda fs: {f.rsplit("/", 1)[0] for f in fs})
     by_id = tasks.set_index("instance_id")
 
-    rows, errors = [], []
-    for cl, (code, ids) in CLUSTERS.items():
-        hits = {i for i in cand.index if any(f.startswith(code) for f in edited[i])}
+    errors = [f"{b}: forward link but not a candidate" for b in sorted(set(targets.index) - set(cand.index))]
+    errors += [f"{b} -> {r}: not an SCB link" for b, r in fwd[["base", "related"]].itertuples(index=False)
+               if r not in related.get(b, "").split(";")]
+    rows = []
+    for cl, (cdirs, ids) in CLUSTERS.items():
+        hits = {i for i in cand.index if dirs[i] & set(cdirs)}
         for iid in ids:
             if iid not in cand.index:
-                errors.append(f"{iid}: not a candidate (Verified, {sorted(REPOS)}, with related tasks)"); continue
+                errors.append(f"{iid}: not a candidate ({sorted(REPOS)}, with a forward SCB link)"); continue
             if iid not in hits:
-                errors.append(f"{iid}: edits nothing under {code} (edits {sorted(edited[iid])})")
+                errors.append(f"{iid}: edits nothing in {cdirs} (edits {sorted(edited[iid])})")
+            if cand.at[iid, "image"] != image_for(iid, "experience"):
+                errors.append(f"{iid}: image {cand.at[iid, 'image']} != {image_for(iid, 'experience')}")
             rows.append(dict(instance_id=iid, cluster=cl, kind="experience", image=image_for(iid, "experience"),
                              base_commit=cand.at[iid, "base_commit"], same_text=False, same_pr_group=by_id.at[iid, "same_pr_group"], role="cluster",
-                             related_ids=related[iid]))
-        if hits - set(ids):  # the rule selects every candidate in the cluster's code
-            errors.append(f"{cl}: candidates editing {code} left out: {sorted(hits - set(ids))}")
+                             related_ids=related[iid], targets=targets[iid]))
+        if hits - set(ids):  # the rule selects every candidate in the cluster's directories
+            errors.append(f"{cl}: candidates editing files in {cdirs} left out: {sorted(hits - set(ids))}")
     sel = pd.DataFrame(rows)
+    covered = {d for cdirs, _ in CLUSTERS.values() for d in cdirs}
+    shared = dirs.explode().value_counts()  # a directory edited by two or more candidates' fixes is a cluster
+    errors += [f"{d}: edited by {n} candidates but in no cluster" for d, n in shared[shared > 1].items() if d not in covered]
 
     if sel.instance_id.duplicated().any():
         errors.append(f"tasks in several clusters: {sorted(sel.instance_id[sel.instance_id.duplicated()])}")
@@ -124,7 +137,8 @@ def main(data, out):
 
     sel.to_csv(out / "clusters.csv", index=False)
     print(f"wrote {out / 'clusters.csv'}: {len(sel)} tasks,", sel.groupby("cluster").size().to_dict(),
-          f"{sel.related_ids.str.split(';').str.len().sum()} related tasks linked (not run)")
+          f"{sel.targets.str.split(';').str.len().sum()} forward targets,",
+          f"{len(cand) - len(sel)} of {len(cand)} candidates not selected")
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ Runs so far (git-ignored, on this machine): `runs/claude-sonnet-5-5/main-1` and 
 
 Correctness results of agent patches are Lane R only: `pilot-a/env/gold_gate_logs/agent/` (git-ignored, incl. `NOTES.md`). Never write which agent patch is right or wrong into shared files.
 
-Superseded: the V32 list (`clusters.csv` until re-frozen, `instances/main/`), the Lite 19-task list (`instances/main-lite19/`).
+Superseded: the V32 list (`instances/main-v32/`; its `clusters.csv` is in git history), the Lite 19-task list (`instances/main-lite19/`).
 
 ## Setting up in a fresh clone
 
@@ -50,7 +50,7 @@ Superseded: the V32 list (`clusters.csv` until re-frozen, `instances/main/`), th
 
 ## Next steps
 
-1. **Freeze the V34 list (step 2).** Write the new `pilot-a/clusters.csv` (keep the column set; add each task's forward related task(s) as targets) with `build_clusters.py` adapted to V33/V34: the scripts read SWE-bench Verified today; 6 tasks are only in full SWE-bench (`SWE-bench/SWE-bench`, which also has `eval_script` and `image`; check). Keep the old instance set under a new name, as was done for `main-lite19`.
+1. **Freeze the V34 list (step 2).** Done 2026-11-10 (`CHANGES.md`). Write the new `pilot-a/clusters.csv` (keep the column set; add each task's forward related task(s) as targets) with `build_clusters.py` adapted to V33/V34: the scripts read SWE-bench Verified today; 6 tasks are only in full SWE-bench (`SWE-bench/SWE-bench`, which also has `eval_script` and `image`; check). Keep the old instance set under a new name, as was done for `main-lite19`.
 2. **Images and fingerprints (step 3)** for the 10 new base tasks (official `swebench/sweb.eval.x86_64.*` images), **and for the target images** of every task's forward related task(s) (`jiayuanz3/swecontextbench:<owner>.<repo>-<n>`). Requirement 3 means the target image *works*: fingerprint each (`import_ok`, `import_from_testbed`); the scikit-learn targets likely need `build_derived.sh`. A task whose targets all fail drops out; log it.
 3. **Gold gate (step 4)** for the 10 new base tasks; switch the experience-task path to full SWE-bench where needed. Replace a task whose official fix fails, from the same cluster or the remaining 12 candidates, and log it.
 4. **Instance file (step 5)**, same rules (no patch, test or test-name fields).
