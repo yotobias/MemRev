@@ -161,3 +161,13 @@ Instance file: `instances/main/instances.jsonl`, 16 tasks, official images, fiel
 `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-3 2 pilot-a/config/thinking_summarized.yaml` (approved by the user). All 16 tasks submitted a non-empty patch; 4 to 13 steps per task; $0.66 in total ($0.015 to $0.092 per task); 4 min 44 s with 2 workers. Trajectories in `runs/claude-sonnet-5-5/main-3/` (git-ignored); `run_meta.json` records versions, image ids and hashes of the instance file and lockfile.
 
 Reasoning summaries are recorded in 15 of 16 trajectories (on 1 to 6 steps each, 195 to 2,803 characters). sympy-14774 has none: the model thinks adaptively and did not think on that 4-step task, and its steps carry no text besides the commands. Not re-run: one run per pilot list, and re-running one task because of its trajectory would select data after seeing it. Lane N gets that trajectory with commands and outputs only.
+
+## 2026-11-10: final workspaces of main-3
+
+`scripts/final_workspace.py` rebuilds each task's final workspace (Plan_v2 Section 4, parts 1 and 2): in one fresh container of the run's image it replays every command of the trajectory in order, as mini-swe-agent ran it; in another it only applies the submitted patch. Results per task in `runs/claude-sonnet-5-5/main-3/<id>/final_workspace.json` (git-ignored, with the run).
+
+The replay is faithful: on all 16 tasks every replayed command returns the exit code recorded in the run (a timeout counts as -1, as in mini-swe-agent). The only untracked file after any replay is the agent's own `patch.txt`, so no file the agent created is missing from a patch. In 14 tasks the replayed and the patched workspace have identical tracked diffs. Two differ, both because of how the agent built its submission:
+- django-14792: the agent's submit command was `cat patch.txt | head -3`, so the submitted patch holds only the first three header lines and does not apply; the agent's edits (4 source files) exist only in the replayed workspace.
+- django-16910: the agent built its patch with `git diff -- django`, so lines it added to a test file outside `django/` are not in the submission; the submitted source change is the same in both.
+
+For probes and validity labels (Ca), the replayed workspace is the agent's final state. Part 3 of the spec (re-run the agent's last verify step) waits for Lane N's segmenter.
