@@ -152,7 +152,7 @@ def parse(output, repo):
 def lookup(results, test, repo):
     key = norm_expected(test, repo)
     if key not in results and "[" in key and not key.endswith("]"):
-        # SWE-bench cuts parametrized names at the first space ("t[empty" for "t[empty list]")
+        # SWE-bench cuts parametrized names at the first space ("t[a" for "t[a b]")
         hits = {v for k, v in results.items() if k.startswith(key + " ")}
         if len(hits) == 1:   # several differing continuations: ambiguous, stays MISSING
             return hits.pop()
