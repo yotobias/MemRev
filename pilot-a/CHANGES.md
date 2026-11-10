@@ -144,3 +144,14 @@ The V32 instance file is kept as `instances/main-v32/` (runs `main-1`, `main-2`)
 The parser bug of 2026-10-26 is fixed: when Django prints a second test name on the same line before any status, the first test now gets no status (MISSING) instead of the second test's. A synthetic case was added to `test_gold_gate.py` first (it failed), then the fix (it passes). Re-parsing every saved gate log with the old and the new parser: the 16 gold-gate logs give identical results; only the trial log of 2026-10-26 changes, as intended.
 
 `build_clusters.py` also writes `targets.csv` (the 25 target tasks with image and commit, in the column order `pull_images.sh` reads); `TASKS=pilot-a/targets.csv bash pilot-a/scripts/pull_images.sh` pulls and fingerprints them.
+
+## 2026-11-10: fingerprints, gold gate and instance file for the V34 list
+
+Fingerprints (`env/<id>.json`): all 16 base images (official SWE-bench) have `base_commit`, HEAD = base plus the mode-only commit with no content change, no other commits reachable, clean tree, package imported from `/testbed`. Of the 25 target images, 22 work as shipped; the three scikit-learn targets (12622, 15093, 25637) fail `import sklearn`, as in October, and work after `build_derived.sh` (`pilot-a/<owner>.<repo>-<n>:built`; their fingerprints are of the repaired images). So every task keeps at least one usable target and none drops out (requirement 3 now means "image works", not only "image exists"). The targets were not gold-gated; they are not run in Pilot A. Image storage: 79 GB.
+
+Gold gate (`env/gold_gate.jsonl`, git-ignored): all 16 tasks pass, with all their F2P and P2P tests passing and none missing; no task replaced. All 16 were re-gated with the final gate version. Three gaps in the gate were found and fixed on the way, each with a failing case added to `test_gold_gate.py` first:
+- the Django parser bug of 2026-10-26 (fixed above) also hid a sub-test error in one task's P2P tests, which made the next gap visible;
+- the gate ran only the official script's test line and missed its `export` lines; four tasks' scripts set a UTF-8 locale, without which a file-reading test fails under Python 3.6. The gate now runs the exports too;
+- one image prints coloured pytest output (ANSI codes), which the parser now strips; and SWE-bench lists parametrized test names cut at the first space, which `lookup` now matches when all continuations agree.
+
+Instance file: `instances/main/instances.jsonl`, 16 tasks, official images, fields as before (no patch, test or test-name fields).

@@ -37,6 +37,13 @@ def test_pytest():
     assert lookup(r, "tests/test_y.py::test_gamma", "psf/requests") == "PASSED"
     assert lookup(r, "tests/test_y.py::test_delta", "psf/requests") == "FAILED"
     assert lookup(r, "tests/test_y.py::test_absent", "psf/requests") == "MISSING"
+    # some images force colour: ANSI codes around status and test name
+    c = parse("\x1b[32mPASSED\x1b[0m tests/test_z.py::\x1b[1mtest_coloured[a b]\x1b[0m\n", "psf/requests")
+    assert lookup(c, "tests/test_z.py::test_coloured[a b]", "psf/requests") == "PASSED"
+    # SWE-bench lists parametrized names cut at the first space; match only if all continuations agree
+    t = parse("PASSED t.py::test_p[empty list]\nPASSED t.py::test_q[x one]\nFAILED t.py::test_q[x two]\n", "psf/requests")
+    assert lookup(t, "t.py::test_p[empty", "psf/requests") == "PASSED"
+    assert lookup(t, "t.py::test_q[x", "psf/requests") == "MISSING"
 
 
 def test_django():

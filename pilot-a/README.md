@@ -34,9 +34,9 @@ If you might ever review notes (Lane N), do not open `env/gold_gate.jsonl`, `env
 |---|---|---|
 | 1. Linux environment (WSL, Docker, Python packages locked) | R | done |
 | 2. Freeze the task list, with checks against duplicates | R | done: 16 tasks, 5 clusters, 25 forward targets (V33, V34; `CHANGES.md` 2026-11-10); 6 tasks carry over from the old list |
-| 3. Download the task containers and record their fingerprints | R | redo for the 10 new tasks, plus the related tasks' target images |
-| 4. "Gold gate": does the official fix pass its own tests in each container? | R | redo for the 10 new tasks |
-| 5. Agent input file (problem statements only) | R | redo |
+| 3. Download the task containers and record their fingerprints | R | done: 16 base images and 25 target images all usable; 3 scikit-learn targets after the local repair (`CHANGES.md` 2026-11-10) |
+| 4. "Gold gate": does the official fix pass its own tests in each container? | R | done: all 16 pass, none replaced; two parser gaps and a missing locale setting fixed on the way |
+| 5. Agent input file (problem statements only) | R | done: `instances/main/` (16 tasks) |
 | 6. Smoke test: one complete agent run on a non-pilot task | R | done (cost $0.0014) |
 | 7. The agent runs, then rebuild each final workspace | R | new run of all 16 needed; earlier runs `main-1`, `main-2` (old 16 tasks) kept as records; the model recalls upstream fixes in 10 of those 16 tasks (`CHANGES.md`) |
 | 8. Probe runner for the validity labels | R | week 2 |
@@ -50,7 +50,7 @@ Cost so far: about $1.32 (smoke runs and test calls, main-1 $0.69, thinking smok
 - 16 tasks in 5 clusters by package directory of the fix (`django/db/models/` incl. `sql/`, `django/utils/`, `sympy/printing/`, `sympy/core/`, `sklearn/utils/`): a task is in if its fix edits a file in a directory that another candidate's fix also edits (V34, 2026-11-09).
 - Agent and extractor model: Claude Sonnet 5.5, fixed for the whole project; Claude Haiku 5.5 for pipeline tests.
 - The agent runs with its standard settings, unchanged (no temperature setting, which current Claude models reject).
-- All 16 tasks use the official SWE-bench containers; the related tasks' target containers may need the local repair (to be checked in step 3).
+- All 16 tasks use the official SWE-bench containers. Three scikit-learn target containers (for later pilots) run in locally repaired copies, as in October.
 - The smoke test used a task from outside the pilot (flask), so it cannot bias the review of any cluster.
 
 ## What Pilot B expects from Pilot A
