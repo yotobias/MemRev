@@ -155,3 +155,9 @@ Gold gate (`env/gold_gate.jsonl`, git-ignored): all 16 tasks pass, with all thei
 - one image prints coloured pytest output (ANSI codes), which the parser now strips; and SWE-bench lists parametrized test names cut at the first space, which `lookup` now matches when all continuations agree.
 
 Instance file: `instances/main/instances.jsonl`, 16 tasks, official images, fields as before (no patch, test or test-name fields).
+
+## 2026-11-10: run main-3 (the V34 list)
+
+`bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-3 2 pilot-a/config/thinking_summarized.yaml` (approved by the user). All 16 tasks submitted a non-empty patch; 4 to 13 steps per task; $0.66 in total ($0.015 to $0.092 per task); 4 min 44 s with 2 workers. Trajectories in `runs/claude-sonnet-5-5/main-3/` (git-ignored); `run_meta.json` records versions, image ids and hashes of the instance file and lockfile.
+
+Reasoning summaries are recorded in 15 of 16 trajectories (on 1 to 6 steps each, 195 to 2,803 characters). sympy-14774 has none: the model thinks adaptively and did not think on that 4-step task, and its steps carry no text besides the commands. Not re-run: one run per pilot list, and re-running one task because of its trajectory would select data after seeing it. Lane N gets that trajectory with commands and outputs only.
