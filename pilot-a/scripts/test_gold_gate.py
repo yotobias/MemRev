@@ -19,6 +19,7 @@ test_two (app.tests.MyTests.test_two) ... FAIL
 test_three (app.tests.MyTests)
 Check that the docstring name is kept. ... ERROR
 test_four (app.tests.MyTests) ... expected failure
+test_six (app.tests.MyTests) ... test_seven (app.tests.MyTests) ... ok
 """
 SYMPY = """\
 sympy/sets/tests/test_x.py[4]
@@ -46,6 +47,9 @@ def test_django():
     assert lookup(r, "Check that the docstring name is kept.", "django/django") == "ERROR"
     assert lookup(r, "test_four (app.tests.MyTests)", "django/django") == "XFAIL"
     assert lookup(r, "test_five (app.tests.MyTests)", "django/django") == "MISSING"
+    # test_six printed no status (runner crashed later); the "ok" belongs to test_seven
+    assert lookup(r, "test_six (app.tests.MyTests)", "django/django") == "MISSING"
+    assert lookup(r, "test_seven (app.tests.MyTests)", "django/django") == "PASSED"
 
 
 def test_sympy():

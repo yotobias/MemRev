@@ -136,3 +136,11 @@ Selection (user decision): 16 of the 28, in 5 clusters by package directory of t
 The builder now reads full SWE-bench (`SWE-bench/SWE-bench`) instead of Verified: it has all 28 candidates with `eval_script` and `image`, and agrees with Verified on base commit, fix and problem statement for the 17 candidates in both. It fails if a cluster leaves out a candidate whose fix edits a file in its directories, if a directory edited by two candidates' fixes is in no cluster, if a forward link is not an SCB link, or on the old checks (one task per PR, no identical problem statements). All passed; `data/same_pr_groups.csv` regenerated unchanged.
 
 The V32 instance file is kept as `instances/main-v32/` (runs `main-1`, `main-2`); `instances/main/` is rebuilt in step 5.
+
+## 2026-11-10: gold gate reads full SWE-bench; parser bug fixed
+
+`gold_gate.py` loads `SWE-bench/SWE-bench` instead of Verified (needed for the 6 tasks outside Verified). For all 500 Verified tasks the two datasets have identical `eval_script` and `test_patch`, so earlier results are unaffected; the recorded command source is now `swebench_eval_script`.
+
+The parser bug of 2026-10-26 is fixed: when Django prints a second test name on the same line before any status, the first test now gets no status (MISSING) instead of the second test's. A synthetic case was added to `test_gold_gate.py` first (it failed), then the fix (it passes). Re-parsing every saved gate log with the old and the new parser: the 16 gold-gate logs give identical results; only the trial log of 2026-10-26 changes, as intended.
+
+`build_clusters.py` also writes `targets.csv` (the 25 target tasks with image and commit, in the column order `pull_images.sh` reads); `TASKS=pilot-a/targets.csv bash pilot-a/scripts/pull_images.sh` pulls and fingerprints them.

@@ -8,7 +8,8 @@ run the tests, parse per-test status. Nothing is reinstalled: agent runs and pro
 the image as it is, so the gate does too (patches touching non-Python source are flagged).
 
 Test commands follow the benchmark that grades the task:
-  experience: the official SWE-bench Verified eval_script's test line, verbatim
+  experience: the official SWE-bench eval_script's test line, verbatim (full SWE-bench, which
+              includes Verified; 6 of the 16 tasks are outside Verified, V33)
   related:    the SCB harness (swebench_memory/harness/run_evaluation.py): django via
               tests/runtests.py <module> -v 2 --parallel=1, else python -m pytest <file> -v
 Patches are applied as written (the SCB harness rewrites e.message -> str(e); we do not).
@@ -42,7 +43,7 @@ def load_tasks(ids):
         kinds = {i: "related" if i in scb_rel.index else "experience" for i in extra}
         sel = pd.concat([sel[sel.instance_id.isin(ids)], pd.DataFrame(
             [dict(instance_id=i, kind=k, image=image_for(i, k)) for i, k in kinds.items()])])
-    official = load_dataset("SWE-bench/SWE-bench_Verified", split="test").to_pandas().set_index("instance_id")
+    official = load_dataset("SWE-bench/SWE-bench", split="test").to_pandas().set_index("instance_id")
     tasks = []
     for t in sel.itertuples():
         if t.kind == "experience":
@@ -53,7 +54,7 @@ def load_tasks(ids):
             assert as_list(r.FAIL_TO_PASS) == as_list(s.FAIL_TO_PASS), f"{t.instance_id}: F2P differ"
             lines = r.eval_script.splitlines()
             a, b = lines.index(": '>>>>> Start Test Output'"), lines.index(": '>>>>> End Test Output'")
-            cmds, source = lines[a + 1:b], "swebench_verified_eval_script"
+            cmds, source = lines[a + 1:b], "swebench_eval_script"
         else:
             r = scb_rel.loc[t.instance_id]
             cmds, source = scb_commands(r.repo, as_list(r.FAIL_TO_PASS) + as_list(r.PASS_TO_PASS)), "scb_harness"
@@ -109,9 +110,10 @@ def parse(output, repo):
         pending = None
         for line in output.splitlines():
             m = re.match(r"^(test\w*) \(([\w.]+)\)(.*)$", line)
-            if m:
+            while m:  # "test_a (..) ... test_b (..) ... ok": test_a printed no status, so it stays MISSING
                 pending = django_key(m.group(1), m.group(2))
                 line = m.group(3)
+                m = re.match(r"^ \.\.\. (test\w*) \(([\w.]+)\)(.*)$", line)
             if pending:
                 s = re.search(r"\.\.\. (ok|FAIL|ERROR|skipped|expected failure|unexpected success)", line)
                 if s:
