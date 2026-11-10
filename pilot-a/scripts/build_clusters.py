@@ -6,7 +6,8 @@ Inputs: the SCB parquet files in the data dir (data_prep/inspect_scb.py), <data>
 (the revision-pair analysis, CHANGES.md 2026-11-09) and full SWE-bench from Hugging Face (edited files
 come from its `patch`; 6 of the tasks are not in Verified).
 Outputs: <data>/same_pr_groups.csv (all SCB tasks) and <out>/clusters.csv (base tasks only;
-`related_ids` keeps all SCB links, `targets` the forward ones that form revision pairs; neither is run).
+`related_ids` keeps all SCB links, `targets` the forward ones that form revision pairs; neither is run)
+and <out>/targets.csv (one row per target, columns ordered for pull_images.sh).
 Fails loudly if the selection breaks a rule (team decisions V33, V34).
 """
 import itertools, pathlib, re, sys
@@ -136,6 +137,11 @@ def main(data, out):
         sys.exit("selection check failed:\n  " + "\n  ".join(errors))
 
     sel.to_csv(out / "clusters.csv", index=False)
+    rel = pd.read_parquet(data / "SWEContextBench_Related.parquet").drop_duplicates("instance_id").set_index("instance_id")
+    tg = fwd[fwd.base.isin(sel.instance_id)].groupby("related").base.agg(lambda s: ";".join(sorted(s)))
+    pd.DataFrame(dict(instance_id=tg.index, for_task=tg.values, kind="related",
+                      image=[image_for(i, "related") for i in tg.index],
+                      base_commit=rel.base_commit.reindex(tg.index).values)).to_csv(out / "targets.csv", index=False)
     print(f"wrote {out / 'clusters.csv'}: {len(sel)} tasks,", sel.groupby("cluster").size().to_dict(),
           f"{sel.targets.str.split(';').str.len().sum()} forward targets,",
           f"{len(cand) - len(sel)} of {len(cand)} candidates not selected")
