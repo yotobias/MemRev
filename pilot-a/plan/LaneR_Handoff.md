@@ -1,6 +1,6 @@
 # Lane R handoff: what to do next
 
-Updated 2026-11-09 (new task selection V33/V34) for a fresh session continuing Lane R (runs and environment) of Pilot A, working in a clone of the team repository `yotobias/MemRev`, branch `pilot-a/laneR`. This note is self-contained: notes from earlier sessions are not available in a new clone.
+Updated 2026-11-09 (new task selection V46/V47) for a fresh session continuing Lane R (runs and environment) of Pilot A, working in a clone of the team repository `yotobias/MemRev`, branch `pilot-a/laneR`. This note is self-contained: notes from earlier sessions are not available in a new clone.
 
 ## Working style
 
@@ -14,11 +14,11 @@ The user (Ocean, Lane R) wants to learn while the work is done. Before each step
 4. `pilot-a/plan/Kickoff.md` (the plan) and `pilot-a/plan/Plan_v2.md` (detailed reference, partly outdated) only as needed.
 5. The team repo's `README.md` (workflow), `GLOSSARY.md` (use lesson / assumption / check, not note / claim / probe) and `docs/decisions.md`.
 
-## The decisions that set the next steps (2026-11-09, team decisions V33, V34)
+## The decisions that set the next steps (2026-11-09, team decisions V46, V47)
 
-Every Pilot A task must form at least one valid **revision pair** for Pilot B: the base task at commit S and a SWE-ContextBench related task at commit T, with (1) the same repository, (2) S an ancestor of T (T is later), (3) T's environment reconstructable, (4) the files the base fix edits changed between S and T. SWE-ContextBench's "related" means related by topic, not later in time: only 116 of its 360 links point forward. SWE-bench Verified is no longer required (V33 supersedes V31). The agent runs on the base tasks only; related tasks are the targets for later pilots.
+Every Pilot A task must form at least one valid **revision pair** for Pilot B: the base task at commit S and a SWE-ContextBench related task at commit T, with (1) the same repository, (2) S an ancestor of T (T is later), (3) T's environment reconstructable, (4) the files the base fix edits changed between S and T. SWE-ContextBench's "related" means related by topic, not later in time: only 116 of its 360 links point forward. SWE-bench Verified is no longer required (V46 supersedes V31). The agent runs on the base tasks only; related tasks are the targets for later pilots.
 
-The selection (V34, supersedes V32): 16 base tasks in 5 clusters by package directory of the fix:
+The selection (V47, supersedes V32): 16 base tasks in 5 clusters by package directory of the fix:
 
 | Cluster | Tasks (instance number) |
 |---|---|
@@ -28,7 +28,7 @@ The selection (V34, supersedes V32): 16 base tasks in 5 clusters by package dire
 | `sklearn/utils/` | scikit-learn 10949, 25638 |
 | `django/utils/` | django 11276, 14792 |
 
-The analysis is in `pilot-a/data/`: `v33_candidates.csv` (the 28 qualifying base tasks), `v33_forward_links.csv` (their 45 forward links with the requirement checks; requirement 3 is only "image exists" so far), `scb_link_directions.csv` (all 360 links). Six tasks carry over from the V32 list (11555, 12209, 15382, 15930, 14976, 16766); six are from SWE-bench outside Verified (12589, 16910, 14774, 18057, 10949, 25638).
+The analysis is in `pilot-a/data/`: `v46_candidates.csv` (the 28 qualifying base tasks), `v46_forward_links.csv` (their 45 forward links with the requirement checks; requirement 3 is only "image exists" so far), `scb_link_directions.csv` (all 360 links). Six tasks carry over from the V32 list (11555, 12209, 15382, 15930, 14976, 16766); six are from SWE-bench outside Verified (12589, 16910, 14774, 18057, 10949, 25638).
 
 ## State
 
@@ -50,7 +50,7 @@ Superseded: the V32 list (`instances/main-v32/`; its `clusters.csv` is in git hi
 
 ## Next steps
 
-1. **Freeze the V34 list (step 2).** Done 2026-11-10 (`CHANGES.md`). Write the new `pilot-a/clusters.csv` (keep the column set; add each task's forward related task(s) as targets) with `build_clusters.py` adapted to V33/V34: the scripts read SWE-bench Verified today; 6 tasks are only in full SWE-bench (`SWE-bench/SWE-bench`, which also has `eval_script` and `image`; check). Keep the old instance set under a new name, as was done for `main-lite19`.
+1. **Freeze the V47 list (step 2).** Done 2026-11-10 (`CHANGES.md`). Write the new `pilot-a/clusters.csv` (keep the column set; add each task's forward related task(s) as targets) with `build_clusters.py` adapted to V46/V47: the scripts read SWE-bench Verified today; 6 tasks are only in full SWE-bench (`SWE-bench/SWE-bench`, which also has `eval_script` and `image`; check). Keep the old instance set under a new name, as was done for `main-lite19`.
 2. **Images and fingerprints (step 3)** (done 2026-11-10) for the 10 new base tasks (official `swebench/sweb.eval.x86_64.*` images), **and for the target images** of every task's forward related task(s) (`jiayuanz3/swecontextbench:<owner>.<repo>-<n>`). Requirement 3 means the target image *works*: fingerprint each (`import_ok`, `import_from_testbed`); the scikit-learn targets likely need `build_derived.sh`. A task whose targets all fail drops out; log it.
 3. **Gold gate (step 4)** (done 2026-11-10, all 16 pass) for the 10 new base tasks; switch the experience-task path to full SWE-bench where needed. Replace a task whose official fix fails, from the same cluster or the remaining 12 candidates, and log it.
 4. **Instance file (step 5)** (done 2026-11-10), same rules (no patch, test or test-name fields).

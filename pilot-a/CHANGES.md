@@ -121,17 +121,17 @@ Contamination: in 10 of the 16 tasks the reasoning recalls the upstream fix (for
 
 A first trial of checking an agent patch against the official tests (one task of main-2) exposed a parser bug: when Django prints two test names on one line before a single status, and the runner then crashes while printing a subtest description, `gold_gate.py`'s parser gives the status to the wrong test. The gold gate results are not affected. Must be fixed before checking agent patches or running checks. Correctness results are Lane R only and stay out of this file (details in the git-ignored `env/gold_gate_logs/agent/`), so that Lane N reviews lessons without knowing whether the agent's fix was right.
 
-## 2026-11-09: new task source and selection (team decisions V33, V34)
+## 2026-11-09: new task source and selection (team decisions V46, V47)
 
 A teammate set four requirements for each task's revision pair (base task at S, a related task at T): same repository; S an ancestor of T; T's environment reconstructable; the code changed between S and T. Checked with GitHub's compare API (ancestry), file blob hashes at S and T (did the files the base fix edits change), and Docker Hub (does the related task's image exist).
 
-Finding: SWE-ContextBench links tasks by topic, not by time. Of its 360 base-to-related links, 116 point forward, 132 backwards (the related task is older), 107 sit at the same commit and 5 are on diverged branches (`data/scb_link_directions.csv`). Only 6 of the 16 V32 tasks had a future target. Dropping the Verified requirement (user decision), 28 SWE-bench base tasks in django, sympy and scikit-learn have at least one forward link; all 45 of their forward links meet requirements 1, 2 and 4, and every target image exists (`data/v33_candidates.csv`, `data/v33_forward_links.csv`). Image existence is not yet "image works": the target images still need a fingerprint check, and the scikit-learn ones the build repair (`build_derived.sh`).
+Finding: SWE-ContextBench links tasks by topic, not by time. Of its 360 base-to-related links, 116 point forward, 132 backwards (the related task is older), 107 sit at the same commit and 5 are on diverged branches (`data/scb_link_directions.csv`). Only 6 of the 16 V32 tasks had a future target. Dropping the Verified requirement (user decision), 28 SWE-bench base tasks in django, sympy and scikit-learn have at least one forward link; all 45 of their forward links meet requirements 1, 2 and 4, and every target image exists (`data/v46_candidates.csv`, `data/v46_forward_links.csv`). Image existence is not yet "image works": the target images still need a fingerprint check, and the scikit-learn ones the build repair (`build_derived.sh`).
 
-Selection (user decision): 16 of the 28, in 5 clusters by package directory of the fix (listed in V34); the other 12 share no directory with another candidate. Clusters are looser than file level, to be reported as such. 6 of the 16 come from SWE-bench outside Verified (django 12589, 16910; sympy 14774, 18057; scikit-learn 10949, 25638) and lack its hand checks (clear issue text, fair tests). Carried over from V32: django 11555, 12209, 15382, 15930 and sympy 14976, 16766. Runs `main-1` and `main-2` covered the V32 list and are kept as records; a new run of all 16 keeps one run per pilot list.
+Selection (user decision): 16 of the 28, in 5 clusters by package directory of the fix (listed in V47); the other 12 share no directory with another candidate. Clusters are looser than file level, to be reported as such. 6 of the 16 come from SWE-bench outside Verified (django 12589, 16910; sympy 14774, 18057; scikit-learn 10949, 25638) and lack its hand checks (clear issue text, fair tests). Carried over from V32: django 11555, 12209, 15382, 15930 and sympy 14976, 16766. Runs `main-1` and `main-2` covered the V32 list and are kept as records; a new run of all 16 keeps one run per pilot list.
 
-## 2026-11-10: V34 list frozen
+## 2026-11-10: V47 list frozen
 
-`clusters.csv` rewritten by `scripts/build_clusters.py` for the 16 tasks of V34: clusters D1 `django/db/models/` incl. `sql/` (6), D2 `django/utils/` (2), S1 `sympy/printing/` (4), S2 `sympy/core/` (2), K1 `sklearn/utils/` (2). New column `targets`: each task's forward related tasks from `data/v33_forward_links.csv` (25 in all), the T side of its revision pairs; `related_ids` still lists all SCB links. Neither is run in Pilot A.
+`clusters.csv` rewritten by `scripts/build_clusters.py` for the 16 tasks of V47: clusters D1 `django/db/models/` incl. `sql/` (6), D2 `django/utils/` (2), S1 `sympy/printing/` (4), S2 `sympy/core/` (2), K1 `sklearn/utils/` (2). New column `targets`: each task's forward related tasks from `data/v46_forward_links.csv` (25 in all), the T side of its revision pairs; `related_ids` still lists all SCB links. Neither is run in Pilot A.
 
 The builder now reads full SWE-bench (`SWE-bench/SWE-bench`) instead of Verified: it has all 28 candidates with `eval_script` and `image`, and agrees with Verified on base commit, fix and problem statement for the 17 candidates in both. It fails if a cluster leaves out a candidate whose fix edits a file in its directories, if a directory edited by two candidates' fixes is in no cluster, if a forward link is not an SCB link, or on the old checks (one task per PR, no identical problem statements). All passed; `data/same_pr_groups.csv` regenerated unchanged.
 
@@ -145,7 +145,7 @@ The parser bug of 2026-10-26 is fixed: when Django prints a second test name on 
 
 `build_clusters.py` also writes `targets.csv` (the 25 target tasks with image and commit, in the column order `pull_images.sh` reads); `TASKS=pilot-a/targets.csv bash pilot-a/scripts/pull_images.sh` pulls and fingerprints them.
 
-## 2026-11-10: fingerprints, gold gate and instance file for the V34 list
+## 2026-11-10: fingerprints, gold gate and instance file for the V47 list
 
 Fingerprints (`env/<id>.json`): all 16 base images (official SWE-bench) have `base_commit`, HEAD = base plus the mode-only commit with no content change, no other commits reachable, clean tree, package imported from `/testbed`. Of the 25 target images, 22 work as shipped; the three scikit-learn targets (12622, 15093, 25637) fail `import sklearn`, as in October, and work after `build_derived.sh` (`pilot-a/<owner>.<repo>-<n>:built`; their fingerprints are of the repaired images). So every task keeps at least one usable target and none drops out (requirement 3 now means "image works", not only "image exists"). The targets were not gold-gated; they are not run in Pilot A. Image storage: 79 GB.
 
@@ -156,7 +156,7 @@ Gold gate (`env/gold_gate.jsonl`, git-ignored): all 16 tasks pass, with all thei
 
 Instance file: `instances/main/instances.jsonl`, 16 tasks, official images, fields as before (no patch, test or test-name fields).
 
-## 2026-11-10: run main-3 (the V34 list)
+## 2026-11-10: run main-3 (the V47 list)
 
 `bash pilot-a/scripts/run_agent.sh main claude-sonnet-5-5 main-3 2 pilot-a/config/thinking_summarized.yaml` (approved by the user). All 16 tasks submitted a non-empty patch; 4 to 13 steps per task; $0.66 in total ($0.015 to $0.092 per task); 4 min 44 s with 2 workers. Trajectories in `runs/claude-sonnet-5-5/main-3/` (git-ignored); `run_meta.json` records versions, image ids and hashes of the instance file and lockfile.
 
@@ -171,3 +171,9 @@ The replay is faithful: on all 16 tasks every replayed command returns the exit 
 - django-16910: the agent built its patch with `git diff -- django`, so lines it added to a test file outside `django/` are not in the submission; the submitted source change is the same in both.
 
 For probes and validity labels (Ca), the replayed workspace is the agent's final state. Part 3 of the spec (re-run the agent's last verify step) waits for Lane N's segmenter.
+
+## 2026-11-16: decisions renumbered V46, V47
+
+The team decisions of 2026-11-09 (task source, clusters) were first numbered V33 and V34, but branch `pilot-a/laneN` had already used V33 to V45 on 2026-10-25. They are now V46 and V47 (user decision), throughout this branch including the entries above; the content is unchanged. The analysis files were renamed with them: `data/v46_candidates.csv`, `data/v46_forward_links.csv`. Rebuilding with the renamed files gives byte-identical `clusters.csv`, `targets.csv` and `data/same_pr_groups.csv`.
+
+The trajectories of run `main-3` (with `final_workspace.json`, `preds.json`, `run_meta.json`; 16 tasks, 256 KB zipped, no gold material) go to Lane N as a zip sent by the user, since `runs/` is git-ignored.

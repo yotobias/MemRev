@@ -9,7 +9,7 @@ the image as it is, so the gate does too (patches touching non-Python source are
 
 Test commands follow the benchmark that grades the task:
   experience: the official SWE-bench eval_script's export lines and test line, verbatim (full SWE-bench, which
-              includes Verified; 6 of the 16 tasks are outside Verified, V33)
+              includes Verified; 6 of the 16 tasks are outside Verified, V46)
   related:    the SCB harness (swebench_memory/harness/run_evaluation.py): django via
               tests/runtests.py <module> -v 2 --parallel=1, else python -m pytest <file> -v
 Patches are applied as written (the SCB harness rewrites e.message -> str(e); we do not).

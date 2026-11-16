@@ -2,13 +2,13 @@
 
     uv run --locked python -I pilot-a/scripts/build_clusters.py pilot-a/data pilot-a
 
-Inputs: the SCB parquet files in the data dir (data_prep/inspect_scb.py), <data>/v33_forward_links.csv
+Inputs: the SCB parquet files in the data dir (data_prep/inspect_scb.py), <data>/v46_forward_links.csv
 (the revision-pair analysis, CHANGES.md 2026-11-09) and full SWE-bench from Hugging Face (edited files
 come from its `patch`; 6 of the tasks are not in Verified).
 Outputs: <data>/same_pr_groups.csv (all SCB tasks) and <out>/clusters.csv (base tasks only;
 `related_ids` keeps all SCB links, `targets` the forward ones that form revision pairs; neither is run)
 and <out>/targets.csv (one row per target, columns ordered for pull_images.sh).
-Fails loudly if the selection breaks a rule (team decisions V33, V34).
+Fails loudly if the selection breaks a rule (team decisions V46, V47).
 """
 import itertools, pathlib, re, sys
 import pandas as pd
@@ -18,7 +18,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))  # python -I leaves the s
 from naming import image_for
 
 REPOS = {"django/django", "sympy/sympy", "scikit-learn/scikit-learn"}  # team decisions V11, V12
-# Rule (V33, V34): candidates = SWE-bench base tasks with at least one forward SCB link (a valid
+# Rule (V46, V47): candidates = SWE-bench base tasks with at least one forward SCB link (a valid
 # revision pair); a candidate is selected iff its fix edits a file in a directory where the fix of
 # another candidate also edits one. Clusters are those directories (django/db/models/ joined with sql/).
 CLUSTERS = {  # cluster: (directories of the fix's files, instance ids)
@@ -93,7 +93,7 @@ def main(data, out):
 
     swe = load_dataset("SWE-bench/SWE-bench", split="test").to_pandas()
     related = link.groupby("experience_instance_id").related_instance_id.agg(lambda s: ";".join(sorted(set(s))))
-    fwd = pd.read_csv(data / "v33_forward_links.csv")
+    fwd = pd.read_csv(data / "v46_forward_links.csv")
     targets = fwd.groupby("base").related.agg(lambda s: ";".join(sorted(set(s))))
     cand = swe[swe.repo.isin(REPOS) & swe.instance_id.isin(targets.index)].set_index("instance_id")
     edited = cand.patch.map(lambda p: set(re.findall(r"^diff --git a/(\S+)", p, re.M)))
