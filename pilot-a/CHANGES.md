@@ -253,3 +253,23 @@ Added `memrev.run_import` to verify input identities and the instance-file hash,
 The gitignored `runs/pilot-a/main-3/pilot-b-delivery.zip` contains the portable draft, reviews, provenance, replay reports, hashes, target records and verification-command references. No gold material was opened and no new repository checks or paid API calls were run. All 96 validity cells and 32 sharing rows remain pending. The delivery carries the previously reported contamination, replay/submission differences and changed-test caveats. B must still accept the six-field interface and reconcile its older Verified-only/same-version rules with this selection.
 
 Updated the workflow, specifications and [task list](TASKS.md). Validation: 161 tests passed; synthetic gold-gate parser tests passed; archive integrity, manifest hashes and all 16 relative trajectory pointers checked. Current instructions and remaining owners: [MAIN3_HANDOFF.md](MAIN3_HANDOFF.md).
+
+## 2026-11-17: automated API extraction and separate-model review
+
+V51 records the user's request to automate the missing workflow while leaving providers and model IDs configurable. `memrev.workflow` now plans offline or explicitly executes fresh extraction/review requests for each prepared trajectory, validates the responses through the existing contracts and packages a complete portable handoff. The reviewer receives original candidates and the full indexed trajectory without earlier ratings or extraction conversation. Models provide judgments only; code supplies attribution and preserves originals.
+
+Requests, raw normalized SDK responses, returned models, settings and estimated/unknown usage costs are saved for both stages. Completed requests resume without additional calls; transient retries are bounded across resumes. Invalid model outputs are retained without automatic repair/resampling. Interrupted requests require an explicit retry choice because their provider-side outcome may be unknown. Changed inputs/settings/implementation require a new run directory. Final packaging requires coverage of every selected task, and retains pending validity/sharing labels.
+
+The earlier main-3 assistant-session batch is unchanged. No paid calls or repository checks were launched. Validation: 187 tests passed, the dependency lock validated offline, and the real 16-task prepared bundle passed offline planning (32 requests before retries). Models and credentials still need configuration and a live smoke run. See [AUTOMATION.md](AUTOMATION.md) and [TASKS.md](TASKS.md).
+
+## 2026-11-18: frozen preliminary Lane R execution profile
+
+V52 records the user's choices: use the existing main-3 lesson batch for preliminary checks, keep gold material isolated on R, and assess the 31 usable repository assumptions at C0/C1 first (62 cells). Ca is scheduled only when both are contradicted. All 32 original rows remain; the context-only item is retained pending.
+
+Added `memrev.lane_r prepare/record/validate/import` and [LANE_R_CONTRACT.md](LANE_R_CONTRACT.md). The profile keeps validity schema v1, defines workspace manifests and private evidence references, records actual execution receipts without running their commands, rejects incompatible/stale/conflicting returns, and imports against the exact frozen acquisitions/reviews. R retains check sources, detailed output and gold reconstruction evidence; N receives only declarations and opaque content hashes. This is a producer-frozen contract, not a claim of Lane R acceptance or completed research.
+
+Created `runs/pilot-a/main-3/lane-r-execution-v1.zip` with the work order, all source inputs, pending return, receipt template and a code/lockfile snapshot. Validation: 206 tests passed (19 new contract tests); the copied CLI validated and imported the real pending batch with the collection ID unchanged; ZIP integrity, artifact hashes and all 32 trajectory pointers passed. No new repository checks or gold inspection occurred. Docker daemon access on N's host was unavailable; R's first live step is one scoped C0/C1 check and return round trip.
+
+## 2026-11-18: full Pilot A completion checklist
+
+At the user's request, prioritize completion of A before the final B delivery (V53). Added [COMPLETION_CHECKLIST.md](COMPLETION_CHECKLIST.md) with owners, live verification steps, evidence requirements and completion criteria for the smoke check, scheduled validity assessments, import, sharing, 30% regrouping and final report. It distinguishes existing offline validation from missing execution and retains the simplified first-round scope. Updated active task/status/runbook links. This is a documentation change; no new checks or research results were generated and frozen packages were not rewritten.

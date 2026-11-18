@@ -1,5 +1,7 @@
 # Evaluate an extraction without rewriting it
 
+[AUTOMATION.md](AUTOMATION.md) runs this protocol through a separate model request for each task. Models supply judgments only; the runner attaches unchanged originals and records actual call metadata. Manual import remains supported below.
+
 **Current policy (V48, 2026-11-17):** LLM pilot reviews are accepted without mandatory human review. Use `--reviewer-type ai`, disclose the model/session in `--note`, and leave independence false for self-review. The main-3 result is documented in [MAIN3_HANDOFF.md](MAIN3_HANDOFF.md). Extraction review never substitutes for repository execution.
 
 This follows [acquisition preparation](PROVENANCE.md). The reviewer evaluates the original advice and assumptions against the trajectory. They supply ratings, outcomes, issue codes, reasons and optional extra evidence pointers. They do **not** supply replacement text. Repairing an extraction is a separate intervention; mixing it into evaluation would hide the raw extractor's defects and change the denominator.

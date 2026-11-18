@@ -73,6 +73,8 @@ Review is not a prerequisite for producing requests or the B draft. Grouping int
 
 ## Proposed Lane R return contract
 
+For the frozen preliminary main-3 batch, use the concrete [execution profile and commands](LANE_R_CONTRACT.md) (V52). It retains the return fields below, specifies scheduling/workspace/evidence conventions and adds `memrev.lane_r prepare/record/validate/import`. The generic schema still supports other profiles; the current execution profile does not accept non-execution `manual` judgments.
+
 Send `lane-r/` plus its referenced `acquisitions/` directory to Lane R for interface discussion. The requests include **all** original candidates, including unreviewed and context candidates; their presence does not authorize or require executing a check for each one. Review eligibility and check scheduling are separate decisions.
 
 `validity.pending.json` contains one row per original assumption ID, with C0, C1 and Ca cells. Keep every row; leave unfinished cells exactly pending. Each completed assessment supplies:

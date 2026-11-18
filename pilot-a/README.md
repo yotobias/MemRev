@@ -1,10 +1,14 @@
 # Pilot A: status and handoff
 
-Updated 2026-11-17. Start with [the main-3 handoff](MAIN3_HANDOFF.md) and [current tasks](TASKS.md). [START_HERE.md](START_HERE.md) covers the general workflow.
+New contributors: [WORKFLOW_OVERVIEW.md](WORKFLOW_OVERVIEW.md) maps the existing files/formats and walks through one lesson from trajectory to research results.
+
+Updated 2026-11-18. **Current objective: complete Pilot A before the final B handoff.** Start with [the completion checklist](COMPLETION_CHECKLIST.md) for required verification and research work. [The main-3 handoff](MAIN3_HANDOFF.md) describes the existing preliminary package; [START_HERE.md](START_HERE.md) covers the general workflow.
 
 ## Completion status
 
 **Lane N has prepared a Pilot B input draft from all 16 imported main-3 trajectories, with LLM evaluations. Pilot A's validity/sharing study is not complete, and B has not yet accepted the interface or revision-pair policy.**
+
+To regenerate extractions and reviews with separate API model contexts, follow [AUTOMATION.md](AUTOMATION.md). The resumable runner is implemented; model selection and a live smoke/full run remain pending.
 
 | Area | Completed | Remaining |
 |---|---|---|
@@ -17,11 +21,11 @@ The AI review marks **31 assumptions usable as extracted and 1 context-only**. T
 
 ## What must happen next
 
-1. Share the generated archive described in [MAIN3_HANDOFF.md](MAIN3_HANDOFF.md); `runs/` is gitignored.
-2. B confirms importer fields, source SHA validation and its source/target eligibility policy. V46 expanded A beyond Verified; do not silently assume B's older restrictions are satisfied.
-3. R executes scoped checks using the frozen collection IDs and evidence contract. The verification-command index removes any dependency on a phase segmenter.
-4. N completes sharing once repository-validity evidence is available; disclose whether any independent regrouping was performed.
-5. Report costs, exclusions, uncertainty and the contamination finding. Pilot A has no pass/fail threshold gating B.
+1. Assign an execution owner and freeze the primary collection. Follow [COMPLETION_CHECKLIST.md](COMPLETION_CHECKLIST.md).
+2. R authors and executes scoped checks using the frozen IDs and return contract, starting with a real C0/C1 smoke. The verification-command index removes any dependency on a phase segmenter.
+3. N imports validity results, completes sharing and performs the planned regrouping consistency check.
+4. Write the final findings report, including costs, exclusions, uncertainty and contamination. There is no minimum success threshold.
+5. Share the final package separately from gitignored `runs/` artifacts. B confirms importer fields, source SHAs and selection/environment rules, including V46's non-Verified tasks.
 
 Lane R reports upstream-fix recall in 10/16 tasks. Replay differs from patch-only reconstruction for django-14792 and django-16910. The imported JSON files describe prior replay results; they are not full workspace archives. See the handoff for these limitations.
 

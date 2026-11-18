@@ -17,6 +17,8 @@ pilot-a/               Pilot A: experience acquisition (part 1)
 
 Lane N's pipeline lives in `src/memrev/`, with tests in `tests/`. Lane R's scripts live in `pilot-a/scripts/`. Follow the [Pilot A runbook](pilot-a/START_HERE.md) for setup and commands in order. Launch prerequisites and remaining Lane R work are in [RUN_READINESS.md](pilot-a/RUN_READINESS.md).
 
+For configurable API extraction, separate-model review and automatic handoff packaging, use [the automation guide](pilot-a/AUTOMATION.md). It defaults to offline planning and resumes saved model responses.
+
 ## Workflow
 
 Every feature goes through the same route. Skipping a step means someone fills in a decision silently, and that decision then has to be found and undone later.

@@ -1,5 +1,9 @@
 # Pilot A extraction contract v2
 
+**Lane R profile (V52, 2026-11-18):** [Ticket 07](tickets/07-lane-r-return-contract.md) freezes staged preliminary C0/C1/Ca scheduling, workspace identity, private evidence references and return recording/validation/import while preserving validity schema v1. No scientific outcome is inferred from scheduling or replay reports.
+
+**Automation (V51):** [Ticket 06](tickets/06-automated-model-workflow.md) adds configurable, isolated API extraction and separate-model review over prepared trajectories. Freeze requests/settings, retain raw attempts, validate using the existing contracts, and export only after the selected collection completes. See [AUTOMATION.md](../../pilot-a/AUTOMATION.md). No repository execution or research-completion claim is added.
+
 **2026-11-17 amendment (V48–V50):** LLM evaluations are accepted for real pilot acquisitions; human review is optional. Assistant-session extraction permits an unknown exact model ID only with explicit provider/session label, notes and saved prompt. The original AI example remains development-only; real AI reviews use `extraction_review_evaluation`. Ticket 05 tracks the imported main-3 handoff. Validity execution and independent agreement must not be inferred from self-review.
 
 The raw extractor response needs enough structure for assumption review and sharing analysis, while remaining separate from Pilot B's lesson-bank import. This implements decisions V33–V35 and the user-approved whole-trajectory approach.

@@ -1,0 +1,22 @@
+{
+  "workflow_version": 1,
+  "run_id": "main-3-api-v1",
+  "max_calls": 40,
+  "max_attempts": 2,
+  "extractor": {
+    "provider": "openai",
+    "model": "REPLACE_WITH_EXTRACTOR_MODEL_ID",
+    "api_key_env": "OPENAI_API_KEY",
+    "output_mode": "json_schema",
+    "max_output_tokens": 8192,
+    "timeout_seconds": 180
+  },
+  "reviewer": {
+    "provider": "anthropic",
+    "model": "REPLACE_WITH_REVIEWER_MODEL_ID",
+    "api_key_env": "ANTHROPIC_API_KEY",
+    "output_mode": "json_schema",
+    "max_output_tokens": 8192,
+    "timeout_seconds": 180
+  }
+}

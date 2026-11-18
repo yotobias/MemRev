@@ -1,8 +1,14 @@
 # Pilot A runbook
 
+For a short explanation of the files, formats and stages, read [WORKFLOW_OVERVIEW.md](WORKFLOW_OVERVIEW.md), including a real example.
+
+**To finish the study before handing it to B:** follow [COMPLETION_CHECKLIST.md](COMPLETION_CHECKLIST.md). It distinguishes already-passed software checks from the remaining actual repository assessments, sharing analysis and report.
+
 Run commands from the repository root on Linux or WSL. The fixture workflow needs no Docker, API key or human review. Real trajectory generation has additional prerequisites; see step 3.
 
 **Current run:** all 16 imported main-3 trajectories have an AI-reviewed lesson draft; use [MAIN3_HANDOFF.md](MAIN3_HANDOFF.md) for its location and commands. Human reviews are optional under V48. Validity/sharing and B acceptance remain; see [TASKS.md](TASKS.md).
+
+**Automated rerun:** use [AUTOMATION.md](AUTOMATION.md) for fresh API extraction and separate-model review, resume, usage tracking and ZIP delivery. Providers/model IDs are configurable. The saved main-3 assistant-session results remain unchanged; no live API rerun has been performed yet.
 
 ## 1. Set up
 
@@ -61,7 +67,7 @@ python -m memrev.trajectory \
   --output runs/prompts/TASK_RUN_ID.txt
 ```
 
-Submit that exact prompt to the agreed extractor. Save its response as plain JSON, without Markdown fences. Extraction is currently manual; no paid API batch driver is implemented.
+For the manual route, submit that exact prompt to the agreed extractor and save its response as plain JSON, without Markdown fences. The automated route in [AUTOMATION.md](AUTOMATION.md) performs extraction, acquisition preparation, review and packaging with separate API contexts.
 
 Create metadata using [the fixture metadata](fixtures/test/gpt-6-high_test_lessons_102526.metadata.json) as a template. For production, set `purpose` to `pilot_a` and supply the extraction-run ID, agent-run ID, task, repository, source SHA and actual extractor provider/model. Record extractor usage/cost when known; do not substitute agent-run usage.
 
@@ -101,6 +107,8 @@ python -m memrev.handoff build \
 For multiple acquisitions, repeat `--acquisition` and supply evaluations with repeated `--evaluation`. Keep development and production collections separate.
 
 ## 6. Return validity results — Lane R
+
+For the current preliminary batch, follow [LANE_R_CONTRACT.md](LANE_R_CONTRACT.md) and the packaged work order. The `memrev.lane_r` commands freeze inputs, record actual executions, validate returns and rebuild the handoff. Gold evidence remains on R; no repository execution is inferred from an imported return.
 
 Send `runs/handoffs/reviewed/lane-r/` together with its sibling `acquisitions/`. Agree the proposed return format before use. Lane R completes `validity.pending.json` from actual checks or documented assessments and saves the return as `runs/returns/validity.json`. The real check runner remains unfinished; the importer does not execute checks.
 

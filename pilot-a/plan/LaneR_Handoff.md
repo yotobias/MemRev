@@ -1,5 +1,9 @@
 # Lane R handoff: what to do next
 
+**Full-completion instructions:** [COMPLETION_CHECKLIST.md](../COMPLETION_CHECKLIST.md), especially steps 2–3, specifies the actual verification work and evidence needed. The team now wants Pilot A complete before the final B handoff. The supplied contract tools do not author or execute assumption checks.
+
+**2026-11-18 execution interface:** the producer has frozen [LANE_R_CONTRACT.md](../LANE_R_CONTRACT.md) for the preliminary main-3 collection. Use `runs/pilot-a/main-3/lane-r-execution-v1.zip`: work order, all original candidates, trajectories/replay reports, a pending return, receipt template and a snapshot of the recording/validation/import code. Initial schedule: 31 usable assumptions at C0/C1 (62 assessments); Ca only when both are contradicted. Keep the context-only row pending. Gold material and detailed evidence remain private on R. Validate the pending template, author/run one scoped C0/C1 check and record its actual result before scaling up. The CLI records executions; it does not supply or run the assumption checks. No new checks were executed on N's host; Docker access was unavailable there.
+
 Updated 2026-11-09 (new task selection V46/V47) for a fresh session continuing Lane R (runs and environment) of Pilot A, working in a clone of the team repository `yotobias/MemRev`, branch `pilot-a/laneR`. This note is self-contained: notes from earlier sessions are not available in a new clone.
 
 **2026-11-17 merged-checkout update:** main-3 trajectories and replay reports are imported under `runs/trajectories-pilot-A/main-3`; N has prepared an AI-reviewed B draft. See [MAIN3_HANDOFF.md](../MAIN3_HANDOFF.md) and [TASKS.md](../TASKS.md). Replay reports do not include captured filesystems. C0/C1/Ca execution remains R work. Full-trajectory extraction supersedes the segmenter requirement; use the provided verification-command index for replay checks. Human reviews are optional under V48.
