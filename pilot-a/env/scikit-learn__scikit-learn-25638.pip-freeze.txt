@@ -1,0 +1,32 @@
+Bottleneck @ file:///croot/bottleneck_1731058641041/work
+contourpy @ file:///opt/conda/conda-bld/contourpy_1663827406301/work
+cycler @ file:///tmp/build/80754af9/cycler_1637851556182/work
+Cython @ file:///croot/cython_1712282251484/work
+exceptiongroup @ file:///croot/exceptiongroup_1706031385326/work
+fonttools @ file:///croot/fonttools_1713551344105/work
+iniconfig @ file:///home/linux1/recipes/ci/iniconfig_1610983019677/work
+joblib @ file:///croot/joblib_1718217211762/work
+kiwisolver @ file:///croot/kiwisolver_1672387140495/work
+matplotlib @ file:///croot/matplotlib-suite_1670466153205/work
+numexpr @ file:///croot/numexpr_1683221822650/work
+numpy @ file:///opt/conda/conda-bld/numpy_and_numpy_base_1654872176621/work
+packaging @ file:///croot/packaging_1720101850331/work
+pandas==1.4.4
+pillow @ file:///croot/pillow_1731594689713/work
+pluggy @ file:///tmp/build/80754af9/pluggy_1648024445381/work
+ply==3.11
+pyparsing @ file:///croot/pyparsing_1731445506121/work
+PyQt5==5.15.10
+PyQt5-sip @ file:///croot/pyqt-split_1698769088074/work/pyqt_sip
+pytest @ file:///croot/pytest_1717793244625/work
+python-dateutil @ file:///croot/python-dateutil_1716495738603/work
+pytz @ file:///croot/pytz_1713974312559/work
+# Editable Git install with no remote (scikit-learn==1.3.dev0)
+-e /testbed
+scipy @ file:///tmp/build/80754af9/scipy_1607617228869/work
+sip @ file:///croot/sip_1698675935381/work
+six @ file:///tmp/build/80754af9/six_1644875935023/work
+threadpoolctl @ file:///croot/threadpoolctl_1719407800858/work
+tomli @ file:///opt/conda/conda-bld/tomli_1657175507142/work
+tornado @ file:///croot/tornado_1718740109488/work
+unicodedata2 @ file:///croot/unicodedata2_1713212950228/work

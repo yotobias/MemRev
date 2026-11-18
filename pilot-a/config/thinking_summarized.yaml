@@ -1,0 +1,8 @@
+# Merged on top of the shipped swebench.yaml (run_agent.sh passes it after it with -c).
+# Sonnet 5.5 thinks adaptively by default but returns its thinking, and its text between
+# tool calls, as blank blocks (display "omitted"). "summarized" changes visibility only.
+model:
+  model_kwargs:
+    thinking:
+      type: adaptive
+      display: summarized

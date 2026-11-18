@@ -39,7 +39,7 @@ Pilot A has no pass or fail threshold. The proposal decides after Pilots A and B
 
 | What | What it is | Why we need it | Where |
 |---|---|---|---|
-| SWE-ContextBench Lite | 300 "experience" + 99 "related" Python bug-fix tasks from 12 repos, SWE-bench schema (`repo`, `base_commit`, `problem_statement`, `patch`, `test_patch`, tests). MIT. | Source of our 19 tasks and their gold patches | Hugging Face `jiayuanz3/SWEContextBench`, parquet files; downloaded by `pilot-a/pilot-a/scripts/data_prep/inspect_scb.py` into `pilot-a/data/` |
+| SWE-ContextBench Lite | 300 "experience" + 99 "related" Python bug-fix tasks from 12 repos, SWE-bench schema (`repo`, `base_commit`, `problem_statement`, `patch`, `test_patch`, tests). MIT. | Source of our 19 tasks and their gold patches | Hugging Face `jiayuanz3/SWEContextBench`, parquet files; downloaded by `pilot-a/scripts/data_prep/inspect_scb.py` into `pilot-a/data/` |
 | SWE-ContextBench GitHub repo | 99 related-task JSONs, a fork of the SWE-bench harness, and 300 public Claude Code transcripts of the experience tasks. No licence file. | Related-task metadata and harness. **The transcripts are off limits** to anyone doing review (Section 6). | `github.com/jiayuanz3/SWEContextBench` |
 | Docker images, two families | One prebuilt image per task with the repo checked out at `base_commit` in `/testbed`. Related tasks: `jiayuanz3/swecontextbench:<owner>.<repo>-<n>`. Experience tasks: `swebench/sweb.eval.x86_64.<owner>_1776_<repo>-<n>`. 3 to 7 GB each on disk. | Agent runs and probes execute inside them | Docker Hub; about 100 GB for 19 images |
 | mini-swe-agent 2.4.6 | A small, fixed coding agent (MIT, Python 3.10+). Runs a task with `mini-extra swebench --subset <dir> ... -o <dir>`, writes one trajectory JSON per task and `preds.json` with the patches. | The agent whose experience we study | PyPI `mini-swe-agent`; docs at mini-swe-agent.com |
@@ -47,7 +47,7 @@ Pilot A has no pass or fail threshold. The proposal decides after Pilots A and B
 | uv + Python 3.10+ | Package manager and lockfile | Pin `mini-swe-agent==2.4.6`, `datasets`, `pandas`, `pyarrow` | `uv` exists on Windows; install in WSL |
 | LLM API key, one backbone model | Same model for the agent and the extractor | Nothing after setup can start without it | **Decision needed** (Section 8). No key is configured yet |
 | SWE-bench harness 5.0.2 (optional) | Grades a patch against the task's tests. Experience tasks grade against the official `SWE-bench/SWE-bench_Lite`; related tasks through the SCB fork. | Not required by the proposal for Pilot A; Pilot D needs it. Do it only if time is left. | PyPI `swebench` |
-| Our scripts and data | `pilot-a/pilot-a/scripts/data_prep/` (download, file-overlap clusters, git ancestry) and `pilot-a/data/*.csv` | Task selection is reproducible from them | This repository; see `pilot-a/pilot-a/scripts/data_prep/README.md` |
+| Our scripts and data | `pilot-a/scripts/data_prep/` (download, file-overlap clusters, git ancestry) and `pilot-a/data/*.csv` | Task selection is reproducible from them | This repository; see `pilot-a/scripts/data_prep/README.md` |
 
 ## 5. The 19 tasks
 

@@ -44,7 +44,7 @@ Pilot A is the first step. It asks: **when one fixed agent solves real bugs, do 
 
 ## How it works
 
-1. **Tasks.** 10 to 20 real bug-fix tasks from SWE-bench Verified (django, sympy, scikit-learn) that SWE-ContextBench links to later related tasks, grouped in clusters whose fixes touch the same code, so shared claims are *possible*; the review decides whether they exist. The list is frozen in `clusters.csv`: 16 tasks in 5 clusters, four in django's `db/models` and one in sympy's code printers (the earlier 19-task list from SWE-ContextBench Lite is superseded).
+1. **Tasks.** 16 real bug-fix tasks from SWE-bench (django, sympy, scikit-learn), each linked by SWE-ContextBench to at least one *later* related task (a valid revision pair for Pilot B), grouped in 5 clusters by the package directory their fixes touch, so shared claims are *possible*; the review decides whether they exist (team decisions V46, V47). Frozen in `clusters.csv` (2026-11-10); earlier lists are superseded.
 2. **Agent runs.** One AI coding agent (mini-swe-agent, model Claude Sonnet 5.5) attempts each task once, inside a Docker container that holds the repository at the commit where the bug existed. Every step it takes is recorded (the "trajectory").
 3. **Lessons and assumptions.** An LLM reads the full indexed trajectory and extracts advice plus scoped assumptions with evidence pointers; a person reviews each assumption. The v2 extraction contract replaces mandatory per-phase extraction (V33–V35; `../specs/pilot-a-extraction/spec.md`).
 4. **Validity.** For each claim: is it true in the original code, after the official fix, or only in the agent's own edits? Small test scripts ("probes") answer this where possible.
@@ -62,29 +62,29 @@ The work is split into two lanes so that the people judging the notes never see 
 
 If you might ever review notes (Lane N), do not open `env/gold_gate.jsonl`, `env/gold_gate_logs/` or the files in `data/` that end in `.parquet`, and do not look up the tasks' pull requests or issues on GitHub (a task id such as `django__django-14016` is the PR number): all of these reveal the official fixes or their tests.
 
-## Progress (updated 2026-10-25)
+## Progress (updated 2026-11-10)
 
 | Step | Lane | Status |
 |---|---|---|
-| 1. Linux environment (WSL, Docker, Python packages locked) | R | completed on original R host; current run-host prerequisites need confirmation |
-| 2. Freeze the task list, with checks against duplicates | R | done: 16 tasks from SWE-bench Verified in 5 clusters (team decisions V31, V32; `CHANGES.md` 2026-10-24) |
-| 3. Download the task containers and record their fingerprints | R | original R handoff reports all 16 clean; fingerprint files are present, local image availability unverified |
-| 4. "Gold gate": does the official fix pass its own tests in each container? | R | original R handoff reports all 16 pass; not rerun in this audit |
+| 1. Linux environment (WSL, Docker, Python packages locked) | R | done |
+| 2. Freeze the task list, with checks against duplicates | R | done: 16 tasks, 5 clusters, 25 forward targets (V46, V47; `CHANGES.md` 2026-11-10); 6 tasks carry over from the old list |
+| 3. Download the task containers and record their fingerprints | R | done: 16 base images and 25 target images all usable; 3 scikit-learn targets after the local repair (`CHANGES.md` 2026-11-10) |
+| 4. "Gold gate": does the official fix pass its own tests in each container? | R | done: all 16 pass, none replaced; two parser gaps and a missing locale setting fixed on the way |
 | 5. Agent input file (problem statements only) | R | done: `instances/main/` (16 tasks) |
-| 6. Smoke test: one complete agent run on a non-pilot task | R | original R handoff reports success (cost $0.0014) |
-| 7. Agent runs and final-workspace preservation | R | launcher exists; no selected-task runs here. Resolve local prerequisites and implement capture before container cleanup; see [RUN_READINESS.md](RUN_READINESS.md) |
-| 8. Check runner for validity labels | R | not implemented here; Lane N validates return records only |
-| Extraction and review | N | formatter, v2 validation, provenance and evaluation import implemented. Offline collection, Lane R forms, validity-return validation, sharing import/regrouping and draft B export now run with human work pending; see [HANDOFF.md](HANDOFF.md). Real selected-task extraction, review, checks and grouping remain pending. |
+| 6. Smoke test: one complete agent run on a non-pilot task | R | done (cost $0.0014) |
+| 7. The agent runs, then rebuild each final workspace | R | run `main-3` done 2026-11-10: 16/16 submitted, $0.66, reasoning recorded in 15 of 16; final workspaces rebuilt by replay (2 tasks' submissions miss part of the agent's edits, `CHANGES.md`); handover to Lane N open. Earlier runs `main-1`, `main-2` (old list) kept as records; the model recalls upstream fixes in 10 of those 16 tasks (`CHANGES.md`) |
+| 8. Probe runner for the validity labels | R | week 2 |
+| Rubric, segmenter, extractor prompt, note review, grouping | N | not recorded here yet |
 
-Original R handoff reports under $0.01 for smoke runs and test calls. The Lane N offline implementation work started no paid model calls or benchmark runs.
+Cost so far: about $1.98 (smoke runs and test calls, main-1 $0.69, thinking smoke test $0.03, main-2 $0.59, main-3 $0.66).
 
 ## Decisions so far (details and reasons in `CHANGES.md`)
 
-- Tasks come from SWE-bench Verified (django, sympy, scikit-learn) with related tasks in SWE-ContextBench, so Pilot B can use the lessons (2026-10-24). The agent runs only these base tasks; related tasks are kept as links.
-- 16 tasks in 5 clusters in `django/db/models/` and `sympy/printing/`: a task is in if its fix shares a file or sub-package with another candidate (2026-10-24).
+- Tasks come from SWE-bench (django, sympy, scikit-learn; Verified no longer required), each with at least one later related task in SWE-ContextBench that forms a valid revision pair, so Pilot B can use the lessons (V46, 2026-11-09). The agent runs only these base tasks; the related tasks are the later targets.
+- 16 tasks in 5 clusters by package directory of the fix (`django/db/models/` incl. `sql/`, `django/utils/`, `sympy/printing/`, `sympy/core/`, `sklearn/utils/`): a task is in if its fix edits a file in a directory that another candidate's fix also edits (V47, 2026-11-09).
 - Agent and extractor model: Claude Sonnet 5.5, fixed for the whole project; Claude Haiku 5.5 for pipeline tests.
 - The agent runs with its standard settings, unchanged (no temperature setting, which current Claude models reject).
-- All 16 tasks use the official SWE-bench containers; the locally repaired containers were only needed for the superseded list.
+- All 16 tasks use the official SWE-bench containers. Three scikit-learn target containers (for later pilots) run in locally repaired copies, as in October.
 - The smoke test used a task from outside the pilot (flask), so it cannot bias the review of any cluster.
 
 ## What Pilot B expects from Pilot A
@@ -100,9 +100,7 @@ From the team repository (`yotobias/MemRev`, decision V1): Pilot B reads lessons
 | source revision | Commit SHA the lesson was written at |
 | trajectory pointer | Path or URL to the recorded trajectory (may be empty for fixtures) |
 
-Extra fields are ignored by Pilot B. Its ticket 01 requires the exact field names to be fixed, but currently specifies only the six concepts above; agree and document the names before producing the export. Pilot A's versioned raw extraction JSON and provenance package are separate formats, not this JSONL bank. `memrev.provenance` attaches occurrence IDs and operator-supplied provenance without inventing unknown metadata; see [PROVENANCE.md](PROVENANCE.md). The team's decisions V11 and V12 ask for lessons from SWE-bench Verified Python instances in django, sympy or scikit-learn; Pilot A's 16 tasks meet it (V31, V32).
-
-For interface discussion, `memrev.handoff` now produces an explicitly **draft** JSONL with proposed keys `lesson_id`, `lesson_text`, `task_id`, `repository`, `source_revision`, `trajectory_pointer` (V44). Original advice is exported independently of A review outcomes; missing required metadata produces recorded exclusions. The accompanying status file retains review attribution. This proposal does not complete B ticket 01 or certify source SHA existence. See [HANDOFF.md](HANDOFF.md) for commands, portability and the design decisions still pending.
+Extra fields are ignored by Pilot B. The exact field names are fixed in Pilot B ticket 01; check there before producing output. The team's decisions V11 and V12 ask for lessons from SWE-bench Verified Python instances in django, sympy or scikit-learn; V46 relaxes this for Pilot A: 10 of its 16 tasks are in Verified, 6 only in full SWE-bench (instance ids have the same form). Pilot B ticket 01 should accept full SWE-bench ids.
 
 The open decisions the team listed for Pilot A (agent and model, runs per task, lesson granularity, lessons from failed attempts, source validity, sharing review) were taken for Lane R in `plan/Kickoff.md` and `CHANGES.md`; they still need to be recorded as numbered decisions in the team's `docs/decisions.md`.
 

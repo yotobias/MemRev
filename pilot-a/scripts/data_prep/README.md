@@ -1,16 +1,13 @@
 # Data preparation scripts (SWE-ContextBench Lite)
 
-Historical exploration/reproducibility scripts. Current Verified selection uses `../build_clusters.py`, not this directory's Lite `clusters.py`; see `../README.md`. These scripts may read gold-bearing benchmark data and are for Lane R, not blinded Lane N review.
+Historical exploration/reproducibility scripts. Current V47 selection uses `../build_clusters.py`; the obsolete Lite `clusters.py` was removed; see `../README.md`. These scripts may read gold-bearing benchmark data and are for Lane R, not blinded Lane N review.
 
 Run from the project root; all need network. Output directory is `pilot-a/data`.
 
     uv run --no-project --with pandas --with pyarrow python -I pilot-a/scripts/data_prep/inspect_scb.py pilot-a/data
-    uv run --no-project --with pandas --with pyarrow python -I pilot-a/scripts/data_prep/clusters.py    pilot-a/data
 
 - `inspect_scb.py` downloads the five SWE-ContextBench parquet files from Hugging Face into
   `pilot-a/data/` and joins related tasks to experience tasks (`lite_pairs.csv`).
-- `clusters.py` (Pilot A task selection) lists the same-commit pairs and the files/modules edited
-  by several tasks; writes `lite_task_file_overlap.csv`.
 
 The two scripts below are not needed for Pilot A. They prepare the revision-pair analysis for the
 pilot that follows (which claims change across revisions) and are kept here so the CSVs in
