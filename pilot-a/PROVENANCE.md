@@ -1,5 +1,7 @@
 # From a raw extraction to a reviewable acquisition package
 
+**V49:** `extractor.method="assistant_session"` supports pilot extraction in a recorded assistant session. Provider, a reported session label, notes and saved task prompt are required; exact serving model, tokens and cost may remain null. The task prompt is part of a broader session, not an isolated API-call record. Other production provenance requirements remain unchanged.
+
 This is the step after `validate_extraction`. It preserves where each candidate lesson came from and gives it an identity before review. It does not establish whether the lesson is useful or whether an assumption holds at any revision. Continue with [evaluation-only review](EVALUATION.md), which supersedes the original edit/split review workflow (V40–V41).
 
 ## Run the development example
@@ -42,7 +44,7 @@ Copy the example metadata JSON for a new extraction and fill it from trusted run
 
 The task ID in this example matches `trajectory.instance_id`. Repository metadata, source SHA, agent-run ID, exact extractor provider/model, tokens, cost and exact prompt are unavailable and remain null. The filename's `gpt-6-high` label is retained as `reported_label`, not promoted to an exact model identifier. The trajectory's own model statistics belong to the coding agent and are not extraction usage or cost.
 
-`purpose: development` permits these unknowns and lists them in `unknown_metadata`. `purpose: pilot_a` requires core provenance: task, repository, full source SHA, agent-run ID, extractor provider/model ID, and prompt. This is a completeness check, not certification that the SHA exists, the task belongs to the selected dataset, or the provider actually served that model. Extraction usage/cost may still be unknown and remain listed. Pilot B has its own import and source-validity requirements.
+`purpose: development` permits these unknowns and lists them in `unknown_metadata`. `purpose: pilot_a` requires core provenance: task, repository, full source SHA, agent-run ID, extractor provider/model ID (with the V49 assistant-session exception above), and prompt. This is a completeness check, not certification that the SHA exists, the task belongs to the selected dataset, or the provider actually served that model. Extraction usage/cost may still be unknown and remain listed. Pilot B has its own import and source-validity requirements.
 
 ## Why these IDs work for the research
 
@@ -69,4 +71,4 @@ For example, if lesson 0, assumption 1 combines independent behaviors, mark the 
 
 Lane N can review reproducibly and retain the link to the original model response. Lane R can later receive assumption IDs, scoped statements and proposed checks and return C0/C1/Ca results against the same identities. The source SHA remains separate from the workspace described in each assumption. Source-validity labels, manual-vs-executed methods and sharing groups are not inferred here.
 
-Evaluation import, offline sharing/reporting and a draft Pilot B export are implemented. Follow [START_HERE.md](START_HERE.md) for the execution order. Team agreement, actual reviews/checks and production data remain pending. This Astropy package remains development data.
+Evaluation import, offline sharing/reporting and a draft Pilot B export are implemented. Follow [START_HERE.md](START_HERE.md) for the execution order. The main-3 acquisition/review batch is available; B acceptance and actual validity/sharing evidence remain pending. This Astropy package remains development data.

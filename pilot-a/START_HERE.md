@@ -2,7 +2,7 @@
 
 Run commands from the repository root on Linux or WSL. The fixture workflow needs no Docker, API key or human review. Real trajectory generation has additional prerequisites; see step 3.
 
-**Status: Lane N's offline tools are implemented; Lane N and Pilot A are not complete.** Production integration, real reviews/checks/grouping and the final report remain. See [completion status and remaining work](README.md#completion-status).
+**Current run:** all 16 imported main-3 trajectories have an AI-reviewed lesson draft; use [MAIN3_HANDOFF.md](MAIN3_HANDOFF.md) for its location and commands. Human reviews are optional under V48. Validity/sharing and B acceptance remain; see [TASKS.md](TASKS.md).
 
 ## 1. Set up
 
@@ -41,7 +41,7 @@ Open `runs/handoffs/demo/report.md`. Expected: **5 lessons, 17 assumptions, 51 p
 
 ## 3. Obtain a real trajectory — Lane R
 
-Before launching, confirm Docker access, selected images, credentials, model access and budget. Implement/test final-workspace capture before the full batch; submitted patches alone are insufficient for Ca reconstruction. See [RUN_READINESS.md](RUN_READINESS.md).
+For the existing main-3 run, use the imported trajectories; no new agent run is required. For a future run, confirm Docker/images, credentials, model access and budget. Preserve workspace state or validate replay; patch-only reconstruction is insufficient. See [RUN_READINESS.md](RUN_READINESS.md).
 
 Once ready and authorized, the existing launcher is:
 
@@ -85,11 +85,11 @@ To defer review, run `handoff build` as in step 2 and leave forms pending. Other
 python -m memrev.evaluation draft \
   --package "$pilot_acquisition" \
   --output "$pilot_acquisition/evaluation.json" \
-  --reviewer-id YOUR_ID --reviewer-type human \
+  --reviewer-id YOUR_ID --reviewer-type ai \
   --note 'Describe your review process here.'
 ```
 
-Complete ratings, outcomes and reasons using [EVALUATION.md](EVALUATION.md). Use `human_ai_assisted` when applicable. Do not edit original text or IDs. Then import the completed form into a handoff:
+Give the LLM the saved trajectory, extraction and review rubric; save its completed ratings, outcomes and reasons using [EVALUATION.md](EVALUATION.md). Record its model/session and limitations in the note. Self-review is not independent. Use `human` or `human_ai_assisted` only when that describes the actual process. Do not edit original text or IDs. Then import the completed form into a handoff:
 
 ```bash
 python -m memrev.handoff build \

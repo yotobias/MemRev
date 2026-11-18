@@ -1,5 +1,7 @@
 # Pilot A kickoff: a first plan for two people
 
+**Current overrides:** V33 uses full trajectories; V46/V47 define the current 16-task selection; V48 permits LLM reviews without a human gate. Phase segmentation and human-only language below are historical. Use [current tasks](../TASKS.md) and [main-3 handoff](../MAIN3_HANDOFF.md).
+
 Status: initial plan, 2026-10-20. For current progress read `pilot-a/README.md` first; decisions taken since this plan are in `pilot-a/CHANGES.md`. `pilot-a/plan/Plan_v2.md` is the detailed reference; Section 11 below lists where v2 is out of date, so do not read v2 cover to cover on day one.
 
 ## 1. The project in one paragraph

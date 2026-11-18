@@ -1,5 +1,7 @@
 # Pilot B: assumption applicability across revisions
 
+**2026-11-17 amendment:** V48 permits attributed LLM reviewers for assumption/check review and execution-label sign-off; mandatory-human wording below is superseded for the pilot. Record reviewer type, model/session where available, evidence and independence. Execution and 3/3 gates remain required. V46 expanded A to include six non-Verified tasks: B's Verified-only/same-version pair policy below needs explicit reconciliation before accepting the supplied pairs. The actual producer draft is documented in [MAIN3_HANDOFF.md](../../pilot-a/MAIN3_HANDOFF.md).
+
 **Status:** ready-for-agent
 **Date:** 19-10-2026
 

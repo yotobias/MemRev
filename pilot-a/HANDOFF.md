@@ -1,5 +1,7 @@
 # Offline Lane N handoff: implement first, review later
 
+**2026-11-17 update:** [MAIN3_HANDOFF.md](MAIN3_HANDOFF.md) describes the actual 16-task export. V48 allows LLM reviews for the pilot; human review is optional. This guide remains the interface reference. The pending-development workflow below is still supported.
+
 For commands in execution order, use [START_HERE.md](START_HERE.md). This document is the detailed interface reference.
 
 Human review is not required to prepare or exercise this workflow. It builds a **draft interface handoff**, with unfinished judgments explicitly pending. It does not complete Pilot A's research or certify a Pilot B dataset. V42–V44 authorize this implementation approach; the contracts below are proposals to discuss with Lane R and Pilot B.
@@ -115,7 +117,7 @@ The updated bundle's `sharing/pending.json` is tied to its exact validity snapsh
 
 The key is a reviewer-supplied normalization, not a copy of raw strings and not an automatic equivalence test. A group's members must use the same resolved key. Unknown scope must be resolved or kept uncertain; null does not mean unrestricted. Same-key candidates may still be kept in separate groups when their behavior differs. Every member carries a reason.
 
-Grouped candidates need a usable extraction evaluation, repository-behavior kind and C0/C1 repository support. Superseded assumptions remain eligible. Context, uncertain and repair candidates are retained but do not silently enter the primary groups. The grouping reviewer may be AI in a development fixture; the report retains that attribution and never counts it as human sign-off.
+Grouped candidates need a usable extraction evaluation, repository-behavior kind and C0/C1 repository support. Superseded assumptions remain eligible. Context, uncertain and repair candidates are retained but do not silently enter the primary groups. The grouping reviewer may be AI for the pilot under V48; attribution remains explicit. Group eligibility still requires repository-validity evidence. A same-session second pass cannot establish independent agreement.
 
 Supply the completed or partially completed form with `--sharing PATH` alongside the same `--validity PATH`. Counts distinguish multiple lessons, multiple tasks, frozen-selection distinct PRs, repeated-task occurrences and same-text flags. A group occurring twice within one task is not cross-task sharing. Development task IDs and made-up SHAs do not establish selected-task coverage or trusted PR membership.
 

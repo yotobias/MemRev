@@ -10,6 +10,7 @@ A reviewer can sign off proposed labels through a CSV, with only the allowed cha
 Covers stories 22, 24, 25, 26. Decisions V19, V22, V26.
 
 ## Acceptance criteria
+- [ ] V48: accept attributed AI reviews without a mandatory human gate; retain reviewer type, model/session where known and independence. Preserve evidence and the existing execution-based label/override rules.
 - [ ] `label-export` / `label-import` round trip with a required reviewer id.
 - [ ] Allowed actions: accept, downgrade to inconclusive, send back for a rewritten check (which returns the assumption to review and rerun). A direct flip between supported within scope and contradicted is rejected.
 - [ ] Lesson label: contradicted if any assumption is contradicted, supported within scope only if all are, otherwise inconclusive and excluded from metrics.

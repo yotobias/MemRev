@@ -10,6 +10,7 @@ A reviewer can export the assumptions in a run to a CSV, accept, edit or reject 
 Covers stories 14, 15, 16, 17. Decisions V2, V25, V26.
 
 ## Acceptance criteria
+- [ ] V48: accept attributed AI reviews without a mandatory human gate; retain reviewer type, model/session where known and independence. Preserve evidence and the existing execution-based label/override rules.
 - [ ] The assumption record holds statement, assumption type (one of the five, or uncheckable), scope, supporting code pointers, check command and asserted target, and a content hash over these fields.
 - [ ] `review-export` writes a CSV; `review-import` reads it back with a required reviewer id.
 - [ ] Only accepted (or edited and accepted) assumptions are marked reviewed; rejected ones are recorded with the reviewer id.

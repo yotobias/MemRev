@@ -1,5 +1,7 @@
 # 01: Skeleton and lesson import
 
+**Available input:** the main-3 producer exports 16 lessons with AI review sidecars; see [handoff](../../../pilot-a/MAIN3_HANDOFF.md). Six tasks are outside Verified under V46. Confirm the selection-policy change explicitly; do not reject them silently or claim that all supplied S/T pairs already meet B's existing same-version policy.
+
 **Status:** ready-for-agent
 **Blocked by:** none, can start now
 **Estimate:** ~70k tokens

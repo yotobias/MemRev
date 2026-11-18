@@ -13,6 +13,24 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "pilot-a/fixtures/test"
 
 
+def test_assistant_session_retains_unknown_model_without_inventing_provenance(inputs, tmp_path):
+    metadata = load(inputs['metadata_path'])
+    metadata.update(purpose='pilot_a', repository='astropy/astropy', source_revision='a' * 40,
+                    agent_run_id='source-run', notes='Same Codex session; serving snapshot unknown.')
+    metadata['extractor'].update(method='assistant_session', provider='openai', model_id=None,
+                                 reported_label='Codex session')
+    inputs['metadata_path'].write_text(json.dumps(metadata))
+    prompt = tmp_path / 'prompt.txt'
+    prompt.write_text(build_extract_prompt(load_trajectory(inputs['trajectory_path']), ROOT / 'pilot-a/extract_prompt.md'))
+    record = prepare_acquisition(**inputs, prompt_path=prompt, output_dir=tmp_path / 'package')
+    assert 'extractor.model_id' in record['unknown_metadata']
+    assert record['metadata']['purpose'] == 'pilot_a'
+    metadata['extractor']['reported_label'] = None
+    inputs['metadata_path'].write_text(json.dumps(metadata))
+    with pytest.raises(ValueError, match='reported_label'):
+        prepare_acquisition(**inputs, prompt_path=prompt, output_dir=tmp_path / 'bad')
+
+
 @pytest.fixture
 def inputs(tmp_path):
     paths = dict()

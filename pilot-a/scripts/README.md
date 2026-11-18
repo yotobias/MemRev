@@ -4,7 +4,7 @@ Run Linux/container scripts inside Linux or WSL from the project root. `setup_ws
 `source pilot-a/scripts/env.sh` once per shell, then `uv run --locked python -I pilot-a/scripts/<script>.py`
 (`--locked` refuses to run if `uv.lock` is out of date instead of silently re-resolving).
 Outputs go to `pilot-a/`; nothing is overwritten (see `pilot-a/CHANGES.md` for deviations).
-`env.sh` honors `UV_PROJECT_ENVIRONMENT`, then prefers an existing root `.venv`, then the original WSL environment. New native-Linux checkouts default to root `.venv`. See [RUN_READINESS.md](../RUN_READINESS.md) for prerequisites and unfinished workspace capture/check execution.
+`env.sh` honors `UV_PROJECT_ENVIRONMENT`, then prefers an existing root `.venv`, then the original WSL environment. New native-Linux checkouts default to root `.venv`. See [RUN_READINESS.md](../RUN_READINESS.md) for host prerequisites and remaining validity-check execution.
 Do not edit a shell script while it runs: bash reads scripts as it goes, so the running copy
 executes garbled lines (happened once with `build_derived.sh`).
 

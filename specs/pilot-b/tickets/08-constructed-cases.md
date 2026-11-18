@@ -10,6 +10,7 @@ A researcher can generate constructed stale lessons and matched controls for eac
 Covers stories 27–33. Decisions V4, V5, V6, V29, V30.
 
 ## Acceptance criteria
+- [ ] V48: accept attributed AI reviews without a mandatory human gate; retain reviewer type, model/session where known and independence. Preserve evidence and the existing execution-based label/override rules.
 - [ ] Candidates are drafted by the LLM from real behaviour changes in the S..T diff; only the advice is written, the repository is never modified.
 - [ ] A pair with no candidate is recorded as "no behaviour change found".
 - [ ] A constructed stale lesson is kept only if its check passes 3/3 at S and fails 3/3 at T; others are dropped and counted as "gate failed".

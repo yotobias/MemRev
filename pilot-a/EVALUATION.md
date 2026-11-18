@@ -1,5 +1,7 @@
 # Evaluate an extraction without rewriting it
 
+**Current policy (V48, 2026-11-17):** LLM pilot reviews are accepted without mandatory human review. Use `--reviewer-type ai`, disclose the model/session in `--note`, and leave independence false for self-review. The main-3 result is documented in [MAIN3_HANDOFF.md](MAIN3_HANDOFF.md). Extraction review never substitutes for repository execution.
+
 This follows [acquisition preparation](PROVENANCE.md). The reviewer evaluates the original advice and assumptions against the trajectory. They supply ratings, outcomes, issue codes, reasons and optional extra evidence pointers. They do **not** supply replacement text. Repairing an extraction is a separate intervention; mixing it into evaluation would hide the raw extractor's defects and change the denominator.
 
 This is the development protocol from decisions V40–V41. Agree its criteria, issue vocabulary and outcome rules with the team before production reviews. The implementation checks consistency and provenance; it cannot determine whether a reviewer's judgment is correct.
@@ -13,7 +15,7 @@ PYTHONPATH=src .venv/bin/python -m memrev.evaluation draft \
   --package runs/acquisitions/astropy-manual-102526 \
   --output runs/acquisitions/astropy-manual-102526/evaluation.mine.json \
   --reviewer-id YOUR_ID \
-  --reviewer-type human_ai_assisted \
+  --reviewer-type ai \
   --note 'I have seen the AI example; this is my own evaluation.'
 ```
 
@@ -73,8 +75,6 @@ The older AI example may omit `protocol_id` and lesson outcome definitions; matc
 
 `runs/acquisitions/astropy-manual-102526/evaluations/ai-codex/` contains the imported `review.ai.json`: **5 lessons, 17 original assumptions; 7 usable, 6 needing repair, 2 uncertain, 2 context-only.** It remains a non-independent AI evaluation of development data with unknown source/model provenance. These are not human judgments, source-validity labels, or Pilot A production results.
 
-Next, agree the protocol and complete a human evaluation, then exercise the same pipeline on one selected Pilot A agent run with complete provenance. Production work still includes acquiring the selected trajectories, extraction with saved prompts/model usage, revision-specific validity checks coordinated with Lane R, scoped cross-task sharing groups and the planned 30% regrouping review, and the Pilot A report. Preserve the original candidates if a separate repair stage is added.
-
-Human review can be deferred while implementing and discussing interfaces. [HANDOFF.md](HANDOFF.md) documents the offline collection builder, pending Lane R forms, later validity/sharing import, regrouping comparison and draft Pilot B export. None of those preparation steps requires filling out a trajectory review now.
+The main-3 batch now has 16 attributed AI evaluations. Remaining research work is validity checking, evidence-backed sharing and reporting. No human-review gate remains for this pilot. See [TASKS.md](TASKS.md).
 
 Each reviewer imports into a separate directory; this step does not merge judgments or implement adjudication. A draft six-field Pilot B export is available through `memrev.handoff`; agree its field names with B before production use. B performs its own assumption extraction and source/target checks. Follow [START_HERE.md](START_HERE.md) for commands in order.

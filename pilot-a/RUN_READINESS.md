@@ -1,5 +1,11 @@
 # Lane R readiness and remaining work
 
+**Current state, 2026-11-17:** main-3 is already generated and imported; do not rerun it to unblock extraction. Lane R added `final_workspace.py` and supplied replay reports. They report matching exit codes for all tasks and two patch/replay differences. They do not supply full workspace archives or fresh validity evidence. Scoped validity execution and replay verification remain. See [MAIN3_HANDOFF.md](MAIN3_HANDOFF.md).
+
+## Historical local-host audit (2026-10-25)
+
+The audit below predates the merged Lane R replay implementation; statements that capture/reconstruction is unimplemented are historical. It is not a current requirement to repeat agent generation.
+
 Audit of this checkout, 2026-10-25. **Lane R is not complete. Its basic trajectory launcher exists; final-workspace capture and the validity-check runner are unfinished.** No agent run, paid call, image pull, gold-gate execution or gold-file inspection was performed in this audit.
 
 ## Already present

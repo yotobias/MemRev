@@ -1,5 +1,7 @@
 # Pilot A extraction contract v2
 
+**2026-11-17 amendment (V48–V50):** LLM evaluations are accepted for real pilot acquisitions; human review is optional. Assistant-session extraction permits an unknown exact model ID only with explicit provider/session label, notes and saved prompt. The original AI example remains development-only; real AI reviews use `extraction_review_evaluation`. Ticket 05 tracks the imported main-3 handoff. Validity execution and independent agreement must not be inferred from self-review.
+
 The raw extractor response needs enough structure for assumption review and sharing analysis, while remaining separate from Pilot B's lesson-bank import. This implements decisions V33–V35 and the user-approved whole-trajectory approach.
 
 ## Behaviour
@@ -15,7 +17,7 @@ The raw extractor response needs enough structure for assumption review and shar
 
 ## Review and provenance
 
-The prompt requests repository behaviour with explicit branches/conditions rather than run-history summaries masquerading as transferable assumptions. Human review still decides truth, scope, relevance, and evidence support. `no_evidence` records missing support, not a C0/C1/Ca verdict; `unverified_assertion` cites an assertion without treating it as proof.
+The prompt requests repository behaviour with explicit branches/conditions rather than run-history summaries masquerading as transferable assumptions. Extraction review judges scope, relevance and evidence support; V48 permits LLM reviewers. Repository validity still requires separate checks. `no_evidence` records missing support, not a C0/C1/Ca verdict; `unverified_assertion` cites an assertion without treating it as proof.
 
 Keep raw responses immutable. A later pipeline stage assigns lesson/assumption IDs and attaches run ID, task ID, repository, source SHA, trajectory pointer, prompt version/hash, and actual model/cost metadata from trusted records. The LLM does not generate these values. Keep source revision separate from the workspace where evidence was observed; edited or installed-package evidence does not establish source validity.
 

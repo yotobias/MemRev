@@ -182,6 +182,38 @@ def test_b_export_does_not_require_a_review(scenario, tmp_path):
     assert not report["research_complete"]
 
 
+def test_pilot_session_ai_reviews_export_without_certifying_validity(scenario, tmp_path):
+    packages, reviews, _, _ = scenario
+    production = []
+    selection = tmp_path / 'pilot-selection.csv'
+    rows = ['instance_id,base_commit,cluster,same_pr_group,same_text']
+    for i, package in enumerate(packages):
+        metadata = read(package / 'inputs/metadata.json')
+        metadata.update(purpose='pilot_a', agent_run_id='synthetic-run')
+        metadata['extractor'].update(method='assistant_session', provider='synthetic',
+                                     model_id=None, reported_label='Synthetic session; model unknown')
+        trajectory = read(package / 'inputs/trajectory.json')
+        prompt = tmp_path / f'session-prompt-{i}.txt'
+        prompt.write_text('<trajectory>\n' + format_transcript(trajectory) + '</trajectory>')
+        output = tmp_path / f'pilot-package-{i}'
+        prepare_acquisition(package / 'inputs/trajectory.json', package / 'inputs/extraction.json',
+                            write(tmp_path / f'session-meta-{i}.json', metadata), output, prompt)
+        production.append(output)
+        rows.append(f"synthetic-{i},{str(i + 1) * 40},fixture,django/django#{i},False")
+    selection.write_text('\n'.join(rows) + '\n')
+    output = tmp_path / 'pilot-handoff'
+    report = build_handoff(production, output, evaluations=reviews, selection_path=selection)
+    assert report['extraction_reviews']['ai'] == 2
+    assert report['extraction_reviews']['human'] == 0
+    assert report['pilot_b']['exported'] == 4
+    assert report['selection']['production_tasks_missing'] == []
+    assert report['validity_cells']['pending'] == 12
+    assert report['research_complete'] is False
+    statuses = read(output / 'pilot-b/status.json')['lesson_status']
+    assert all(row['reviewer']['independent'] is False for row in statuses)
+    assert all(row['source_validity'] == 'not_certified_by_export' for row in statuses)
+
+
 def test_blind_regrouping_hides_primary_partition_and_compares_member_sets(scenario, tmp_path):
     packages, reviews, validity, sharing = scenario
     bundle = tmp_path / "complete"

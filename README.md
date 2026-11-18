@@ -90,5 +90,5 @@ After a feature is done, spend ten minutes on what went wrong in the workflow it
 
 | Feature | Spec | Status |
 |---------|------|--------|
-| Pilot A: experience acquisition | [pilot-a/](pilot-a/) | extraction/evaluation and offline handoff plumbing implemented ([guide](pilot-a/HANDOFF.md)); contracts proposed, production runs and research judgments pending |
+| Pilot A: experience acquisition | [pilot-a/](pilot-a/) | 16 main-3 trajectories processed into an AI-reviewed B draft; validity/sharing and B acceptance pending ([handoff](pilot-a/MAIN3_HANDOFF.md), [tasks](pilot-a/TASKS.md)) |
 | Pilot B: assumption applicability across revisions | [specs/pilot-b/spec.md](specs/pilot-b/spec.md) | 11 tickets ready, start with 01 |

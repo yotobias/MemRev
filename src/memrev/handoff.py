@@ -275,7 +275,7 @@ def _markdown_report(report):
                   "Pilot B receives original advice, without filtering by A review outcome. Missing provenance is listed in pilot-b/status.json.",
                   "", "Design decisions to agree:", ""])
     lines.extend(f"- {decision}" for decision in report["design_decisions_pending"])
-    lines.extend(["", "Research work still requires real selected-task acquisitions, human review, workspace-specific checks, "
+    lines.extend(["", "Research completion depends on recorded task coverage, attributed pilot reviews, workspace-specific checks, "
                   "sharing judgments, the regrouping comparison and the final report. No threshold gates Pilot B.", ""])
     return "\n".join(lines)
 

@@ -60,8 +60,8 @@ def _validate_metadata(metadata, trajectory, has_prompt):
     _fields(extractor, [
         "method", "provider", "model_id", "reported_label", "input_tokens", "output_tokens", "cost_usd",
     ], "metadata.extractor")
-    if extractor["method"] not in ["manual_browser", "api"]:
-        raise ValueError("metadata.extractor.method: expected manual_browser or api")
+    if extractor["method"] not in ["manual_browser", "api", "assistant_session"]:
+        raise ValueError("metadata.extractor.method: expected manual_browser, api or assistant_session")
     for field in ["provider", "model_id", "reported_label"]:
         _text(extractor[field], f"metadata.extractor.{field}")
     for field in ["input_tokens", "output_tokens"]:
@@ -79,6 +79,10 @@ def _validate_metadata(metadata, trajectory, has_prompt):
     if not has_prompt:
         unknown.append("prompt")
     required = {"agent_run_id", "task_id", "repository", "source_revision", "extractor.provider", "extractor.model_id", "prompt"}
+    if extractor["method"] == "assistant_session":
+        _text(extractor["reported_label"], "metadata.extractor.reported_label", nullable=False)
+        _text(metadata["notes"], "metadata.notes", nullable=False)
+        required.remove("extractor.model_id")  # V49: retain unknown serving model explicitly.
     missing = sorted(required.intersection(unknown))
     if metadata["purpose"] == "pilot_a" and missing:
         raise ValueError(f"Production provenance incomplete: {', '.join(missing)}")

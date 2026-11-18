@@ -1,5 +1,7 @@
 # Handoff: do Lane R's trajectories work with Lane N's tools?
 
+**Historical compatibility exercise:** completed on Lane R before this merge. The current user authorized processing the imported run on Lane N; use [MAIN3_HANDOFF.md](../MAIN3_HANDOFF.md) and [TASKS.md](../TASKS.md). The worktree-specific permissions and paths below describe that earlier exercise.
+
 Written 2026-11-16 for a fresh Claude session. Self-contained: notes from earlier sessions are not available.
 
 ## Goal

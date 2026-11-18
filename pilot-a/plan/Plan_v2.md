@@ -1,5 +1,7 @@
 # Pilot A implementation plan: experience acquisition and source validity
 
+**Current overrides:** V33 uses full trajectories; V46/V47 define the current 16-task selection; V48 permits LLM reviews without a human gate. Phase segmentation and human-only language below are historical. Use [current tasks](../TASKS.md) and [main-3 handoff](../MAIN3_HANDOFF.md).
+
 Status: draft v2 for team discussion, 2026-10-20. Supersedes the 2026-10-19 draft (`archive/Pilot_A_Plan.md`, kept unchanged). Section 12 lists every change and the finding that motivated it.
 Scope: Pilot A of `docs/Final_Proposal_Tex.md` ("Experience acquisition and source validity"). This document is self-contained; the later pilots are planned after Pilot A reports.
 
