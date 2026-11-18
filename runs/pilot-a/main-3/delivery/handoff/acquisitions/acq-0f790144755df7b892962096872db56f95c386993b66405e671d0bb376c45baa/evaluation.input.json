@@ -1,0 +1,147 @@
+{
+  "evaluation_version": 1,
+  "artifact_type": "extraction_review_evaluation",
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "acquisition_id": "acq-0f790144755df7b892962096872db56f95c386993b66405e671d0bb376c45baa",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "review_basis": "AI self-review of the original saved extraction against recorded code, commands and observations; original citations assessed individually. Same conversational context as extraction; not independent and not a source-validity check.",
+  "source_validity": "not_assessed",
+  "rating_values": [
+    "yes",
+    "no",
+    "uncertain"
+  ],
+  "rubric_definitions": {
+    "specific_enough_to_check": "Does the candidate identify a concrete behavior or observation that can be assessed? This alone does not establish transferability to another revision.",
+    "single_behaviour": "Does it express one branch-specific contract or one explicit relational invariant, rather than bundling independent behaviors? Record uncertainty when the unit is debatable.",
+    "supported_by_cited_messages": "Do the ORIGINAL cited messages support the statement and its substantive qualifications? Extra messages found by a reviewer do not retroactively fix the original citations.",
+    "scope_sufficient": "Are the relevant inputs, branches, configuration and environment limitations stated sufficiently for this candidate? Unknown details are not treated as unrestricted.",
+    "workspace_attribution_correct": "Does it distinguish the inspected checkout, agent edits and any separate installed package?",
+    "repository_behaviour": "Does the candidate express behavior of repository code, rather than only an environment/procedural observation or a historical event?"
+  },
+  "outcome_definitions": {
+    "usable_as_extracted": "No material extraction defect identified within the stated scope. Not source-validity approval.",
+    "needs_repair": "An identifiable extraction defect needs a separate repair/transformation stage; no replacement is supplied here.",
+    "uncertain": "Evidence or protocol ambiguity prevents a firm evaluation; do not count as accepted.",
+    "context_only": "Retain as context/evidence, but do not count as a repository-behaviour assumption. This is not a claim that the statement is false."
+  },
+  "lesson_outcome_definitions": {
+    "usable_as_extracted": "No material problem identified in the advice itself; assess each attached assumption separately.",
+    "needs_clarification": "Advice has an identifiable scope or interpretation issue; no replacement is requested.",
+    "uncertain": "Available evidence or protocol is insufficient for a firm advice evaluation."
+  },
+  "issue_definitions": {
+    "compound_assumption": "Independently assessable behaviors or branches are bundled.",
+    "granularity_ambiguous": "Whether this is one relational contract or multiple assumptions needs a consistent protocol decision.",
+    "citation_coverage_incomplete": "Original citations omit evidence for a substantive qualification.",
+    "environment_provenance_incomplete": "The claimed environment or installation state is not fully established by the observations.",
+    "dimensional_scope_unclear": "Dimensional limitations or algorithm details are not sufficiently delimited.",
+    "historical_observation": "The statement primarily records a past event, rather than a reusable behavior at a repository revision.",
+    "environment_context": "Useful environment information, distinct from a repository-behaviour assumption.",
+    "procedural_context": "Useful procedural evidence, distinct from a repository-behaviour assumption.",
+    "mixed_assumption_kinds": "Repository behavior and environment/procedure claims are combined.",
+    "advice_scope_unclear": "Advice is broader than its demonstrated validation context.",
+    "test_discrimination_unclear": "Advice does not distinguish a bug-exposing case from a compatibility control.",
+    "preservation_policy_unclear": "Advice could imply preserving all existing behavior without establishing which contracts should remain compatible."
+  },
+  "lessons": [
+    {
+      "lesson_id": "acq-0f790144755df7b892962096872db56f95c386993b66405e671d0bb376c45baa/lesson/0",
+      "original_advice": "When handling empty EXISTS subqueries, preserve the distinction between positive and negated EXISTS and keep other WHERE predicates intact. Treat backend-specific boolean SQL branches separately; the shown SQL smoke check uses SQLite.",
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 3 shows the original super call followed by NOT with no local exception handling. This is an inspected control-flow claim, not an executed failure claim.",
+        "reviewer_evidence_message_indices": [
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "assumptions": [
+        {
+          "assumption_id": "acq-0f790144755df7b892962096872db56f95c386993b66405e671d0bb376c45baa/lesson/0/assumption/0",
+          "original": {
+            "statement": "The original Exists.as_sql calls super().as_sql before applying NOT, with no local EmptyResultSet handler around that call.",
+            "symbol": "Exists.as_sql",
+            "file": "django/db/models/expressions.py",
+            "predicate": "calls",
+            "kind": "repo_behaviour",
+            "scope": {
+              "inputs": "Exists compilation with self.query.exists(using=connection.alias)",
+              "config": null,
+              "env": null
+            },
+            "evidence_message_indices": [
+              2,
+              3
+            ],
+            "evidence_basis": "code_observation",
+            "workspace_context": "Original checkout before agent edits."
+          },
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 3 shows the original super call followed by NOT with no local exception handling. This is an inspected control-flow claim, not an executed failure claim.",
+            "reviewer_evidence_message_indices": [
+              2,
+              3
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "assumption_id": "acq-0f790144755df7b892962096872db56f95c386993b66405e671d0bb376c45baa/lesson/0/assumption/1",
+          "original": {
+            "statement": "After the agent edit, compiling ContentType.objects.filter(~Exists(ContentType.objects.none()), app_label=\"test\") retains app_label in a WHERE conjunction with True.",
+            "symbol": "Exists.as_sql",
+            "file": "django/db/models/expressions.py",
+            "predicate": "returns",
+            "kind": "repo_behaviour",
+            "scope": {
+              "inputs": "Negated Exists over ContentType.objects.none() with app_label=\"test\"",
+              "config": null,
+              "env": "SQLite :memory: configuration; django.contrib.contenttypes installed"
+            },
+            "evidence_message_indices": [
+              4,
+              5
+            ],
+            "evidence_basis": "execution_observation",
+            "workspace_context": "Checkout after the EmptyResultSet handler added in message 4."
+          },
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 4–5 specify SQLite, ContentType and the query, and print the retained conjunction. The claim is limited to SQL compilation after edits and does not claim returned database rows or other-backend correctness.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

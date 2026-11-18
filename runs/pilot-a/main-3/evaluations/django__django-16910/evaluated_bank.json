@@ -1,0 +1,162 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-16910",
+    "trajectory_sha256": "31968f65f2d56892c587b7d485a384bfe0010119001ec8e311060f9c3d76d0a5",
+    "extraction_sha256": "9394b03a94ef6daed670f15a3921c8ef6bb52f3af2abf6dc2b618f7022a24b54"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "django__django-16910",
+    "repository": "django/django",
+    "source_revision": "4142739af1cda53581af4169dbe16d6cd5e26948",
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-16910",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/django__django-16910.txt",
+      "sha256": "88cb82652c7ab0c41c096df13fcf7c5a8cb164d9cb431cd4aaeca39465864d58"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/django__django-16910/trajectory.json",
+      "sha256": "31968f65f2d56892c587b7d485a384bfe0010119001ec8e311060f9c3d76d0a5"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-16910/extraction.json",
+      "sha256": "9394b03a94ef6daed670f15a3921c8ef6bb52f3af2abf6dc2b618f7022a24b54"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-16910/metadata.json",
+      "sha256": "ba23d9d416f820fdb43f9f3c4cc15939ceacb8a4f29982740d797de69ca5b265"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 25,
+  "lessons": [
+    {
+      "advice": "When debugging only() with reverse select_related(), compare the field-object keys used by mask construction and mask lookup. Keep original-test results separate from results obtained after changing expectations, and preserve replay state when submitted patches omit test edits.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The original _get_only_select_mask keys each requested field entry by the object returned from opts.get_field(field_name).",
+          "symbol": "Query._get_only_select_mask",
+          "file": "django/db/models/sql/query.py",
+          "predicate": "mutates",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A field_name present in mask and resolved by opts.get_field",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 5 shows opts.get_field and setdefault(field, {}) in the original only-mask builder. The scope is the resolved field entry, not a claim of successful reverse-relation execution.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "In the original restricted reverse-relation branch, get_related_selections obtains related_select_mask using select_mask.get(related_field) or {}, where related_field is o.field for a unique non-many-to-many related object.",
+          "symbol": "SQLCompiler.get_related_selections",
+          "file": "django/db/models/sql/compiler.py",
+          "predicate": "other",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "restricted=True; opts.related_objects item with o.field.unique and not o.many_to_many",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 5 shows the restricted reverse-relation selection and forward-field lookup. The claim retains uniqueness and many-to-many exclusions and is independent of later changed test expectations.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 5 shows opts.get_field and setdefault(field, {}) in the original only-mask builder. The scope is the resolved field entry, not a claim of successful reverse-relation execution.",
+        "reviewer_evidence_message_indices": [
+          4,
+          5
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-dea8a5a4b0fb2b0455866d6bb55707f0880c7689051d78665eb1a6f91320c04e"
+}

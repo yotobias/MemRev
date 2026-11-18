@@ -25,7 +25,7 @@ Send **`runs/pilot-a/main-3/pilot-b-delivery.zip`**. Its root README explains th
 | `readiness.json` | Machine-readable limitations and consumer decisions |
 | `manifest.json` | SHA-256 inventory of delivery files |
 
-These artifacts are gitignored. Sharing the code commit alone does not share the run.
+The current main-3 trajectories and handoff artifacts, including both ZIP packages, are tracked in Git. Pull the branch to obtain them; no separate transfer is needed for this frozen batch. New runs and private execution evidence remain ignored.
 
 ## Review and evidence policy
 

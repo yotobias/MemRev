@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When diagnosing dtype warnings for DataFrames, inspect column dtypes as well as scalar dtype metadata. Compare baseline and edited test failures by identity and cause; matching failure totals alone do not establish regression equivalence.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The inspected scalar-dtype warning branch runs only when warn_on_dtype is true, dtype_orig is not None, and the converted array dtype differs from dtype_orig.",
+          "symbol": "check_array",
+          "file": "sklearn/utils/validation.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Input accepted through preceding validation; scalar dtype_orig recorded",
+            "config": "warn_on_dtype=True",
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5,
+            6
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "In the agent-edited checkout, check_array on the demonstrated two-row, three-column object DataFrame with warn_on_dtype=True emits a DataConversionWarning reporting conversion from object to float64.",
+          "symbol": "check_array",
+          "file": "sklearn/utils/validation.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "pd.DataFrame([[1,2,3],[2,3,4]], dtype=object)",
+            "config": "warn_on_dtype=True",
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Intermediate checkout after message 7, before the stacklevel change in message 9."
+        }
+      ]
+    }
+  ]
+}

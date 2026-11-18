@@ -1,0 +1,744 @@
+{
+  "work_order_version": 1,
+  "profile": "pilot-a-lane-r-execution-v1",
+  "collection_id": "collection-702c7aaa7a3c36d6f599e12b477ff5f82d25b40fbce37ce70220483fba32e752",
+  "status": "producer_frozen",
+  "purpose": "pilot_a",
+  "rows": [
+    {
+      "assumption_id": "acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff/lesson/0/assumption/0",
+      "task_id": "sympy__sympy-18057",
+      "source_revision": "62000f37b8821573ba00280524ffb4ac4a380875",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-18057:latest",
+        "image_id": "sha256:a56d5da6faf39f1529ea4acb09a37aaaad1798d9a1298e3ae5ead6d7b8b58cad"
+      },
+      "statement": "The inspected Expr.__eq__ calls sympify(other) before checking whether the result is an Expr.",
+      "scope": {
+        "inputs": "Other operand entering Expr.__eq__",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff/lesson/0/assumption/1",
+      "task_id": "sympy__sympy-18057",
+      "source_revision": "62000f37b8821573ba00280524ffb4ac4a380875",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-18057:latest",
+        "image_id": "sha256:a56d5da6faf39f1529ea4acb09a37aaaad1798d9a1298e3ae5ead6d7b8b58cad"
+      },
+      "statement": "After replacing sympify with _sympify in Expr.__eq__, the recorded assertions show Symbol(\"x\") is unequal to an object whose only customization is __repr__ returning \"x\".",
+      "scope": {
+        "inputs": "Instance of class D with __repr__ returning \"x\" and no custom conversion/equality methods",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/lesson/0/assumption/0",
+      "task_id": "sympy__sympy-20801",
+      "source_revision": "e11d3fed782146eebbffdc9ced0364b223b84b6c",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20801:latest",
+        "image_id": "sha256:66efe47a12232b336ded7ef943a03dd42f5d6cbeeb609c46ce5646686b218eda"
+      },
+      "statement": "In the inspected Float.__eq__, successful sympification is followed by an if-not-self shortcut returning not other before the Boolean type guard.",
+      "scope": {
+        "inputs": "other successfully sympified; self is falsey",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/lesson/0/assumption/1",
+      "task_id": "sympy__sympy-20801",
+      "source_revision": "e11d3fed782146eebbffdc9ced0364b223b84b6c",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20801:latest",
+        "image_id": "sha256:66efe47a12232b336ded7ef943a03dd42f5d6cbeeb609c46ce5646686b218eda"
+      },
+      "statement": "After moving the Boolean guard before the zero shortcut, S(0.0)==S.false and S.false==S(0.0) both evaluate to False.",
+      "scope": {
+        "inputs": "S(0.0) and S.false, compared in both operand orders",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-0f790144755df7b892962096872db56f95c386993b66405e671d0bb376c45baa/lesson/0/assumption/0",
+      "task_id": "django__django-15382",
+      "source_revision": "770d3e6a4ce8e0a91a9e27156036c1985e74d4a3",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-15382:latest",
+        "image_id": "sha256:b5dde6a96a4040e43e85485e01ec34e0db155adab642ca318f8ef04be1e00459"
+      },
+      "statement": "The original Exists.as_sql calls super().as_sql before applying NOT, with no local EmptyResultSet handler around that call.",
+      "scope": {
+        "inputs": "Exists compilation with self.query.exists(using=connection.alias)",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-0f790144755df7b892962096872db56f95c386993b66405e671d0bb376c45baa/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-0f790144755df7b892962096872db56f95c386993b66405e671d0bb376c45baa/lesson/0/assumption/1",
+      "task_id": "django__django-15382",
+      "source_revision": "770d3e6a4ce8e0a91a9e27156036c1985e74d4a3",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-15382:latest",
+        "image_id": "sha256:b5dde6a96a4040e43e85485e01ec34e0db155adab642ca318f8ef04be1e00459"
+      },
+      "statement": "After the agent edit, compiling ContentType.objects.filter(~Exists(ContentType.objects.none()), app_label=\"test\") retains app_label in a WHERE conjunction with True.",
+      "scope": {
+        "inputs": "Negated Exists over ContentType.objects.none() with app_label=\"test\"",
+        "config": null,
+        "env": "SQLite :memory: configuration; django.contrib.contenttypes installed"
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-0f790144755df7b892962096872db56f95c386993b66405e671d0bb376c45baa/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-234a8c2609003611591ea294f8c0b3624bf346af3b24827018ae51e6627e82e0/lesson/0/assumption/0",
+      "task_id": "scikit-learn__scikit-learn-25638",
+      "source_revision": "6adb209acd63825affc884abcd85381f148fb1b0",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25638:latest",
+        "image_id": "sha256:c3ebacdb13d733bbe46f2f852fa60a17931910ae4338b461dd863e38293b82f0"
+      },
+      "statement": "unique_labels raises ValueError when the set of inferred target types still has more than one member after the binary/multiclass normalization.",
+      "scope": {
+        "inputs": "At least one y argument; type_of_target calls succeed; normalized type set has cardinality greater than one",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-234a8c2609003611591ea294f8c0b3624bf346af3b24827018ae51e6627e82e0/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-234a8c2609003611591ea294f8c0b3624bf346af3b24827018ae51e6627e82e0/lesson/0/assumption/1",
+      "task_id": "scikit-learn__scikit-learn-25638",
+      "source_revision": "6adb209acd63825affc884abcd85381f148fb1b0",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25638:latest",
+        "image_id": "sha256:c3ebacdb13d733bbe46f2f852fa60a17931910ae4338b461dd863e38293b82f0"
+      },
+      "statement": "After the helper edit, type_of_target returns \"binary\" for the demonstrated Int64 Series containing only zeros and ones with no missing values.",
+      "scope": {
+        "inputs": "pd.Series([1,0,0,1,0,1,1,0,1], dtype=\"Int64\")",
+        "config": null,
+        "env": "pandas available in the recorded task environment"
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-234a8c2609003611591ea294f8c0b3624bf346af3b24827018ae51e6627e82e0/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-3690f608318b9e94df427c91d9ab7752e5a48a0224be3bff4860131124fa48a8/lesson/0/assumption/0",
+      "task_id": "sympy__sympy-14774",
+      "source_revision": "8fc63c2d71752389a44367b8ef4aba8a91af6a45",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14774:latest",
+        "image_id": "sha256:1c3e7e826b3d32c7f2dc155470ace96063278ed78af91b9f0c8268824053779e"
+      },
+      "statement": "The inspected inverse-trig style dispatch table contains asin, acos, atan and acot, but omits acsc and asec.",
+      "scope": {
+        "inputs": "Inverse trigonometric function name dispatch",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-3690f608318b9e94df427c91d9ab7752e5a48a0224be3bff4860131124fa48a8/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-3690f608318b9e94df427c91d9ab7752e5a48a0224be3bff4860131124fa48a8/lesson/0/assumption/1",
+      "task_id": "sympy__sympy-14774",
+      "source_revision": "8fc63c2d71752389a44367b8ef4aba8a91af6a45",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14774:latest",
+        "image_id": "sha256:1c3e7e826b3d32c7f2dc155470ace96063278ed78af91b9f0c8268824053779e"
+      },
+      "statement": "After the agent adds acsc to the table, latex(acsc(x), inv_trig_style=\"full\") emits an operator named arccsc.",
+      "scope": {
+        "inputs": "acsc(Symbol(\"x\"))",
+        "config": "inv_trig_style=\"full\"",
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-3690f608318b9e94df427c91d9ab7752e5a48a0224be3bff4860131124fa48a8/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-51a096b9fd686eb2b9400de1f7c86aa4ee0e98bac4811cdf452bd6691d408583/lesson/0/assumption/0",
+      "task_id": "scikit-learn__scikit-learn-10949",
+      "source_revision": "3b5abf76597ce6aff76192869f92647c1b5259e7",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-10949:latest",
+        "image_id": "sha256:e0cc1b968460023cfd99ab5f830f5bfa45444fab00d9e05b7ece491be0e0bd0e"
+      },
+      "statement": "The inspected scalar-dtype warning branch runs only when warn_on_dtype is true, dtype_orig is not None, and the converted array dtype differs from dtype_orig.",
+      "scope": {
+        "inputs": "Input accepted through preceding validation; scalar dtype_orig recorded",
+        "config": "warn_on_dtype=True",
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-51a096b9fd686eb2b9400de1f7c86aa4ee0e98bac4811cdf452bd6691d408583/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-51a096b9fd686eb2b9400de1f7c86aa4ee0e98bac4811cdf452bd6691d408583/lesson/0/assumption/1",
+      "task_id": "scikit-learn__scikit-learn-10949",
+      "source_revision": "3b5abf76597ce6aff76192869f92647c1b5259e7",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-10949:latest",
+        "image_id": "sha256:e0cc1b968460023cfd99ab5f830f5bfa45444fab00d9e05b7ece491be0e0bd0e"
+      },
+      "statement": "In the agent-edited checkout, check_array on the demonstrated two-row, three-column object DataFrame with warn_on_dtype=True emits a DataConversionWarning reporting conversion from object to float64.",
+      "scope": {
+        "inputs": "pd.DataFrame([[1,2,3],[2,3,4]], dtype=object)",
+        "config": "warn_on_dtype=True",
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-51a096b9fd686eb2b9400de1f7c86aa4ee0e98bac4811cdf452bd6691d408583/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-5f16ea7b6c1b800fe4445dd06e3acf0bea15e7c2a88400b5b98474a28cd3f89e/lesson/0/assumption/0",
+      "task_id": "sympy__sympy-14976",
+      "source_revision": "9cbea134220b0b951587e11b63e2c832c7246cbc",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14976:latest",
+        "image_id": "sha256:860f68a98698df242fe71bb13d1396513ce148d765c87c41435fe4ad84f7d7a6"
+      },
+      "statement": "The inspected MpmathPrinter._print_Float converts e._mpf_ components to Python ints and emits a call to the module-formatted mpmath.mpf.",
+      "scope": {
+        "inputs": "A SymPy Float e",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-5f16ea7b6c1b800fe4445dd06e3acf0bea15e7c2a88400b5b98474a28cd3f89e/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-5f16ea7b6c1b800fe4445dd06e3acf0bea15e7c2a88400b5b98474a28cd3f89e/lesson/0/assumption/1",
+      "task_id": "sympy__sympy-14976",
+      "source_revision": "9cbea134220b0b951587e11b63e2c832c7246cbc",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14976:latest",
+        "image_id": "sha256:860f68a98698df242fe71bb13d1396513ce148d765c87c41435fe4ad84f7d7a6"
+      },
+      "statement": "After adding _print_Rational, lambdify(x, x + S(232)/3, \"mpmath\") generates a return expression containing x + mpf(232)/mpf(3).",
+      "scope": {
+        "inputs": "x + S(232)/3",
+        "config": "lambdify modules=\"mpmath\"",
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-5f16ea7b6c1b800fe4445dd06e3acf0bea15e7c2a88400b5b98474a28cd3f89e/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-62bf1e42e1f95530504387ba46b1ed5274ab6cc722a55ba620bcc2d001c54a46/lesson/0/assumption/0",
+      "task_id": "django__django-12209",
+      "source_revision": "5a68f024987e6d16c2626a31bf653a2edddea579",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-12209:latest",
+        "image_id": "sha256:6781fe1de96e581d385aa7797a580274023f7a625a891f1ecd751ff303e6a256"
+      },
+      "statement": "In the inspected _save_table shortcut, not force_insert, self._state.adding and a truthy pk.default distinct from NOT_PROVIDED cause force_insert=True without checking raw.",
+      "scope": {
+        "inputs": "Execution reaches the INSERT shortcut; default is truthy and not NOT_PROVIDED; adding=True; force_insert=False",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-62bf1e42e1f95530504387ba46b1ed5274ab6cc722a55ba620bcc2d001c54a46/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-62bf1e42e1f95530504387ba46b1ed5274ab6cc722a55ba620bcc2d001c54a46/lesson/0/assumption/1",
+      "task_id": "django__django-12209",
+      "source_revision": "5a68f024987e6d16c2626a31bf653a2edddea579",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-12209:latest",
+        "image_id": "sha256:6781fe1de96e581d385aa7797a580274023f7a625a891f1ecd751ff303e6a256"
+      },
+      "statement": "The agent adds not raw to the force_insert shortcut condition.",
+      "scope": {
+        "inputs": "Execution reaches the existing default-primary-key INSERT shortcut",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-62bf1e42e1f95530504387ba46b1ed5274ab6cc722a55ba620bcc2d001c54a46/inputs/trajectory.json",
+      "scheduled": false,
+      "initial_revisions": [],
+      "Ca_when": null,
+      "reason": "Retained in denominator; not eligible for this execution schedule"
+    },
+    {
+      "assumption_id": "acq-662a2c357348c92c347e785b3596be6bb2dfcaab1f809ec57234469c91f9245f/lesson/0/assumption/0",
+      "task_id": "sympy__sympy-15976",
+      "source_revision": "701441853569d370506514083b995d11f9a130bd",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-15976:latest",
+        "image_id": "sha256:699f53232f0f802fc71c98162e9edbf1b072c335f6aa58f0f677c2d3c3ca70c6"
+      },
+      "statement": "In the original presentation printer, a symbol with subscripts and no superscripts is returned as an mi node containing an msub child.",
+      "scope": {
+        "inputs": "split_super_sub yields no supers and at least one sub",
+        "config": "presentation MathML",
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-662a2c357348c92c347e785b3596be6bb2dfcaab1f809ec57234469c91f9245f/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-662a2c357348c92c347e785b3596be6bb2dfcaab1f809ec57234469c91f9245f/lesson/0/assumption/1",
+      "task_id": "sympy__sympy-15976",
+      "source_revision": "701441853569d370506514083b995d11f9a130bd",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-15976:latest",
+        "image_id": "sha256:699f53232f0f802fc71c98162e9edbf1b072c335f6aa58f0f677c2d3c3ca70c6"
+      },
+      "statement": "The original recorded serialization of Symbol(\"x2\")**3 includes <mi><msub><mi>x</mi><mi>2</mi></msub></mi> inside the power base.",
+      "scope": {
+        "inputs": "Symbol(\"x2\")**3",
+        "config": "mathml printer=\"presentation\"",
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-662a2c357348c92c347e785b3596be6bb2dfcaab1f809ec57234469c91f9245f/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/lesson/0/assumption/0",
+      "task_id": "django__django-16910",
+      "source_revision": "4142739af1cda53581af4169dbe16d6cd5e26948",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-16910:latest",
+        "image_id": "sha256:698b80ebefdb9972f421a4dcafaaff5b8f3374961393e491cef4627c28f07910"
+      },
+      "statement": "The original _get_only_select_mask keys each requested field entry by the object returned from opts.get_field(field_name).",
+      "scope": {
+        "inputs": "A field_name present in mask and resolved by opts.get_field",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/lesson/0/assumption/1",
+      "task_id": "django__django-16910",
+      "source_revision": "4142739af1cda53581af4169dbe16d6cd5e26948",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-16910:latest",
+        "image_id": "sha256:698b80ebefdb9972f421a4dcafaaff5b8f3374961393e491cef4627c28f07910"
+      },
+      "statement": "In the original restricted reverse-relation branch, get_related_selections obtains related_select_mask using select_mask.get(related_field) or {}, where related_field is o.field for a unique non-many-to-many related object.",
+      "scope": {
+        "inputs": "restricted=True; opts.related_objects item with o.field.unique and not o.many_to_many",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-784b52f307fe42d8bc313cb1ab769ecee7582faf5042a989fea963f5bc916e60/lesson/0/assumption/0",
+      "task_id": "django__django-11555",
+      "source_revision": "8dd5877f58f84f2b11126afbd0813e24545919ed",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-11555:latest",
+        "image_id": "sha256:e2c6d6293c8ad66c921754ee2bc13206b0f30166465ad71be92703c11ffaa3cb"
+      },
+      "statement": "The inspected get_order_dir indexes field[0] and slices field[1:] for a leading minus; it has no expression-object guard.",
+      "scope": {
+        "inputs": "A nonempty ordering field specification",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-784b52f307fe42d8bc313cb1ab769ecee7582faf5042a989fea963f5bc916e60/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-784b52f307fe42d8bc313cb1ab769ecee7582faf5042a989fea963f5bc916e60/lesson/0/assumption/1",
+      "task_id": "django__django-11555",
+      "source_revision": "8dd5877f58f84f2b11126afbd0813e24545919ed",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-11555:latest",
+        "image_id": "sha256:e2c6d6293c8ad66c921754ee2bc13206b0f30166465ad71be92703c11ffaa3cb"
+      },
+      "statement": "When the relation/default-ordering branch is entered, the original find_ordering_name recursively passes every opts.ordering item to find_ordering_name.",
+      "scope": {
+        "inputs": "field.is_relation, truthy opts.ordering, field.attname differs from name, no detected join loop",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-784b52f307fe42d8bc313cb1ab769ecee7582faf5042a989fea963f5bc916e60/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-9f16a0be6f4d67457e764366050ecac8243d05b98ece9ab2069a0a5d4bacfaf7/lesson/0/assumption/0",
+      "task_id": "django__django-12589",
+      "source_revision": "895f28f9cbed817c00ab68770433170d83132d90",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-12589:latest",
+        "image_id": "sha256:91c4b9e6b044f038a8f9969c95208bf03431a1ed61e5527bf08a40ee6b18bbe8"
+      },
+      "statement": "Subquery.get_group_by_cols returns [Ref(alias, self)] when alias is truthy.",
+      "scope": {
+        "inputs": "Truthy alias",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-9f16a0be6f4d67457e764366050ecac8243d05b98ece9ab2069a0a5d4bacfaf7/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-9f16a0be6f4d67457e764366050ecac8243d05b98ece9ab2069a0a5d4bacfaf7/lesson/0/assumption/1",
+      "task_id": "django__django-12589",
+      "source_revision": "895f28f9cbed817c00ab68770433170d83132d90",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-12589:latest",
+        "image_id": "sha256:91c4b9e6b044f038a8f9969c95208bf03431a1ed61e5527bf08a40ee6b18bbe8"
+      },
+      "statement": "For an annotation whose get_group_by_cols signature includes alias, Query.set_group_by passes the annotation alias when allow_aliases is true; the shown original method has no joined-column collision check.",
+      "scope": {
+        "inputs": "annotation_select contains the annotation; method signature includes alias",
+        "config": "allow_aliases=True",
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-9f16a0be6f4d67457e764366050ecac8243d05b98ece9ab2069a0a5d4bacfaf7/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-ba678349f94bf919a73747668424bec90f95219b2b78eb994bab8c0a9bed54fa/lesson/0/assumption/0",
+      "task_id": "sympy__sympy-16766",
+      "source_revision": "b8fe457a02cc24b3470ff678d0099c350b7fef43",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-16766:latest",
+        "image_id": "sha256:31178dfc1eabbcb5b6b8f569c4cbe60dd0eecf423bbf99223d125e08f3b5444a"
+      },
+      "statement": "PythonCodePrinter directly inherits AbstractPythonCodePrinter.",
+      "scope": {
+        "inputs": null,
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-ba678349f94bf919a73747668424bec90f95219b2b78eb994bab8c0a9bed54fa/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-ba678349f94bf919a73747668424bec90f95219b2b78eb994bab8c0a9bed54fa/lesson/0/assumption/1",
+      "task_id": "sympy__sympy-16766",
+      "source_revision": "b8fe457a02cc24b3470ff678d0099c350b7fef43",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-16766:latest",
+        "image_id": "sha256:31178dfc1eabbcb5b6b8f569c4cbe60dd0eecf423bbf99223d125e08f3b5444a"
+      },
+      "statement": "After adding AbstractPythonCodePrinter._print_Indexed, pycode(p[1, i]) produces \"p[1, i]\" for p=IndexedBase(\"p\") and i=Symbol(\"i\").",
+      "scope": {
+        "inputs": "IndexedBase(\"p\")[1, Symbol(\"i\")]",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-ba678349f94bf919a73747668424bec90f95219b2b78eb994bab8c0a9bed54fa/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-c7e726c46d0369a5aa71dbbd5db2bed8c0f91f1baa9789ba69fe981fb1b5671c/lesson/0/assumption/0",
+      "task_id": "django__django-14792",
+      "source_revision": "d89f976bddb49fb168334960acc8979c3de991fa",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-14792:latest",
+        "image_id": "sha256:95b4576c207216a24962c777447737314d8a69e9beac97065f58995fc54ce7f8"
+      },
+      "statement": "The original PostgreSQL _prepare_tzname_delta replaces every plus sign with minus if a plus is present; otherwise it replaces every minus with plus if a minus is present.",
+      "scope": {
+        "inputs": "tzname string containing a plus, or containing a minus and no plus",
+        "config": "PostgreSQL backend",
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-c7e726c46d0369a5aa71dbbd5db2bed8c0f91f1baa9789ba69fe981fb1b5671c/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-c7e726c46d0369a5aa71dbbd5db2bed8c0f91f1baa9789ba69fe981fb1b5671c/lesson/0/assumption/1",
+      "task_id": "django__django-14792",
+      "source_revision": "d89f976bddb49fb168334960acc8979c3de991fa",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-14792:latest",
+        "image_id": "sha256:95b4576c207216a24962c777447737314d8a69e9beac97065f58995fc54ce7f8"
+      },
+      "statement": "The recorded parse_time(\"10\") call returns datetime.time(10, 0).",
+      "scope": {
+        "inputs": "\"10\"",
+        "config": null,
+        "env": "Python 3.8.20 recorded in message 18"
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-c7e726c46d0369a5aa71dbbd5db2bed8c0f91f1baa9789ba69fe981fb1b5671c/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a/lesson/0/assumption/0",
+      "task_id": "django__django-15930",
+      "source_revision": "63884829acd207404f2a5c3cc1d6b4cd0a822b70",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-15930:latest",
+        "image_id": "sha256:13515b9e9004217ff7bbd3b95ac8e6475ca965463435b4dda24a8da969710ffa"
+      },
+      "statement": "WhereNode.as_sql returns an empty SQL string with an empty parameter list when empty_needed reaches zero and the node is negated.",
+      "scope": {
+        "inputs": "Compilation reaches empty_needed==0 with self.negated=True",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a/lesson/0/assumption/1",
+      "task_id": "django__django-15930",
+      "source_revision": "63884829acd207404f2a5c3cc1d6b4cd0a822b70",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-15930:latest",
+        "image_id": "sha256:13515b9e9004217ff7bbd3b95ac8e6475ca965463435b4dda24a8da969710ffa"
+      },
+      "statement": "The original When.as_sql places compiler.compile(self.condition) output directly into the condition template parameter without an empty-string fallback.",
+      "scope": {
+        "inputs": "A condition successfully compiles to SQL and parameters",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e/lesson/0/assumption/0",
+      "task_id": "django__django-11276",
+      "source_revision": "28d5262fa3315690395f04e3619ed554dbaf725b",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-11276:latest",
+        "image_id": "sha256:727317e7a8eb50abb663af37206c595a9171295157add746c3f2b3cc42da7323"
+      },
+      "statement": "The original escape implementation translates an apostrophe to the decimal entity &#39; using _html_escapes.",
+      "scope": {
+        "inputs": "A string containing an apostrophe",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    },
+    {
+      "assumption_id": "acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e/lesson/0/assumption/1",
+      "task_id": "django__django-11276",
+      "source_revision": "28d5262fa3315690395f04e3619ed554dbaf725b",
+      "image": {
+        "image": "swebench/sweb.eval.x86_64.django_1776_django-11276:latest",
+        "image_id": "sha256:727317e7a8eb50abb663af37206c595a9171295157add746c3f2b3cc42da7323"
+      },
+      "statement": "The original nested urlize.unescape explicitly replaces &#39; with an apostrophe and has no &#x27; replacement in its shown replacement chain.",
+      "scope": {
+        "inputs": "HTML-escaped URL text passed to the nested helper",
+        "config": null,
+        "env": null
+      },
+      "trajectory_pointer": "handoff/acquisitions/acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e/inputs/trajectory.json",
+      "scheduled": true,
+      "initial_revisions": [
+        "C0",
+        "C1"
+      ],
+      "Ca_when": "C0 and C1 are both contradicted",
+      "reason": "Usable repository candidate"
+    }
+  ],
+  "initial_assessments": 62,
+  "instructions": "Use C0/C1 first; Ca only after both are contradicted. Preserve unscheduled rows as pending. Evidence and official fixes stay private on R. No check was executed by preparation."
+}

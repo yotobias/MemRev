@@ -1,0 +1,147 @@
+{
+  "evaluation_version": 1,
+  "artifact_type": "extraction_review_evaluation",
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "acquisition_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "review_basis": "AI self-review of the original saved extraction against recorded code, commands and observations; original citations assessed individually. Same conversational context as extraction; not independent and not a source-validity check.",
+  "source_validity": "not_assessed",
+  "rating_values": [
+    "yes",
+    "no",
+    "uncertain"
+  ],
+  "rubric_definitions": {
+    "specific_enough_to_check": "Does the candidate identify a concrete behavior or observation that can be assessed? This alone does not establish transferability to another revision.",
+    "single_behaviour": "Does it express one branch-specific contract or one explicit relational invariant, rather than bundling independent behaviors? Record uncertainty when the unit is debatable.",
+    "supported_by_cited_messages": "Do the ORIGINAL cited messages support the statement and its substantive qualifications? Extra messages found by a reviewer do not retroactively fix the original citations.",
+    "scope_sufficient": "Are the relevant inputs, branches, configuration and environment limitations stated sufficiently for this candidate? Unknown details are not treated as unrestricted.",
+    "workspace_attribution_correct": "Does it distinguish the inspected checkout, agent edits and any separate installed package?",
+    "repository_behaviour": "Does the candidate express behavior of repository code, rather than only an environment/procedural observation or a historical event?"
+  },
+  "outcome_definitions": {
+    "usable_as_extracted": "No material extraction defect identified within the stated scope. Not source-validity approval.",
+    "needs_repair": "An identifiable extraction defect needs a separate repair/transformation stage; no replacement is supplied here.",
+    "uncertain": "Evidence or protocol ambiguity prevents a firm evaluation; do not count as accepted.",
+    "context_only": "Retain as context/evidence, but do not count as a repository-behaviour assumption. This is not a claim that the statement is false."
+  },
+  "lesson_outcome_definitions": {
+    "usable_as_extracted": "No material problem identified in the advice itself; assess each attached assumption separately.",
+    "needs_clarification": "Advice has an identifiable scope or interpretation issue; no replacement is requested.",
+    "uncertain": "Available evidence or protocol is insufficient for a firm advice evaluation."
+  },
+  "issue_definitions": {
+    "compound_assumption": "Independently assessable behaviors or branches are bundled.",
+    "granularity_ambiguous": "Whether this is one relational contract or multiple assumptions needs a consistent protocol decision.",
+    "citation_coverage_incomplete": "Original citations omit evidence for a substantive qualification.",
+    "environment_provenance_incomplete": "The claimed environment or installation state is not fully established by the observations.",
+    "dimensional_scope_unclear": "Dimensional limitations or algorithm details are not sufficiently delimited.",
+    "historical_observation": "The statement primarily records a past event, rather than a reusable behavior at a repository revision.",
+    "environment_context": "Useful environment information, distinct from a repository-behaviour assumption.",
+    "procedural_context": "Useful procedural evidence, distinct from a repository-behaviour assumption.",
+    "mixed_assumption_kinds": "Repository behavior and environment/procedure claims are combined.",
+    "advice_scope_unclear": "Advice is broader than its demonstrated validation context.",
+    "test_discrimination_unclear": "Advice does not distinguish a bug-exposing case from a compatibility control.",
+    "preservation_policy_unclear": "Advice could imply preserving all existing behavior without establishing which contracts should remain compatible."
+  },
+  "lessons": [
+    {
+      "lesson_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/lesson/0",
+      "original_advice": "When debugging equality between numeric zero and symbolic booleans, inspect type guards before truthiness shortcuts and test both operand orders. Preserve numeric-zero compatibility with separate control cases.",
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 5 shows the original branch order, including successful sympification and the zero shortcut. The conditional contract is stated without treating all falsey objects as numeric zeros.",
+        "reviewer_evidence_message_indices": [
+          4,
+          5,
+          7,
+          8
+        ]
+      },
+      "assumptions": [
+        {
+          "assumption_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/lesson/0/assumption/0",
+          "original": {
+            "statement": "In the inspected Float.__eq__, successful sympification is followed by an if-not-self shortcut returning not other before the Boolean type guard.",
+            "symbol": "Float.__eq__",
+            "file": "sympy/core/numbers.py",
+            "predicate": "returns",
+            "kind": "repo_behaviour",
+            "scope": {
+              "inputs": "other successfully sympified; self is falsey",
+              "config": null,
+              "env": null
+            },
+            "evidence_message_indices": [
+              4,
+              5
+            ],
+            "evidence_basis": "code_observation",
+            "workspace_context": "Original checkout before agent edits."
+          },
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 5 shows the original branch order, including successful sympification and the zero shortcut. The conditional contract is stated without treating all falsey objects as numeric zeros.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "assumption_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/lesson/0/assumption/1",
+          "original": {
+            "statement": "After moving the Boolean guard before the zero shortcut, S(0.0)==S.false and S.false==S(0.0) both evaluate to False.",
+            "symbol": "Float.__eq__",
+            "file": "sympy/core/numbers.py",
+            "predicate": "returns",
+            "kind": "repo_behaviour",
+            "scope": {
+              "inputs": "S(0.0) and S.false, compared in both operand orders",
+              "config": null,
+              "env": null
+            },
+            "evidence_message_indices": [
+              7,
+              8
+            ],
+            "evidence_basis": "execution_observation",
+            "workspace_context": "Checkout after guard reordering in message 7."
+          },
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 7–8 show both operand-order comparisons and False outputs after reordering. This is one symmetry invariant for the specified pair, not a claim about every Boolean comparison.",
+            "reviewer_evidence_message_indices": [
+              7,
+              8
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

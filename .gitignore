@@ -1,4 +1,30 @@
+# Publish only the frozen main-3 study artifacts. New runs stay local by default.
+/runs/*
+!/runs/trajectories-pilot-A/
+/runs/trajectories-pilot-A/*
+!/runs/trajectories-pilot-A/main-3/
+!/runs/trajectories-pilot-A/main-3/**
+!/runs/pilot-a/
+/runs/pilot-a/*
+!/runs/pilot-a/main-3/
+/runs/pilot-a/main-3/*
+!/runs/pilot-a/main-3/prepared/
+!/runs/pilot-a/main-3/responses/
+!/runs/pilot-a/main-3/acquisitions/
+!/runs/pilot-a/main-3/evaluations/
+!/runs/pilot-a/main-3/handoff/
+!/runs/pilot-a/main-3/delivery/
+!/runs/pilot-a/main-3/lane-r-execution-v1/
+!/runs/pilot-a/main-3/pilot-b-delivery.zip
+!/runs/pilot-a/main-3/pilot-b-delivery.sha256
+!/runs/pilot-a/main-3/lane-r-execution-v1.zip
+!/runs/pilot-a/main-3/lane-r-execution-v1.sha256
+/pilot-a/runs/
+
+# Keep these exclusions after the artifact exceptions.
 .env
+.env.*
+!.env.example
 .venv/
 __pycache__/
 *.pyc
@@ -6,7 +32,6 @@ __pycache__/
 .pytest_cache/
 build/
 dist/
-runs/
 
 # Pilot A Lane R (branch pilot-a/laneR)
 # gold-gate results name the tests of the official fixes: Lane R only, Lane N stays blind

@@ -1,0 +1,169 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-662a2c357348c92c347e785b3596be6bb2dfcaab1f809ec57234469c91f9245f",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-15976",
+    "trajectory_sha256": "ef6a9c7e3e15e5168ceb13e41f648c76b3a921a723491618bc863ecfb354285f",
+    "extraction_sha256": "3493b322f194234b71b6affc6c1abd118cf6a043238fc324a0384f3d5076bf02"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "sympy__sympy-15976",
+    "repository": "sympy/sympy",
+    "source_revision": "701441853569d370506514083b995d11f9a130bd",
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-15976",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/sympy__sympy-15976.txt",
+      "sha256": "4e3aaa1380d2868d6b70b8c41e97f9a348fd283e053186e89a25ecc535e92984"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/sympy__sympy-15976/trajectory.json",
+      "sha256": "ef6a9c7e3e15e5168ceb13e41f648c76b3a921a723491618bc863ecfb354285f"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-15976/extraction.json",
+      "sha256": "3493b322f194234b71b6affc6c1abd118cf6a043238fc324a0384f3d5076bf02"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-15976/metadata.json",
+      "sha256": "db7037166bb7fe3ce5f94ae100676c4a0f6dc9b193fe30419cfc65d8efda2ed0"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 17,
+  "lessons": [
+    {
+      "advice": "When debugging presentation MathML for scripted symbol names, inspect the emitted XML tree and distinguish it from content MathML. Check browser rendering separately; changing a serializer tree does not by itself prove the reported browser symptom is fixed.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "In the original presentation printer, a symbol with subscripts and no superscripts is returned as an mi node containing an msub child.",
+          "symbol": "MathMLPresentationPrinter._print_Symbol",
+          "file": "sympy/printing/mathml.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "split_super_sub yields no supers and at least one sub",
+            "config": "presentation MathML",
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-662a2c357348c92c347e785b3596be6bb2dfcaab1f809ec57234469c91f9245f/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 3 and 5 together show the presentation branch and final return. Scope identifies the no-supers/nonempty-subs case and avoids confusing it with content MathML.",
+            "reviewer_evidence_message_indices": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "The original recorded serialization of Symbol(\"x2\")**3 includes <mi><msub><mi>x</mi><mi>2</mi></msub></mi> inside the power base.",
+          "symbol": "MathMLPresentationPrinter._print_Symbol",
+          "file": "sympy/printing/mathml.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Symbol(\"x2\")**3",
+            "config": "mathml printer=\"presentation\"",
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            6
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-662a2c357348c92c347e785b3596be6bb2dfcaab1f809ec57234469c91f9245f/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 4 and 6 show the exact expression and serialized nested fragment before edits. The claim concerns emitted XML, not independently observed Safari rendering.",
+            "reviewer_evidence_message_indices": [
+              4,
+              6
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-662a2c357348c92c347e785b3596be6bb2dfcaab1f809ec57234469c91f9245f/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Messages 3 and 5 together show the presentation branch and final return. Scope identifies the no-supers/nonempty-subs case and avoids confusing it with content MathML.",
+        "reviewer_evidence_message_indices": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-8752510ddc24942641a2c2904e15a6d8615da62374ef9fb5a2736bb8d0a3d59e"
+}

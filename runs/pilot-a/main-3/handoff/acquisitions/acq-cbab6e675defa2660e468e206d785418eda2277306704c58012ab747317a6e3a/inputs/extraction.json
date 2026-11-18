@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When embedding a condition in CASE WHEN, handle the empty-SQL representation of a match-all WHERE condition explicitly. Test backend-specific boolean rendering and preserve the distinction from a condition that matches nothing.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "WhereNode.as_sql returns an empty SQL string with an empty parameter list when empty_needed reaches zero and the node is negated.",
+          "symbol": "WhereNode.as_sql",
+          "file": "django/db/models/sql/where.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Compilation reaches empty_needed==0 with self.negated=True",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            6
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "The original When.as_sql places compiler.compile(self.condition) output directly into the condition template parameter without an empty-string fallback.",
+          "symbol": "When.as_sql",
+          "file": "django/db/models/expressions.py",
+          "predicate": "mutates",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A condition successfully compiles to SQL and parameters",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When extending inverse-trigonometric LaTeX formatting, inspect the function-name dispatch table and test each added function with the requested style. The observed acsc output comes from agent-edited code, not a source-revision check.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "The inspected inverse-trig style dispatch table contains asin, acos, atan and acot, but omits acsc and asec.",
+          "symbol": "LatexPrinter._print_Function",
+          "file": "sympy/printing/latex.py",
+          "predicate": "other",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Inverse trigonometric function name dispatch",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "After the agent adds acsc to the table, latex(acsc(x), inv_trig_style=\"full\") emits an operator named arccsc.",
+          "symbol": "LatexPrinter._print_Function",
+          "file": "sympy/printing/latex.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "acsc(Symbol(\"x\"))",
+            "config": "inv_trig_style=\"full\"",
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after the table edit in message 4."
+        }
+      ]
+    }
+  ]
+}

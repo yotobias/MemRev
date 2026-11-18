@@ -1,0 +1,18 @@
+{
+  "instance_id": "sympy__sympy-20801",
+  "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20801:latest",
+  "base_commit": "e11d3fed782146eebbffdc9ced0364b223b84b6c",
+  "commands": 6,
+  "exit_code_mismatches": 0,
+  "patch_applies": true,
+  "patch_files": [
+    "2 2 sympy/core/numbers.py"
+  ],
+  "replay_files": [
+    "2 2 sympy/core/numbers.py"
+  ],
+  "tracked_diff_same": true,
+  "untracked_after_replay": [
+    "patch.txt"
+  ]
+}

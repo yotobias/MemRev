@@ -25,7 +25,7 @@ The AI review marks **31 assumptions usable as extracted and 1 context-only**. T
 2. R authors and executes scoped checks using the frozen IDs and return contract, starting with a real C0/C1 smoke. The verification-command index removes any dependency on a phase segmenter.
 3. N imports validity results, completes sharing and performs the planned regrouping consistency check.
 4. Write the final findings report, including costs, exclusions, uncertainty and contamination. There is no minimum success threshold.
-5. Share the final package separately from gitignored `runs/` artifacts. B confirms importer fields, source SHAs and selection/environment rules, including V46's non-Verified tasks.
+5. The current main-3 artifacts come with the Git checkout. Publish the final public package explicitly when complete; new output directories remain ignored by default. B confirms importer fields, source SHAs and selection/environment rules, including V46's non-Verified tasks.
 
 Lane R reports upstream-fix recall in 10/16 tasks. Replay differs from patch-only reconstruction for django-14792 and django-16910. The imported JSON files describe prior replay results; they are not full workspace archives. See the handoff for these limitations.
 

@@ -1,0 +1,19 @@
+{
+  "counts": {
+    "pending": 32,
+    "group": 0,
+    "exclude": 0,
+    "uncertain": 0
+  },
+  "summary": {
+    "distinct_groups": 0,
+    "grouped_occurrences": 0,
+    "groups_in_multiple_lessons": 0,
+    "groups_in_multiple_tasks": 0,
+    "groups_in_verified_distinct_prs": 0,
+    "groups_with_repeated_task_occurrences": 0,
+    "groups_touching_same_text_tasks": 0
+  },
+  "groups": [],
+  "reviewer": null
+}

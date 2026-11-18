@@ -1,0 +1,167 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-51a096b9fd686eb2b9400de1f7c86aa4ee0e98bac4811cdf452bd6691d408583",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-scikit-learn__scikit-learn-10949",
+    "trajectory_sha256": "922fe35f7f1a4025ab49d1bbcaf05f3f38c22414f1ad45b0da149e21f0d32089",
+    "extraction_sha256": "2c33d4d595d0f32f5a61d9442ef7d8a439100c7c24cd5301c0cfc8ac782c7f85"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "scikit-learn__scikit-learn-10949",
+    "repository": "scikit-learn/scikit-learn",
+    "source_revision": "3b5abf76597ce6aff76192869f92647c1b5259e7",
+    "extraction_run_id": "main-3-codex-session-20261117-scikit-learn__scikit-learn-10949",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/scikit-learn__scikit-learn-10949.txt",
+      "sha256": "c9db11946350e7492021c39a3dce5e7760349bd55679d3a71f48eff5cbb64a38"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/scikit-learn__scikit-learn-10949/trajectory.json",
+      "sha256": "922fe35f7f1a4025ab49d1bbcaf05f3f38c22414f1ad45b0da149e21f0d32089"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/scikit-learn__scikit-learn-10949/extraction.json",
+      "sha256": "2c33d4d595d0f32f5a61d9442ef7d8a439100c7c24cd5301c0cfc8ac782c7f85"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/scikit-learn__scikit-learn-10949/metadata.json",
+      "sha256": "613e71b1d1e51d20073fa877f92308862c0625bb8f9a8415f1c7db8a37f47fe3"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 17,
+  "lessons": [
+    {
+      "advice": "When diagnosing dtype warnings for DataFrames, inspect column dtypes as well as scalar dtype metadata. Compare baseline and edited test failures by identity and cause; matching failure totals alone do not establish regression equivalence.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The inspected scalar-dtype warning branch runs only when warn_on_dtype is true, dtype_orig is not None, and the converted array dtype differs from dtype_orig.",
+          "symbol": "check_array",
+          "file": "sklearn/utils/validation.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Input accepted through preceding validation; scalar dtype_orig recorded",
+            "config": "warn_on_dtype=True",
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5,
+            6
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-51a096b9fd686eb2b9400de1f7c86aa4ee0e98bac4811cdf452bd6691d408583/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 5–6 show dtype_orig acquisition and the exact conjunction guarding the scalar warning. The precondition that preceding validation completes avoids claiming all inputs reach this branch.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5,
+              6
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "In the agent-edited checkout, check_array on the demonstrated two-row, three-column object DataFrame with warn_on_dtype=True emits a DataConversionWarning reporting conversion from object to float64.",
+          "symbol": "check_array",
+          "file": "sklearn/utils/validation.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "pd.DataFrame([[1,2,3],[2,3,4]], dtype=object)",
+            "config": "warn_on_dtype=True",
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Intermediate checkout after message 7, before the stacklevel change in message 9.",
+          "assumption_id": "acq-51a096b9fd686eb2b9400de1f7c86aa4ee0e98bac4811cdf452bd6691d408583/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 7–8 show the exact DataFrame call and its object-to-float64 warning. The candidate identifies the intermediate edit before stacklevel was removed; it does not infer all original failures were unchanged from matching totals.",
+            "reviewer_evidence_message_indices": [
+              7,
+              8
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-51a096b9fd686eb2b9400de1f7c86aa4ee0e98bac4811cdf452bd6691d408583/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Messages 5–6 show dtype_orig acquisition and the exact conjunction guarding the scalar warning. The precondition that preceding validation completes avoids claiming all inputs reach this branch.",
+        "reviewer_evidence_message_indices": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-735121f5c42e49e4592433a27543f44dd267143fdb27e53e142dbb9dc1e32cc4"
+}

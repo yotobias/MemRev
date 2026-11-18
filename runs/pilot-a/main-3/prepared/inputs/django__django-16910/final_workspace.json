@@ -1,0 +1,19 @@
+{
+  "instance_id": "django__django-16910",
+  "image": "swebench/sweb.eval.x86_64.django_1776_django-16910:latest",
+  "base_commit": "4142739af1cda53581af4169dbe16d6cd5e26948",
+  "commands": 12,
+  "exit_code_mismatches": 0,
+  "patch_applies": true,
+  "patch_files": [
+    "7 2 django/db/models/sql/query.py"
+  ],
+  "replay_files": [
+    "7 2 django/db/models/sql/query.py",
+    "12 1 tests/select_related_onetoone/tests.py"
+  ],
+  "tracked_diff_same": false,
+  "untracked_after_replay": [
+    "patch.txt"
+  ]
+}

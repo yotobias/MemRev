@@ -1,0 +1,145 @@
+{
+  "evaluation_version": 1,
+  "artifact_type": "extraction_review_evaluation",
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "acquisition_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "review_basis": "AI self-review of the original saved extraction against recorded code, commands and observations; original citations assessed individually. Same conversational context as extraction; not independent and not a source-validity check.",
+  "source_validity": "not_assessed",
+  "rating_values": [
+    "yes",
+    "no",
+    "uncertain"
+  ],
+  "rubric_definitions": {
+    "specific_enough_to_check": "Does the candidate identify a concrete behavior or observation that can be assessed? This alone does not establish transferability to another revision.",
+    "single_behaviour": "Does it express one branch-specific contract or one explicit relational invariant, rather than bundling independent behaviors? Record uncertainty when the unit is debatable.",
+    "supported_by_cited_messages": "Do the ORIGINAL cited messages support the statement and its substantive qualifications? Extra messages found by a reviewer do not retroactively fix the original citations.",
+    "scope_sufficient": "Are the relevant inputs, branches, configuration and environment limitations stated sufficiently for this candidate? Unknown details are not treated as unrestricted.",
+    "workspace_attribution_correct": "Does it distinguish the inspected checkout, agent edits and any separate installed package?",
+    "repository_behaviour": "Does the candidate express behavior of repository code, rather than only an environment/procedural observation or a historical event?"
+  },
+  "outcome_definitions": {
+    "usable_as_extracted": "No material extraction defect identified within the stated scope. Not source-validity approval.",
+    "needs_repair": "An identifiable extraction defect needs a separate repair/transformation stage; no replacement is supplied here.",
+    "uncertain": "Evidence or protocol ambiguity prevents a firm evaluation; do not count as accepted.",
+    "context_only": "Retain as context/evidence, but do not count as a repository-behaviour assumption. This is not a claim that the statement is false."
+  },
+  "lesson_outcome_definitions": {
+    "usable_as_extracted": "No material problem identified in the advice itself; assess each attached assumption separately.",
+    "needs_clarification": "Advice has an identifiable scope or interpretation issue; no replacement is requested.",
+    "uncertain": "Available evidence or protocol is insufficient for a firm advice evaluation."
+  },
+  "issue_definitions": {
+    "compound_assumption": "Independently assessable behaviors or branches are bundled.",
+    "granularity_ambiguous": "Whether this is one relational contract or multiple assumptions needs a consistent protocol decision.",
+    "citation_coverage_incomplete": "Original citations omit evidence for a substantive qualification.",
+    "environment_provenance_incomplete": "The claimed environment or installation state is not fully established by the observations.",
+    "dimensional_scope_unclear": "Dimensional limitations or algorithm details are not sufficiently delimited.",
+    "historical_observation": "The statement primarily records a past event, rather than a reusable behavior at a repository revision.",
+    "environment_context": "Useful environment information, distinct from a repository-behaviour assumption.",
+    "procedural_context": "Useful procedural evidence, distinct from a repository-behaviour assumption.",
+    "mixed_assumption_kinds": "Repository behavior and environment/procedure claims are combined.",
+    "advice_scope_unclear": "Advice is broader than its demonstrated validation context.",
+    "test_discrimination_unclear": "Advice does not distinguish a bug-exposing case from a compatibility control.",
+    "preservation_policy_unclear": "Advice could imply preserving all existing behavior without establishing which contracts should remain compatible."
+  },
+  "lessons": [
+    {
+      "lesson_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/lesson/0",
+      "original_advice": "When debugging only() with reverse select_related(), compare the field-object keys used by mask construction and mask lookup. Keep original-test results separate from results obtained after changing expectations, and preserve replay state when submitted patches omit test edits.",
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 5 shows opts.get_field and setdefault(field, {}) in the original only-mask builder. The scope is the resolved field entry, not a claim of successful reverse-relation execution.",
+        "reviewer_evidence_message_indices": [
+          4,
+          5
+        ]
+      },
+      "assumptions": [
+        {
+          "assumption_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/lesson/0/assumption/0",
+          "original": {
+            "statement": "The original _get_only_select_mask keys each requested field entry by the object returned from opts.get_field(field_name).",
+            "symbol": "Query._get_only_select_mask",
+            "file": "django/db/models/sql/query.py",
+            "predicate": "mutates",
+            "kind": "repo_behaviour",
+            "scope": {
+              "inputs": "A field_name present in mask and resolved by opts.get_field",
+              "config": null,
+              "env": null
+            },
+            "evidence_message_indices": [
+              4,
+              5
+            ],
+            "evidence_basis": "code_observation",
+            "workspace_context": "Original checkout before agent edits."
+          },
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 5 shows opts.get_field and setdefault(field, {}) in the original only-mask builder. The scope is the resolved field entry, not a claim of successful reverse-relation execution.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "assumption_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/lesson/0/assumption/1",
+          "original": {
+            "statement": "In the original restricted reverse-relation branch, get_related_selections obtains related_select_mask using select_mask.get(related_field) or {}, where related_field is o.field for a unique non-many-to-many related object.",
+            "symbol": "SQLCompiler.get_related_selections",
+            "file": "django/db/models/sql/compiler.py",
+            "predicate": "other",
+            "kind": "repo_behaviour",
+            "scope": {
+              "inputs": "restricted=True; opts.related_objects item with o.field.unique and not o.many_to_many",
+              "config": null,
+              "env": null
+            },
+            "evidence_message_indices": [
+              4,
+              5
+            ],
+            "evidence_basis": "code_observation",
+            "workspace_context": "Original checkout before agent edits."
+          },
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 5 shows the restricted reverse-relation selection and forward-field lookup. The claim retains uniqueness and many-to-many exclusions and is independent of later changed test expectations.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

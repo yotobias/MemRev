@@ -1,0 +1,16 @@
+{
+  "import_version": 1,
+  "acquisition_id": "acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e",
+  "record_sha256": "c209216ade6503618d95d169d0749f20b9ee09493c1e61b816373f1f50496ae4",
+  "evaluation_sha256": "a7c008e4ddb63190ab9870b899de3b8936e9fb0f5cf0fad8e6b0772170afefb5",
+  "protocol_sha256": "0b18ed0aad9ce0dfe1c371b5888869eb028673ad7a08dccf7e4711c6b1a97729",
+  "evaluation_id": "eval-7cf1c97f9343971479e639933080f61000f19449244e9d8f631e8ca8179350e4",
+  "artifacts": {
+    "evaluation.input.json": "a7c008e4ddb63190ab9870b899de3b8936e9fb0f5cf0fad8e6b0772170afefb5",
+    "evaluated_bank.json": "2f30e45321d38130f7bcfea2b961ba100f297e35630f6ca6970025821e1cf26f",
+    "summary.json": "e966051070ef289fa629d020ff97a543fbb0ca4b5c43473e528dbebece3bdfa5",
+    "report.md": "c98db89428a129da3b507813c3139ebed9e3fd3685fdb93160f7bc63dce731cc",
+    "protocol.json": "0b18ed0aad9ce0dfe1c371b5888869eb028673ad7a08dccf7e4711c6b1a97729",
+    "acquisition.record.json": "c209216ade6503618d95d169d0749f20b9ee09493c1e61b816373f1f50496ae4"
+  }
+}

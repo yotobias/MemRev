@@ -1,0 +1,114 @@
+{
+  "purpose": "pilot_a",
+  "contract_status": "proposed",
+  "research_complete": false,
+  "acquisitions": 16,
+  "original_lessons": 16,
+  "original_assumptions": 32,
+  "distinct_task_ids": 16,
+  "extraction_reviews": {
+    "pending": 0,
+    "human": 0,
+    "human_ai_assisted": 0,
+    "ai": 16
+  },
+  "assumption_evaluation_outcomes": {
+    "usable_as_extracted": 31,
+    "context_only": 1
+  },
+  "validity_cells": {
+    "pending": 96,
+    "supported": 0,
+    "contradicted": 0,
+    "inconclusive": 0,
+    "undefined": 0
+  },
+  "validity_methods": {},
+  "validity_assessor_types": {},
+  "validity_labels": {
+    "pending": 32
+  },
+  "manual_fraction_of_assessed_cells": null,
+  "sharing_decisions": {
+    "pending": 32,
+    "group": 0,
+    "exclude": 0,
+    "uncertain": 0
+  },
+  "sharing": {
+    "distinct_groups": 0,
+    "grouped_occurrences": 0,
+    "groups_in_multiple_lessons": 0,
+    "groups_in_multiple_tasks": 0,
+    "groups_in_verified_distinct_prs": 0,
+    "groups_with_repeated_task_occurrences": 0,
+    "groups_touching_same_text_tasks": 0
+  },
+  "sharing_reviewer": null,
+  "pilot_b": {
+    "exported": 16,
+    "excluded": 0,
+    "contract_status": "proposed"
+  },
+  "extraction_cost": {
+    "known_usd": 0,
+    "known_acquisitions": 0,
+    "unknown_acquisitions": 16
+  },
+  "other_costs": {
+    "agent_runs": "not_aggregated",
+    "checks": "not_aggregated",
+    "container_time": "not_aggregated"
+  },
+  "selection": {
+    "selected_tasks": 16,
+    "production_tasks_present": [
+      "django__django-11276",
+      "django__django-11555",
+      "django__django-12209",
+      "django__django-12589",
+      "django__django-14792",
+      "django__django-15382",
+      "django__django-15930",
+      "django__django-16910",
+      "scikit-learn__scikit-learn-10949",
+      "scikit-learn__scikit-learn-25638",
+      "sympy__sympy-14774",
+      "sympy__sympy-14976",
+      "sympy__sympy-15976",
+      "sympy__sympy-16766",
+      "sympy__sympy-18057",
+      "sympy__sympy-20801"
+    ],
+    "production_tasks_missing": [],
+    "unselected_task_ids": []
+  },
+  "per_repository": {
+    "sympy/sympy": {
+      "lessons": 6,
+      "assumption_occurrences": 12
+    },
+    "django/django": {
+      "lessons": 8,
+      "assumption_occurrences": 16
+    },
+    "scikit-learn/scikit-learn": {
+      "lessons": 2,
+      "assumption_occurrences": 4
+    }
+  },
+  "lesson_origins": {
+    "from_failed_step": 8,
+    "not_from_failed_step": 7,
+    "unknown": 1
+  },
+  "lessons_with_usable_repository_assumption": 16,
+  "lessons_with_reviewed_repository_history_assumption": 0,
+  "design_decisions_pending": [
+    "Freeze the extraction-review rubric and separate repair policy.",
+    "Agree Lane R's validity return fields, evidence storage and workspace identifiers.",
+    "Agree scoped grouping eligibility, unknown-scope handling and sampling seed.",
+    "Agree Pilot B's six exact field names and provenance/export policy."
+  ],
+  "collection_id": "collection-702c7aaa7a3c36d6f599e12b477ff5f82d25b40fbce37ce70220483fba32e752"
+}

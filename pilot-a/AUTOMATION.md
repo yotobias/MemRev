@@ -57,7 +57,7 @@ Inspect that task's extraction, review and usage. Then repeat the same full comm
 | `handoff/` | B lesson bank, review status, report and pending Lane R/sharing forms |
 | `pilot-b-delivery.zip`, `.sha256` | Portable delivery with source inputs, model-call evidence and file hashes |
 
-The archive contains prompts, trajectories and model outputs; share through the team's normal research channel. API key values and HTTP headers are not included. `runs/` remains gitignored. Review the copied `limitations.md` and `handoff/report.md` before sharing. No real model run is included with the implementation tests.
+The archive contains prompts, trajectories and model outputs; share through the team's normal research channel. API key values and HTTP headers are not included. New API output directories remain gitignored; only the existing frozen main-3 artifacts are selected for Git tracking. Review the copied `limitations.md` and `handoff/report.md` before sharing. No real model run is included with the implementation tests.
 
 ## Failure and resume policy
 

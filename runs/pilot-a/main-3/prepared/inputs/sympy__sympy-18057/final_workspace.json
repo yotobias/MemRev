@@ -1,0 +1,20 @@
+{
+  "instance_id": "sympy__sympy-18057",
+  "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-18057:latest",
+  "base_commit": "62000f37b8821573ba00280524ffb4ac4a380875",
+  "commands": 13,
+  "exit_code_mismatches": 0,
+  "patch_applies": true,
+  "patch_files": [
+    "1 1 sympy/core/expr.py",
+    "1 1 sympy/core/tests/test_var.py"
+  ],
+  "replay_files": [
+    "1 1 sympy/core/expr.py",
+    "1 1 sympy/core/tests/test_var.py"
+  ],
+  "tracked_diff_same": true,
+  "untracked_after_replay": [
+    "patch.txt"
+  ]
+}

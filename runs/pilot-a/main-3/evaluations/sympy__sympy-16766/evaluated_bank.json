@@ -1,0 +1,164 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-ba678349f94bf919a73747668424bec90f95219b2b78eb994bab8c0a9bed54fa",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-16766",
+    "trajectory_sha256": "67f3f5f169854bcaade2f2ad9e1355abf5bfa997b4b54cf91b554a5b06d57c64",
+    "extraction_sha256": "e6978d5664cfc5886de105c8a5ceed58f61dc7d9ea8d7673fb8c2a2f31274ebf"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "sympy__sympy-16766",
+    "repository": "sympy/sympy",
+    "source_revision": "b8fe457a02cc24b3470ff678d0099c350b7fef43",
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-16766",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/sympy__sympy-16766.txt",
+      "sha256": "e90f722fca8fba9ee40d79b2c4623d5b7a95cb5ee9f28e5e4f2f680c2363ac96"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/sympy__sympy-16766/trajectory.json",
+      "sha256": "67f3f5f169854bcaade2f2ad9e1355abf5bfa997b4b54cf91b554a5b06d57c64"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-16766/extraction.json",
+      "sha256": "e6978d5664cfc5886de105c8a5ceed58f61dc7d9ea8d7673fb8c2a2f31274ebf"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-16766/metadata.json",
+      "sha256": "88798245de53b023d4cc860294cba949c038408f5b818463cea080422b51f691"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 13,
+  "lessons": [
+    {
+      "advice": "For Python Indexed printing, inspect the printer hierarchy before placing the handler in a shared base class. Check one- and multi-index expressions explicitly; the recorded smoke checks do not establish behavior for every backend.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "PythonCodePrinter directly inherits AbstractPythonCodePrinter.",
+          "symbol": "PythonCodePrinter",
+          "file": "sympy/printing/pycode.py",
+          "predicate": "type_is",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": null,
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-ba678349f94bf919a73747668424bec90f95219b2b78eb994bab8c0a9bed54fa/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 5 explicitly declares the class inheritance. It is a checkable repository structure claim and does not imply every backend behaves identically.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "After adding AbstractPythonCodePrinter._print_Indexed, pycode(p[1, i]) produces \"p[1, i]\" for p=IndexedBase(\"p\") and i=Symbol(\"i\").",
+          "symbol": "AbstractPythonCodePrinter._print_Indexed",
+          "file": "sympy/printing/pycode.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "IndexedBase(\"p\")[1, Symbol(\"i\")]",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after the handler addition in message 7.",
+          "assumption_id": "acq-ba678349f94bf919a73747668424bec90f95219b2b78eb994bab8c0a9bed54fa/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 7–8 pair the multi-index example and output after adding the handler. Scope is that exact example, not arbitrary indices or all subclasses.",
+            "reviewer_evidence_message_indices": [
+              7,
+              8
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-ba678349f94bf919a73747668424bec90f95219b2b78eb994bab8c0a9bed54fa/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 5 explicitly declares the class inheritance. It is a checkable repository structure claim and does not imply every backend behaves identically.",
+        "reviewer_evidence_message_indices": [
+          4,
+          5,
+          7,
+          8
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-a1223d45cfa49b869b5a83a742b2c0f77eaac9ef99576776ec6b41023f0dbde1"
+}

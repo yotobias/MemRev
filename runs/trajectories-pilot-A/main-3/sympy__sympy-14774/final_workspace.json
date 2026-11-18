@@ -1,0 +1,18 @@
+{
+  "instance_id": "sympy__sympy-14774",
+  "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14774:latest",
+  "base_commit": "8fc63c2d71752389a44367b8ef4aba8a91af6a45",
+  "commands": 5,
+  "exit_code_mismatches": 0,
+  "patch_applies": true,
+  "patch_files": [
+    "1 1 sympy/printing/latex.py"
+  ],
+  "replay_files": [
+    "1 1 sympy/printing/latex.py"
+  ],
+  "tracked_diff_same": true,
+  "untracked_after_replay": [
+    "patch.txt"
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-62bf1e42e1f95530504387ba46b1ed5274ab6cc722a55ba620bcc2d001c54a46",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-12209",
+    "trajectory_sha256": "c9c7165fc00fca74db2d9c7ea7efa0c248f84d0a815389a5129e80cf06f24bc2",
+    "extraction_sha256": "93e4bb199a02a424e1a85086dcd151b7afb731a820dfdb5d96c4eb307c652d55"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "django__django-12209",
+    "repository": "django/django",
+    "source_revision": "5a68f024987e6d16c2626a31bf653a2edddea579",
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-12209",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/django__django-12209.txt",
+      "sha256": "a22a17475166a8b2c86a0fba5183029d6d92f313466ab8a960fccb3663074290"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/django__django-12209/trajectory.json",
+      "sha256": "c9c7165fc00fca74db2d9c7ea7efa0c248f84d0a815389a5129e80cf06f24bc2"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-12209/extraction.json",
+      "sha256": "93e4bb199a02a424e1a85086dcd151b7afb731a820dfdb5d96c4eb307c652d55"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-12209/metadata.json",
+      "sha256": "2a26a7e160f889333da1968a3c47549b5adad38d3dca63b1fde64e279730d8c3"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 13,
+  "lessons": [
+    {
+      "advice": "Distinguish raw fixture saves from normal explicit-primary-key saves when changing the default-primary-key INSERT shortcut. A raw-only guard does not demonstrate that normal save behavior was fixed; retain separate reproduction cases.",
+      "from_failed_step": null,
+      "assumptions": [
+        {
+          "statement": "In the inspected _save_table shortcut, not force_insert, self._state.adding and a truthy pk.default distinct from NOT_PROVIDED cause force_insert=True without checking raw.",
+          "symbol": "Model._save_table",
+          "file": "django/db/models/base.py",
+          "predicate": "mutates",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Execution reaches the INSERT shortcut; default is truthy and not NOT_PROVIDED; adding=True; force_insert=False",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-62bf1e42e1f95530504387ba46b1ed5274ab6cc722a55ba620bcc2d001c54a46/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 3 shows the complete INSERT-shortcut conjunction. The claim includes the truthy-default and NOT_PROVIDED checks, and correctly identifies original code.",
+            "reviewer_evidence_message_indices": [
+              2,
+              3
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "The agent adds not raw to the force_insert shortcut condition.",
+          "symbol": "Model._save_table",
+          "file": "django/db/models/base.py",
+          "predicate": "other",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Execution reaches the existing default-primary-key INSERT shortcut",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            6,
+            7,
+            10
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Checkout after the one-line guard edit in message 6.",
+          "assumption_id": "acq-62bf1e42e1f95530504387ba46b1ed5274ab6cc722a55ba620bcc2d001c54a46/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "context_only",
+            "issue_codes": [
+              "historical_observation"
+            ],
+            "reason": "This records the historical edit itself rather than stating a reusable repository behavior under inputs. Preserve as context; derive a behavior-oriented assumption separately if needed, without rewriting this primary candidate.",
+            "reviewer_evidence_message_indices": [
+              6,
+              7,
+              10
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "no"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-62bf1e42e1f95530504387ba46b1ed5274ab6cc722a55ba620bcc2d001c54a46/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 3 shows the complete INSERT-shortcut conjunction. The claim includes the truthy-default and NOT_PROVIDED checks, and correctly identifies original code.",
+        "reviewer_evidence_message_indices": [
+          2,
+          3,
+          6,
+          7,
+          10
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-9913d2759900281c196522fc218b2e744634b89b44d6c23aafecdeba382d1422"
+}

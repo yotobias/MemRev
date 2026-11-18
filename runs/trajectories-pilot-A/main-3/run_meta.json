@@ -1,0 +1,83 @@
+{
+  "run": "main-3",
+  "model": "anthropic/claude-sonnet-5-5",
+  "instance_set": "pilot-a/instances/main",
+  "workers": 2,
+  "config": "minisweagent swebench.yaml as shipped + pilot-a/config/thinking_summarized.yaml",
+  "extra_config": "# Merged on top of the shipped swebench.yaml (run_agent.sh passes it after it with -c).\n# Sonnet 5.5 thinks adaptively by default but returns its thinking, and its text between\n# tool calls, as blank blocks (display \"omitted\"). \"summarized\" changes visibility only.\nmodel:\n  model_kwargs:\n    thinking:\n      type: adaptive\n      display: summarized\n",
+  "temperature": "not set (provider default)",
+  "started_at": "2026-11-10T07:17:46+00:00",
+  "versions": {
+    "mini-swe-agent": "2.4.6",
+    "litellm": "1.106.2",
+    "datasets": "5.1.0"
+  },
+  "instances_sha256": "709ac63e944a2c6c016b0dd1c3852341737f5f2f531a799dc9129e554345dc5a",
+  "uv_lock_sha256": "e718030f993780e1a0ac8f096a365b830326e6a2d5b9f2a966b23e8467264909",
+  "images": {
+    "django__django-11555": {
+      "image": "swebench/sweb.eval.x86_64.django_1776_django-11555:latest",
+      "image_id": "sha256:e2c6d6293c8ad66c921754ee2bc13206b0f30166465ad71be92703c11ffaa3cb"
+    },
+    "django__django-12209": {
+      "image": "swebench/sweb.eval.x86_64.django_1776_django-12209:latest",
+      "image_id": "sha256:6781fe1de96e581d385aa7797a580274023f7a625a891f1ecd751ff303e6a256"
+    },
+    "django__django-12589": {
+      "image": "swebench/sweb.eval.x86_64.django_1776_django-12589:latest",
+      "image_id": "sha256:91c4b9e6b044f038a8f9969c95208bf03431a1ed61e5527bf08a40ee6b18bbe8"
+    },
+    "django__django-15382": {
+      "image": "swebench/sweb.eval.x86_64.django_1776_django-15382:latest",
+      "image_id": "sha256:b5dde6a96a4040e43e85485e01ec34e0db155adab642ca318f8ef04be1e00459"
+    },
+    "django__django-15930": {
+      "image": "swebench/sweb.eval.x86_64.django_1776_django-15930:latest",
+      "image_id": "sha256:13515b9e9004217ff7bbd3b95ac8e6475ca965463435b4dda24a8da969710ffa"
+    },
+    "django__django-16910": {
+      "image": "swebench/sweb.eval.x86_64.django_1776_django-16910:latest",
+      "image_id": "sha256:698b80ebefdb9972f421a4dcafaaff5b8f3374961393e491cef4627c28f07910"
+    },
+    "sympy__sympy-14774": {
+      "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14774:latest",
+      "image_id": "sha256:1c3e7e826b3d32c7f2dc155470ace96063278ed78af91b9f0c8268824053779e"
+    },
+    "sympy__sympy-14976": {
+      "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-14976:latest",
+      "image_id": "sha256:860f68a98698df242fe71bb13d1396513ce148d765c87c41435fe4ad84f7d7a6"
+    },
+    "sympy__sympy-15976": {
+      "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-15976:latest",
+      "image_id": "sha256:699f53232f0f802fc71c98162e9edbf1b072c335f6aa58f0f677c2d3c3ca70c6"
+    },
+    "sympy__sympy-16766": {
+      "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-16766:latest",
+      "image_id": "sha256:31178dfc1eabbcb5b6b8f569c4cbe60dd0eecf423bbf99223d125e08f3b5444a"
+    },
+    "sympy__sympy-18057": {
+      "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-18057:latest",
+      "image_id": "sha256:a56d5da6faf39f1529ea4acb09a37aaaad1798d9a1298e3ae5ead6d7b8b58cad"
+    },
+    "sympy__sympy-20801": {
+      "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20801:latest",
+      "image_id": "sha256:66efe47a12232b336ded7ef943a03dd42f5d6cbeeb609c46ce5646686b218eda"
+    },
+    "scikit-learn__scikit-learn-10949": {
+      "image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-10949:latest",
+      "image_id": "sha256:e0cc1b968460023cfd99ab5f830f5bfa45444fab00d9e05b7ece491be0e0bd0e"
+    },
+    "scikit-learn__scikit-learn-25638": {
+      "image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25638:latest",
+      "image_id": "sha256:c3ebacdb13d733bbe46f2f852fa60a17931910ae4338b461dd863e38293b82f0"
+    },
+    "django__django-11276": {
+      "image": "swebench/sweb.eval.x86_64.django_1776_django-11276:latest",
+      "image_id": "sha256:727317e7a8eb50abb663af37206c595a9171295157add746c3f2b3cc42da7323"
+    },
+    "django__django-14792": {
+      "image": "swebench/sweb.eval.x86_64.django_1776_django-14792:latest",
+      "image_id": "sha256:95b4576c207216a24962c777447737314d8a69e9beac97065f58995fc54ce7f8"
+    }
+  }
+}

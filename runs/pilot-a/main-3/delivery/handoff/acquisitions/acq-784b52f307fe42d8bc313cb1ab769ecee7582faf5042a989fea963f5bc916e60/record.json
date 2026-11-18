@@ -1,0 +1,108 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-784b52f307fe42d8bc313cb1ab769ecee7582faf5042a989fea963f5bc916e60",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-11555",
+    "trajectory_sha256": "e66d49049b9e2d243e8115e41d2e45438f532a589de22540cb014aa64f381dcd",
+    "extraction_sha256": "34c60971a070777802e2f22b122af07023692245ba73cdc9ec133f38baf92c8d"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "django__django-11555",
+    "repository": "django/django",
+    "source_revision": "8dd5877f58f84f2b11126afbd0813e24545919ed",
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-11555",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/django__django-11555.txt",
+      "sha256": "f29dcbf92e6ea55f8475a452351cb54f43ccf951da027e450649717c2c67b6b9"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/django__django-11555/trajectory.json",
+      "sha256": "e66d49049b9e2d243e8115e41d2e45438f532a589de22540cb014aa64f381dcd"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-11555/extraction.json",
+      "sha256": "34c60971a070777802e2f22b122af07023692245ba73cdc9ec133f38baf92c8d"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-11555/metadata.json",
+      "sha256": "472af54bc36764272746dde491829e41e14268bb08c995d87176b1c4ac4c6942"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 13,
+  "lessons": [
+    {
+      "advice": "When expanding related-model Meta.ordering, distinguish expression objects from string field paths before calling string-oriented ordering helpers. Check direction handling separately for existing OrderBy objects.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "The inspected get_order_dir indexes field[0] and slices field[1:] for a leading minus; it has no expression-object guard.",
+          "symbol": "get_order_dir",
+          "file": "django/db/models/sql/query.py",
+          "predicate": "other",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A nonempty ordering field specification",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-784b52f307fe42d8bc313cb1ab769ecee7582faf5042a989fea963f5bc916e60/lesson/0/assumption/0",
+          "raw_assumption_index": 0
+        },
+        {
+          "statement": "When the relation/default-ordering branch is entered, the original find_ordering_name recursively passes every opts.ordering item to find_ordering_name.",
+          "symbol": "SQLCompiler.find_ordering_name",
+          "file": "django/db/models/sql/compiler.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "field.is_relation, truthy opts.ordering, field.attname differs from name, no detected join loop",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-784b52f307fe42d8bc313cb1ab769ecee7582faf5042a989fea963f5bc916e60/lesson/0/assumption/1",
+          "raw_assumption_index": 1
+        }
+      ],
+      "lesson_id": "acq-784b52f307fe42d8bc313cb1ab769ecee7582faf5042a989fea963f5bc916e60/lesson/0",
+      "raw_lesson_index": 0
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/home/ocean/.config/mini-swe-agent/.env'
+minisweagent: INFO: Results will be saved to                                    
+pilot-a/runs/claude-sonnet-5-5/main-3                                           
+Logging to 'pilot-a/runs/claude-sonnet-5-5/main-3/minisweagent.log'
+minisweagent: INFO: Loading dataset pilot-a/instances/main, split train...      
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 16 examples [00:00, 1577.03 examples/s]
+minisweagent: INFO: Running on 16 instances...                                  
+minisweagent: INFO: Building agent config from specs: ['swebench.yaml',         
+'pilot-a/config/thinking_summarized.yaml']                                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-01c0cc54 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.django_1776_django-11555:latest sleep 2h              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-15565b11 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.django_1776_django-12209:latest sleep 2h              
+minisweagent.environment: INFO: Started container minisweagent-15565b11 with ID 
+3c45e9362a0e662220a45861c4e856f8c029a866f9e25c2ca7374046245160be                
+minisweagent.environment: INFO: Started container minisweagent-01c0cc54 with ID 
+4e82f9c53978449871783375a3a05820fdcaf060b2ca6a1899708b39314a7244                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/django__django-11555/django__django-11555
+.traj.json'                                                                     
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-81a7c281 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.django_1776_django-12589:latest sleep 2h              
+minisweagent.environment: INFO: Started container minisweagent-81a7c281 with ID 
+36a8dd2ef189c9d09cba7c25c9b2b140331ffebe52eb2acca2d41959cf7a0bbc                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/django__django-12209/django__django-12209
+.traj.json'                                                                     
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-b1b1d452 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.django_1776_django-15382:latest sleep 2h              
+minisweagent.environment: INFO: Started container minisweagent-b1b1d452 with ID 
+b5c105260d90445640614425589b8314226296ae6887fcd26cf31b7d8a883532                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/django__django-15382/django__django-15382
+.traj.json'                                                                     
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-bede26a6 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.django_1776_django-15930:latest sleep 2h              
+minisweagent.environment: INFO: Started container minisweagent-bede26a6 with ID 
+ec6bfcff7ce99fb602f7c2272bac9f6c72c508ef0046e4c1105526853390b866                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/django__django-12589/django__django-12589
+.traj.json'                                                                     
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-9bb076e3 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.django_1776_django-16910:latest sleep 2h              
+minisweagent.environment: INFO: Started container minisweagent-9bb076e3 with ID 
+f7724208dacfa5e2d387e552fcbf840a524e60d625aa26f1235dfb11cad64611                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/django__django-15930/django__django-15930
+.traj.json'                                                                     
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-bfc5b7f9 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.sympy_1776_sympy-14774:latest sleep 2h                
+minisweagent.environment: INFO: Started container minisweagent-bfc5b7f9 with ID 
+39e0d866a51f472fb032ffb1ea0880722c1d18198d1e1051c8f556d9a5d65e7b                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/sympy__sympy-14774/sympy__sympy-14774.tra
+j.json'                                                                         
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-5193a271 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.sympy_1776_sympy-14976:latest sleep 2h                
+minisweagent.environment: INFO: Started container minisweagent-5193a271 with ID 
+413db37284ce5385a209f2e04d18a68843f7fe8fe9ea093221f584c8ba3e3338                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/sympy__sympy-14976/sympy__sympy-14976.tra
+j.json'                                                                         
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-a75223c6 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.sympy_1776_sympy-15976:latest sleep 2h                
+minisweagent.environment: INFO: Started container minisweagent-a75223c6 with ID 
+dd7ad0739bddc5c0e6b538be6edb9bd11867d87de7056c340407f019f3bd7962                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/django__django-16910/django__django-16910
+.traj.json'                                                                     
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-ba3b64a5 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.sympy_1776_sympy-16766:latest sleep 2h                
+minisweagent.environment: INFO: Started container minisweagent-ba3b64a5 with ID 
+b6b7789f62dd06c124bec2c14712a248b5e2b10dd5b9baba8ebe7cf01ff39bba                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/sympy__sympy-16766/sympy__sympy-16766.tra
+j.json'                                                                         
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-1837f648 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.sympy_1776_sympy-18057:latest sleep 2h                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/sympy__sympy-15976/sympy__sympy-15976.tra
+j.json'                                                                         
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-63001e74 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.sympy_1776_sympy-20801:latest sleep 2h                
+minisweagent.environment: INFO: Started container minisweagent-1837f648 with ID 
+3747d8a3b4be52476fa64dec61c53f71a40fc3ef16491a5581e223e074289e53                
+minisweagent.environment: INFO: Started container minisweagent-63001e74 with ID 
+6c9a1c3e1773b1cf36650834136420cb6d5ded48e8888225a4c364ffed408acf                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/sympy__sympy-20801/sympy__sympy-20801.tra
+j.json'                                                                         
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-fa8afba1 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-10949:latest sleep 2h  
+minisweagent.environment: INFO: Started container minisweagent-fa8afba1 with ID 
+fb4e7f610dfc23bb80ccc610f898718515aa6a4fb63e06366e22043675fb6f3d                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/scikit-learn__scikit-learn-10949/scikit-l
+earn__scikit-learn-10949.traj.json'                                             
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-1176e71b -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25638:latest sleep 2h  
+minisweagent.environment: INFO: Started container minisweagent-1176e71b with ID 
+721f6d80a43f87fcb67687515e11bde7c3a716b8c0e834fe5d56e4b8198a3d15                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/scikit-learn__scikit-learn-25638/scikit-l
+earn__scikit-learn-25638.traj.json'                                             
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-fbe58fe1 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.django_1776_django-11276:latest sleep 2h              
+minisweagent.environment: INFO: Started container minisweagent-fbe58fe1 with ID 
+05d876612eb09e039773ea023a9a7e293de5aae854a6430b5a23fdb9f7ab20be                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/django__django-11276/django__django-11276
+.traj.json'                                                                     
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-64f1cdf9 -w /testbed --rm                                   
+swebench/sweb.eval.x86_64.django_1776_django-14792:latest sleep 2h              
+minisweagent.environment: INFO: Started container minisweagent-64f1cdf9 with ID 
+dc677a4c1ff3541bae4485b9d5be29b146e791ecd759298aa5845b48146a8834                
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/sympy__sympy-18057/sympy__sympy-18057.tra
+j.json'                                                                         
+minisweagent: INFO: Saved trajectory to                                         
+'pilot-a/runs/claude-sonnet-5-5/main-3/django__django-14792/django__django-14792
+.traj.json'                                                                     
+  Overall Progress ($0.66) ━━━━━━━━━━━━━━━━━━━━━ 16/16 100% 0:04:44 eta: 0:00:00
+┏━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Exit Status ┃ Count ┃ Most recent instances                                  ┃
+┡━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Submitted   │    16 │ django__django-14792, sympy__sympy-18057,              │
+│             │       │ django__dj...                                          │
+└─────────────┴───────┴────────────────────────────────────────────────────────┘

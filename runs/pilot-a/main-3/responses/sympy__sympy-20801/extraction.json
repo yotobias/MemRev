@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When debugging equality between numeric zero and symbolic booleans, inspect type guards before truthiness shortcuts and test both operand orders. Preserve numeric-zero compatibility with separate control cases.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "In the inspected Float.__eq__, successful sympification is followed by an if-not-self shortcut returning not other before the Boolean type guard.",
+          "symbol": "Float.__eq__",
+          "file": "sympy/core/numbers.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "other successfully sympified; self is falsey",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "After moving the Boolean guard before the zero shortcut, S(0.0)==S.false and S.false==S(0.0) both evaluate to False.",
+          "symbol": "Float.__eq__",
+          "file": "sympy/core/numbers.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "S(0.0) and S.false, compared in both operand orders",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after guard reordering in message 7."
+        }
+      ]
+    }
+  ]
+}

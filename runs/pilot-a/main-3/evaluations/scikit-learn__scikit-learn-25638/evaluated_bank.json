@@ -1,0 +1,164 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-234a8c2609003611591ea294f8c0b3624bf346af3b24827018ae51e6627e82e0",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-scikit-learn__scikit-learn-25638",
+    "trajectory_sha256": "7949d57e9d1714b3c081b20046a0353983d465ea5a091b39cff0913cf61761dd",
+    "extraction_sha256": "c98b9aa78b179d1befe68c70475ab8c5b891b817fd7a09cda47dc0f28b6df257"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "scikit-learn__scikit-learn-25638",
+    "repository": "scikit-learn/scikit-learn",
+    "source_revision": "6adb209acd63825affc884abcd85381f148fb1b0",
+    "extraction_run_id": "main-3-codex-session-20261117-scikit-learn__scikit-learn-25638",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/scikit-learn__scikit-learn-25638.txt",
+      "sha256": "7a14346407ddd1eb2fa13f30f67b21112ee0285ee2f63534a47adeb90b34e3da"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/scikit-learn__scikit-learn-25638/trajectory.json",
+      "sha256": "7949d57e9d1714b3c081b20046a0353983d465ea5a091b39cff0913cf61761dd"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/scikit-learn__scikit-learn-25638/extraction.json",
+      "sha256": "c98b9aa78b179d1befe68c70475ab8c5b891b817fd7a09cda47dc0f28b6df257"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/scikit-learn__scikit-learn-25638/metadata.json",
+      "sha256": "b1e2e998169e6a31418ba7b7962948d6f7396f439321e01adcab9dd5feab2766"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 13,
+  "lessons": [
+    {
+      "advice": "When supporting pandas nullable label dtypes, inspect both target-type inference and label extraction. Keep missing-value handling separate from the demonstrated non-missing binary-label cases.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "unique_labels raises ValueError when the set of inferred target types still has more than one member after the binary/multiclass normalization.",
+          "symbol": "unique_labels",
+          "file": "sklearn/utils/multiclass.py",
+          "predicate": "raises",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "At least one y argument; type_of_target calls succeed; normalized type set has cardinality greater than one",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-234a8c2609003611591ea294f8c0b3624bf346af3b24827018ae51e6627e82e0/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 3 shows normalization of {binary,multiclass} before the mixed-type error. Both the successful inference prerequisite and normalized cardinality are retained.",
+            "reviewer_evidence_message_indices": [
+              2,
+              3
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "After the helper edit, type_of_target returns \"binary\" for the demonstrated Int64 Series containing only zeros and ones with no missing values.",
+          "symbol": "type_of_target",
+          "file": "sklearn/utils/multiclass.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "pd.Series([1,0,0,1,0,1,1,0,1], dtype=\"Int64\")",
+            "config": null,
+            "env": "pandas available in the recorded task environment"
+          },
+          "evidence_message_indices": [
+            6,
+            7
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after adding _convert_pandas_nullable in message 6.",
+          "assumption_id": "acq-234a8c2609003611591ea294f8c0b3624bf346af3b24827018ae51e6627e82e0/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 6–7 pair the specific non-missing Int64 Series with binary output after the helper edit. The claim does not cover nullable missing values or all pandas extension dtypes.",
+            "reviewer_evidence_message_indices": [
+              6,
+              7
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-234a8c2609003611591ea294f8c0b3624bf346af3b24827018ae51e6627e82e0/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 3 shows normalization of {binary,multiclass} before the mixed-type error. Both the successful inference prerequisite and normalized cardinality are retained.",
+        "reviewer_evidence_message_indices": [
+          2,
+          3,
+          6,
+          7
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-1f5b426a047e00b4a39444d459de595119e9cdeceb12229b9d8c6196974a5cce"
+}

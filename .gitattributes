@@ -1,2 +1,6 @@
 # Shell scripts run in WSL/Linux: keep Unix line endings in every checkout, also on Windows
 *.sh text eol=lf
+
+# Frozen manifests hash exact bytes; disable checkout newline conversion.
+runs/trajectories-pilot-A/main-3/** -text
+runs/pilot-a/main-3/** -text

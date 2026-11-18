@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When debugging only() with reverse select_related(), compare the field-object keys used by mask construction and mask lookup. Keep original-test results separate from results obtained after changing expectations, and preserve replay state when submitted patches omit test edits.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The original _get_only_select_mask keys each requested field entry by the object returned from opts.get_field(field_name).",
+          "symbol": "Query._get_only_select_mask",
+          "file": "django/db/models/sql/query.py",
+          "predicate": "mutates",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A field_name present in mask and resolved by opts.get_field",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "In the original restricted reverse-relation branch, get_related_selections obtains related_select_mask using select_mask.get(related_field) or {}, where related_field is o.field for a unique non-many-to-many related object.",
+          "symbol": "SQLCompiler.get_related_selections",
+          "file": "django/db/models/sql/compiler.py",
+          "predicate": "other",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "restricted=True; opts.related_objects item with o.field.unique and not o.many_to_many",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        }
+      ]
+    }
+  ]
+}

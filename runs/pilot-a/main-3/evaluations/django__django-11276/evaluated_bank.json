@@ -1,0 +1,162 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-11276",
+    "trajectory_sha256": "57002fef8dee17881291124ae418854142d5ab095e577a13508d73700e92526d",
+    "extraction_sha256": "405575c10a71e43cc0d03b2b9291a3d4ee2dbb7a1820d88c4b57e033c5320df7"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "django__django-11276",
+    "repository": "django/django",
+    "source_revision": "28d5262fa3315690395f04e3619ed554dbaf725b",
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-11276",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/django__django-11276.txt",
+      "sha256": "7e10b0d39756be0870fa563d6aff0d38838a735bb56dc33d30885c29013e4d0d"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/django__django-11276/trajectory.json",
+      "sha256": "57002fef8dee17881291124ae418854142d5ab095e577a13508d73700e92526d"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-11276/extraction.json",
+      "sha256": "405575c10a71e43cc0d03b2b9291a3d4ee2dbb7a1820d88c4b57e033c5320df7"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-11276/metadata.json",
+      "sha256": "b4f4a878ebe8058ff4782957718430d948b319934f9af48b73324648e75c46cd"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 17,
+  "lessons": [
+    {
+      "advice": "When replacing Django HTML escaping with a standard-library implementation, inspect exact entity spelling and dependent unescaping code. Separate expected textual-output changes from unrelated test errors, and specify UTF-8 when editing non-ASCII source in an ASCII-locale environment.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The original escape implementation translates an apostrophe to the decimal entity &#39; using _html_escapes.",
+          "symbol": "escape",
+          "file": "django/utils/html.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A string containing an apostrophe",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "The original table and escape body in message 5 directly establish the apostrophe mapping; the claim is limited to a string input and does not adopt the agent's later claim that all failures are harmless.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "The original nested urlize.unescape explicitly replaces &#39; with an apostrophe and has no &#x27; replacement in its shown replacement chain.",
+          "symbol": "urlize.unescape",
+          "file": "django/utils/html.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "HTML-escaped URL text passed to the nested helper",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 5 displays the complete nested replacement chain. This is a narrow code observation about that helper, not a general claim that arbitrary HTML is safely decoded.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. The original table and escape body in message 5 directly establish the apostrophe mapping; the claim is limited to a string input and does not adopt the agent's later claim that all failures are harmless.",
+        "reviewer_evidence_message_indices": [
+          4,
+          5
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-7cf1c97f9343971479e639933080f61000f19449244e9d8f631e8ca8179350e4"
+}

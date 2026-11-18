@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When expanding related-model Meta.ordering, distinguish expression objects from string field paths before calling string-oriented ordering helpers. Check direction handling separately for existing OrderBy objects.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "The inspected get_order_dir indexes field[0] and slices field[1:] for a leading minus; it has no expression-object guard.",
+          "symbol": "get_order_dir",
+          "file": "django/db/models/sql/query.py",
+          "predicate": "other",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A nonempty ordering field specification",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "When the relation/default-ordering branch is entered, the original find_ordering_name recursively passes every opts.ordering item to find_ordering_name.",
+          "symbol": "SQLCompiler.find_ordering_name",
+          "file": "django/db/models/sql/compiler.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "field.is_relation, truthy opts.ordering, field.attname differs from name, no detected join loop",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        }
+      ]
+    }
+  ]
+}

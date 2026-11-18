@@ -158,6 +158,6 @@ python -m memrev.handoff compare \
 
 Pilot B's `lessons.draft.jsonl` uses proposed field names. Check `pilot-b/status.json` for exclusions and review status. Agree the schema with B before production import; a draft export does not require A's human review or certify source validity.
 
-Both output locations (`runs/` and `pilot-a/runs/`) are gitignored: transfer artifacts separately from code. Preserve snapshots and manifests. Identical builds can reuse their output; changed results need a new directory. Form and prompt commands refuse to overwrite files.
+The frozen main-3 artifacts are tracked in Git; see [WORKFLOW_OVERVIEW.md](WORKFLOW_OVERVIEW.md) for their paths. New outputs under `runs/` and `pilot-a/runs/` remain ignored by default. Explicitly select public artifacts for a future commit or transfer them separately; keep private evidence with R. Preserve snapshots and manifests. Identical builds can reuse their output; changed results need a new directory. Form and prompt commands refuse to overwrite files.
 
 For field definitions and design decisions, see [HANDOFF.md](HANDOFF.md). For project status, see [README.md](README.md).

@@ -1,0 +1,47 @@
+{
+  "run": "main-3",
+  "prepared_on": "2026-11-17",
+  "producer_draft_ready": true,
+  "pilot_b_accepted": false,
+  "research_complete": false,
+  "lesson_count": 16,
+  "assumption_count": 32,
+  "reviewed_acquisitions": 16,
+  "reviewer_type": "ai",
+  "independent_review": false,
+  "exact_extractor_model_known": false,
+  "extraction_review_cost_usd": null,
+  "pending_validity_cells": 96,
+  "pending_sharing_rows": 32,
+  "source_sha_existence_checked": false,
+  "environment_drift_checked": false,
+  "non_verified_task_ids": [
+    "django__django-12589",
+    "django__django-16910",
+    "sympy__sympy-14774",
+    "sympy__sympy-18057",
+    "scikit-learn__scikit-learn-10949",
+    "scikit-learn__scikit-learn-25638"
+  ],
+  "lane_r_reported_recall": {
+    "clear": 10,
+    "unclear": 2,
+    "none": 3,
+    "no_reasoning_recorded": 1,
+    "source": "pilot-a/CHANGES.md, 2026-11-16; not independently reclassified"
+  },
+  "replay_patch_differences": [
+    "django__django-14792",
+    "django__django-16910"
+  ],
+  "recorded_test_edits": [
+    "django__django-16910",
+    "sympy__sympy-18057"
+  ],
+  "consumer_actions": [
+    "Confirm six-field import and relative trajectory pointers",
+    "Validate actual source SHAs",
+    "Reconcile Verified-only/same-version policy with V46 and validate target environments",
+    "Perform B assumption/source/target checks; A extraction review is not validity evidence"
+  ]
+}

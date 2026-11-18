@@ -1,0 +1,41 @@
+{
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "rating_values": [
+    "yes",
+    "no",
+    "uncertain"
+  ],
+  "rubric_definitions": {
+    "specific_enough_to_check": "Does the candidate identify a concrete behavior or observation that can be assessed? This alone does not establish transferability to another revision.",
+    "single_behaviour": "Does it express one branch-specific contract or one explicit relational invariant, rather than bundling independent behaviors? Record uncertainty when the unit is debatable.",
+    "supported_by_cited_messages": "Do the ORIGINAL cited messages support the statement and its substantive qualifications? Extra messages found by a reviewer do not retroactively fix the original citations.",
+    "scope_sufficient": "Are the relevant inputs, branches, configuration and environment limitations stated sufficiently for this candidate? Unknown details are not treated as unrestricted.",
+    "workspace_attribution_correct": "Does it distinguish the inspected checkout, agent edits and any separate installed package?",
+    "repository_behaviour": "Does the candidate express behavior of repository code, rather than only an environment/procedural observation or a historical event?"
+  },
+  "assumption_outcome_definitions": {
+    "usable_as_extracted": "No material extraction defect identified within the stated scope. Not source-validity approval.",
+    "needs_repair": "An identifiable extraction defect needs a separate repair/transformation stage; no replacement is supplied here.",
+    "uncertain": "Evidence or protocol ambiguity prevents a firm evaluation; do not count as accepted.",
+    "context_only": "Retain as context/evidence, but do not count as a repository-behaviour assumption. This is not a claim that the statement is false."
+  },
+  "lesson_outcome_definitions": {
+    "usable_as_extracted": "No material problem identified in the advice itself; assess each attached assumption separately.",
+    "needs_clarification": "Advice has an identifiable scope or interpretation issue; no replacement is requested.",
+    "uncertain": "Available evidence or protocol is insufficient for a firm advice evaluation."
+  },
+  "issue_definitions": {
+    "compound_assumption": "Independently assessable behaviors or branches are bundled.",
+    "granularity_ambiguous": "Whether this is one relational contract or multiple assumptions needs a consistent protocol decision.",
+    "citation_coverage_incomplete": "Original citations omit evidence for a substantive qualification.",
+    "environment_provenance_incomplete": "The claimed environment or installation state is not fully established by the observations.",
+    "dimensional_scope_unclear": "Dimensional limitations or algorithm details are not sufficiently delimited.",
+    "historical_observation": "The statement primarily records a past event, rather than a reusable behavior at a repository revision.",
+    "environment_context": "Useful environment information, distinct from a repository-behaviour assumption.",
+    "procedural_context": "Useful procedural evidence, distinct from a repository-behaviour assumption.",
+    "mixed_assumption_kinds": "Repository behavior and environment/procedure claims are combined.",
+    "advice_scope_unclear": "Advice is broader than its demonstrated validation context.",
+    "test_discrimination_unclear": "Advice does not distinguish a bug-exposing case from a compatibility control.",
+    "preservation_policy_unclear": "Advice could imply preserving all existing behavior without establishing which contracts should remain compatible."
+  }
+}

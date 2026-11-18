@@ -1,0 +1,18 @@
+{
+  "agent_run_id": "main-3",
+  "task_id": "django__django-12589",
+  "repository": "django/django",
+  "source_revision": "895f28f9cbed817c00ab68770433170d83132d90",
+  "extraction_run_id": "main-3-codex-session-20261117-django__django-12589",
+  "purpose": "pilot_a",
+  "extractor": {
+    "method": "assistant_session",
+    "provider": "openai",
+    "model_id": null,
+    "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_usd": null
+  },
+  "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+}

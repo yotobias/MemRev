@@ -1,0 +1,1 @@
+Evaluate every original candidate against the unchanged rubric in review.pending.json and its cited messages in the prepared trajectory. Preserve originals, retain uncertainty/defects, do not rewrite or infer source validity. Record this same-session review as AI and non-independent.

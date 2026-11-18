@@ -1,0 +1,108 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-5f16ea7b6c1b800fe4445dd06e3acf0bea15e7c2a88400b5b98474a28cd3f89e",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-14976",
+    "trajectory_sha256": "416f971a2395158320034258ee30a5eddfe565f04f6ad209df906537b4a39579",
+    "extraction_sha256": "5106a8cd707869ec2bb6a19e31c30ea17e936aefba2867a93af9181b0092aa6e"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "sympy__sympy-14976",
+    "repository": "sympy/sympy",
+    "source_revision": "9cbea134220b0b951587e11b63e2c832c7246cbc",
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-14976",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/sympy__sympy-14976.txt",
+      "sha256": "60e819e3744629ebdb5fe8362318c13191636006a91ff73eaabfe917903b90ba"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/sympy__sympy-14976/trajectory.json",
+      "sha256": "416f971a2395158320034258ee30a5eddfe565f04f6ad209df906537b4a39579"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-14976/extraction.json",
+      "sha256": "5106a8cd707869ec2bb6a19e31c30ea17e936aefba2867a93af9181b0092aa6e"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-14976/metadata.json",
+      "sha256": "77968e2e41791133c881a1a8ef8ebb83471dd0ae28d858f33dc2b182930e1004"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 13,
+  "lessons": [
+    {
+      "advice": "For mpmath lambdify rational constants, inspect generated source for mpf conversion before division; verify high-precision numerical behavior separately. Use the repository test runner when pytest is unavailable.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The inspected MpmathPrinter._print_Float converts e._mpf_ components to Python ints and emits a call to the module-formatted mpmath.mpf.",
+          "symbol": "MpmathPrinter._print_Float",
+          "file": "sympy/printing/pycode.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A SymPy Float e",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-5f16ea7b6c1b800fe4445dd06e3acf0bea15e7c2a88400b5b98474a28cd3f89e/lesson/0/assumption/0",
+          "raw_assumption_index": 0
+        },
+        {
+          "statement": "After adding _print_Rational, lambdify(x, x + S(232)/3, \"mpmath\") generates a return expression containing x + mpf(232)/mpf(3).",
+          "symbol": "MpmathPrinter._print_Rational",
+          "file": "sympy/printing/pycode.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "x + S(232)/3",
+            "config": "lambdify modules=\"mpmath\"",
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after insertion of _print_Rational in message 7.",
+          "assumption_id": "acq-5f16ea7b6c1b800fe4445dd06e3acf0bea15e7c2a88400b5b98474a28cd3f89e/lesson/0/assumption/1",
+          "raw_assumption_index": 1
+        }
+      ],
+      "lesson_id": "acq-5f16ea7b6c1b800fe4445dd06e3acf0bea15e7c2a88400b5b98474a28cd3f89e/lesson/0",
+      "raw_lesson_index": 0
+    }
+  ]
+}

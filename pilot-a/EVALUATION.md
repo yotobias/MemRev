@@ -69,7 +69,7 @@ The output directory contains:
 | `protocol.json` | Complete protocol used for this import, including advice outcome definitions |
 | `manifest.json` | Evaluation identity and SHA-256 fingerprints of inputs and generated artifacts |
 
-The source package and review remain unchanged. Importing identical bytes to the same output is safe; any changed artifact requires a new output directory. Keep the whole acquisition package when handing it off, since the record points to its `inputs/` snapshots. `runs/` is gitignored, so sharing code alone does not transfer these artifacts.
+The source package and review remain unchanged. Importing identical bytes to the same output is safe; any changed artifact requires a new output directory. Keep the whole acquisition package when handing it off, since the record points to its `inputs/` snapshots. The frozen main-3 artifacts are tracked in Git. Other output directories under `runs/` remain ignored and need explicit publication or separate transfer.
 
 The older AI example may omit `protocol_id` and lesson outcome definitions; matching its embedded rubric/assumption-outcome/issue definitions identifies this protocol. Its optional `original_review_sha256` is retained only as a legacy declaration, not checked against an editable action draft. The import manifest instead fingerprints the verified acquisition record and exact evaluation input. If a review supplies `summary`, it must exactly match the three original-count fields used by the existing example; ordinarily omit it and let the importer calculate the report.
 

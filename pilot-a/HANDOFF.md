@@ -20,7 +20,7 @@ No review is required or inferred. The builder does not search for `review.ai.js
 
 The current development example has 5 lessons and 17 assumptions. Without an evaluation, all 51 C0/C1/Ca cells and all 17 sharing rows remain pending. All five lessons are excluded from the B draft because required provenance is missing; the exclusions are a useful demonstration of the contract, not evidence of bad lessons. No repository or SHA is guessed from the filename.
 
-Outputs live in gitignored `runs/`. Repeating a command with identical inputs is safe; changed inputs or outputs require a fresh output directory. The entire collection is fingerprinted from verified acquisition records, exact supplied evaluations and the selected-task CSV. Reordering packages does not change the result. Changing a review invalidates the collection identity, so stale judgments cannot silently carry forward.
+Outputs live under `runs/`. The frozen main-3 artifacts are tracked in Git; new output directories remain ignored by default. Repeating a command with identical inputs is safe; changed inputs or outputs require a fresh output directory. The entire collection is fingerprinted from verified acquisition records, exact supplied evaluations and the selected-task CSV. Reordering packages does not change the result. Changing a review invalidates the collection identity, so stale judgments cannot silently carry forward.
 
 ## Components and files
 

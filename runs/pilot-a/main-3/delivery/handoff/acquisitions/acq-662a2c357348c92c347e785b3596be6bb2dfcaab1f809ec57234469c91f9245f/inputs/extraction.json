@@ -1,0 +1,49 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When debugging presentation MathML for scripted symbol names, inspect the emitted XML tree and distinguish it from content MathML. Check browser rendering separately; changing a serializer tree does not by itself prove the reported browser symptom is fixed.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "In the original presentation printer, a symbol with subscripts and no superscripts is returned as an mi node containing an msub child.",
+          "symbol": "MathMLPresentationPrinter._print_Symbol",
+          "file": "sympy/printing/mathml.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "split_super_sub yields no supers and at least one sub",
+            "config": "presentation MathML",
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "The original recorded serialization of Symbol(\"x2\")**3 includes <mi><msub><mi>x</mi><mi>2</mi></msub></mi> inside the power base.",
+          "symbol": "MathMLPresentationPrinter._print_Symbol",
+          "file": "sympy/printing/mathml.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Symbol(\"x2\")**3",
+            "config": "mathml printer=\"presentation\"",
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            6
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Original checkout before agent edits."
+        }
+      ]
+    }
+  ]
+}

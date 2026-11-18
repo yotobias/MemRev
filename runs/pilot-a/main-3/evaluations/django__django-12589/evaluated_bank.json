@@ -1,0 +1,164 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-9f16a0be6f4d67457e764366050ecac8243d05b98ece9ab2069a0a5d4bacfaf7",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-12589",
+    "trajectory_sha256": "ce15dfa367b2ea246edd634700e295cbfe1b43ff8837f73c2455eed27bdc1e29",
+    "extraction_sha256": "9aac775f849b060aa49c173ef2160a498caea3deb8697815a35cc09339083359"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "django__django-12589",
+    "repository": "django/django",
+    "source_revision": "895f28f9cbed817c00ab68770433170d83132d90",
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-12589",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/django__django-12589.txt",
+      "sha256": "5e1aa9c222be19e3b06ab804c326936dcbe536eaa6f8a05632fcf42bc536cee2"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/django__django-12589/trajectory.json",
+      "sha256": "ce15dfa367b2ea246edd634700e295cbfe1b43ff8837f73c2455eed27bdc1e29"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-12589/extraction.json",
+      "sha256": "9aac775f849b060aa49c173ef2160a498caea3deb8697815a35cc09339083359"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-12589/metadata.json",
+      "sha256": "2ab12efaf7c5253cba215b000316eb05662c9242a59402f3eb7bbdcde9251a9d"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 13,
+  "lessons": [
+    {
+      "advice": "When investigating GROUP BY ambiguity with a Subquery annotation, inspect how annotation aliases are passed to get_group_by_cols and whether they collide with joined-table columns. Do not treat unrelated suite success as reproduction of the PostgreSQL issue.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "Subquery.get_group_by_cols returns [Ref(alias, self)] when alias is truthy.",
+          "symbol": "Subquery.get_group_by_cols",
+          "file": "django/db/models/expressions.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Truthy alias",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            6
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-9f16a0be6f4d67457e764366050ecac8243d05b98ece9ab2069a0a5d4bacfaf7/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 6 shows the early truthy-alias return exactly. No database backend behavior or successful reproduction is inferred.",
+            "reviewer_evidence_message_indices": [
+              4,
+              6
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "For an annotation whose get_group_by_cols signature includes alias, Query.set_group_by passes the annotation alias when allow_aliases is true; the shown original method has no joined-column collision check.",
+          "symbol": "Query.set_group_by",
+          "file": "django/db/models/sql/query.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "annotation_select contains the annotation; method signature includes alias",
+            "config": "allow_aliases=True",
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-9f16a0be6f4d67457e764366050ecac8243d05b98ece9ab2069a0a5d4bacfaf7/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 3 includes the alias-signature compatibility branch and allow_aliases guard; the scope restricts the claim to that branch. The absence of a collision check is limited to the displayed method.",
+            "reviewer_evidence_message_indices": [
+              2,
+              3
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-9f16a0be6f4d67457e764366050ecac8243d05b98ece9ab2069a0a5d4bacfaf7/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 6 shows the early truthy-alias return exactly. No database backend behavior or successful reproduction is inferred.",
+        "reviewer_evidence_message_indices": [
+          2,
+          3,
+          4,
+          6
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-9cf75acca728a57963e838c74e08b31cefd7fc8016db61d0a06825aa8883774b"
+}

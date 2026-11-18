@@ -1,0 +1,108 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-3690f608318b9e94df427c91d9ab7752e5a48a0224be3bff4860131124fa48a8",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-14774",
+    "trajectory_sha256": "5ce04d7b1f642cb9b3b7c40b39a71e12ab966ca667e53236c331d0ff10ea3cc0",
+    "extraction_sha256": "f553fb4ff72528936367f473c6e04fd5bf107da7f457cc3625a9fa5f9ad1646f"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "sympy__sympy-14774",
+    "repository": "sympy/sympy",
+    "source_revision": "8fc63c2d71752389a44367b8ef4aba8a91af6a45",
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-14774",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/sympy__sympy-14774.txt",
+      "sha256": "266dd6c53ee9f956c1c3f88dc294d353d63523eb695fe50d24e49e1c37489d8c"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/sympy__sympy-14774/trajectory.json",
+      "sha256": "5ce04d7b1f642cb9b3b7c40b39a71e12ab966ca667e53236c331d0ff10ea3cc0"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-14774/extraction.json",
+      "sha256": "f553fb4ff72528936367f473c6e04fd5bf107da7f457cc3625a9fa5f9ad1646f"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-14774/metadata.json",
+      "sha256": "589bc06c6a185b206a11dbaad3882d1241d02f6eb1660b28c4ea26dc36f432be"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 11,
+  "lessons": [
+    {
+      "advice": "When extending inverse-trigonometric LaTeX formatting, inspect the function-name dispatch table and test each added function with the requested style. The observed acsc output comes from agent-edited code, not a source-revision check.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "The inspected inverse-trig style dispatch table contains asin, acos, atan and acot, but omits acsc and asec.",
+          "symbol": "LatexPrinter._print_Function",
+          "file": "sympy/printing/latex.py",
+          "predicate": "other",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Inverse trigonometric function name dispatch",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-3690f608318b9e94df427c91d9ab7752e5a48a0224be3bff4860131124fa48a8/lesson/0/assumption/0",
+          "raw_assumption_index": 0
+        },
+        {
+          "statement": "After the agent adds acsc to the table, latex(acsc(x), inv_trig_style=\"full\") emits an operator named arccsc.",
+          "symbol": "LatexPrinter._print_Function",
+          "file": "sympy/printing/latex.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "acsc(Symbol(\"x\"))",
+            "config": "inv_trig_style=\"full\"",
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after the table edit in message 4.",
+          "assumption_id": "acq-3690f608318b9e94df427c91d9ab7752e5a48a0224be3bff4860131124fa48a8/lesson/0/assumption/1",
+          "raw_assumption_index": 1
+        }
+      ],
+      "lesson_id": "acq-3690f608318b9e94df427c91d9ab7752e5a48a0224be3bff4860131124fa48a8/lesson/0",
+      "raw_lesson_index": 0
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When replacing Django HTML escaping with a standard-library implementation, inspect exact entity spelling and dependent unescaping code. Separate expected textual-output changes from unrelated test errors, and specify UTF-8 when editing non-ASCII source in an ASCII-locale environment.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The original escape implementation translates an apostrophe to the decimal entity &#39; using _html_escapes.",
+          "symbol": "escape",
+          "file": "django/utils/html.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A string containing an apostrophe",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "The original nested urlize.unescape explicitly replaces &#39; with an apostrophe and has no &#x27; replacement in its shown replacement chain.",
+          "symbol": "urlize.unescape",
+          "file": "django/utils/html.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "HTML-escaped URL text passed to the nested helper",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        }
+      ]
+    }
+  ]
+}

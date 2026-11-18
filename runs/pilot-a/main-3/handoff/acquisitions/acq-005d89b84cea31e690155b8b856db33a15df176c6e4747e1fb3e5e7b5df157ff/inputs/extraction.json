@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "For equality against unknown Python objects, inspect whether conversion falls back to parsing their textual representation. Test strict conversion with explicit comparison cases and report any changed test expectations separately from source behavior.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The inspected Expr.__eq__ calls sympify(other) before checking whether the result is an Expr.",
+          "symbol": "Expr.__eq__",
+          "file": "sympy/core/expr.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Other operand entering Expr.__eq__",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "After replacing sympify with _sympify in Expr.__eq__, the recorded assertions show Symbol(\"x\") is unequal to an object whose only customization is __repr__ returning \"x\".",
+          "symbol": "Expr.__eq__",
+          "file": "sympy/core/expr.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Instance of class D with __repr__ returning \"x\" and no custom conversion/equality methods",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            11,
+            12
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after the strict-conversion edit in message 11, before test-file edits."
+        }
+      ]
+    }
+  ]
+}

@@ -53,7 +53,7 @@ All paths below are relative to the repository root. `<task>` means an instance 
 | `batch/handoff/pilot-b/status.json` | JSON; export exclusions, review status and limitations | Tells B how to interpret the draft |
 | `batch/lane-r-execution-v1.zip`, `pilot-b-delivery.zip` | ZIP archives with accompanying `.sha256` files | R's execution inputs/tools and B's preliminary input package respectively |
 
-Inside the portable handoff, acquisition directories use `acq-<hash>` names instead of task names. The IDs and trajectory pointers connect the copies. All of `runs/` is gitignored: a teammate needs the artifacts separately from the code. An unavailable local `runs/` link in a fresh clone means the archive has not been transferred.
+Inside the portable handoff, acquisition directories use `acq-<hash>` names instead of task names. The IDs and trajectory pointers connect the copies. The frozen main-3 trajectories, prepared inputs, responses, acquisitions, evaluations, handoff and both delivery packages are tracked in Git and arrive with the checkout. Scratch runs, the `contract-smoke-pending/` demonstration and new output directories remain ignored. Keep private execution evidence outside the tracked bundles. `.gitattributes` preserves artifact bytes across platforms so manifest hashes remain valid.
 
 ## One real example: SymPy printer inheritance
 

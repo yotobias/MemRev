@@ -1,0 +1,32 @@
+{
+  "receipt_version": 1,
+  "collection_id": "collection-702c7aaa7a3c36d6f599e12b477ff5f82d25b40fbce37ce70220483fba32e752",
+  "assumption_id": "acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff/lesson/0/assumption/0",
+  "revision": "C0",
+  "workspace": {
+    "workspace_version": 1,
+    "task_id": "sympy__sympy-18057",
+    "revision": "C0",
+    "source_revision": "62000f37b8821573ba00280524ffb4ac4a380875",
+    "image_id": "sha256:a56d5da6faf39f1529ea4acb09a37aaaad1798d9a1298e3ae5ead6d7b8b58cad",
+    "reconstruction": null,
+    "tracked_diff_sha256": null,
+    "untracked_manifest_sha256": null,
+    "environment_sha256": null
+  },
+  "assessor": {
+    "id": null,
+    "type": "ai",
+    "independent": false,
+    "note": "Fill in actual authorship, assessment process and prior exposure."
+  },
+  "reason": null,
+  "command": null,
+  "result": null,
+  "exit_code": null,
+  "evidence_files": {
+    "check_source": null,
+    "output": null,
+    "reconstruction": null
+  }
+}

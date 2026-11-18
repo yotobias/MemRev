@@ -1,0 +1,19 @@
+{
+  "instance_id": "django__django-14792",
+  "image": "swebench/sweb.eval.x86_64.django_1776_django-14792:latest",
+  "base_commit": "d89f976bddb49fb168334960acc8979c3de991fa",
+  "commands": 14,
+  "exit_code_mismatches": 0,
+  "patch_applies": false,
+  "patch_files": [],
+  "replay_files": [
+    "3 5 django/db/backends/mysql/operations.py",
+    "3 5 django/db/backends/oracle/operations.py",
+    "5 4 django/db/backends/postgresql/operations.py",
+    "17 0 django/utils/timezone.py"
+  ],
+  "tracked_diff_same": false,
+  "untracked_after_replay": [
+    "patch.txt"
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-15930",
+    "trajectory_sha256": "1484491f28d807980200e56a9578592e165807499a7bd43f7b25f6a968da010f",
+    "extraction_sha256": "dcdb0a8059deb95942179e7367f966b7952decaf973df9c0a38074db835844cf"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "django__django-15930",
+    "repository": "django/django",
+    "source_revision": "63884829acd207404f2a5c3cc1d6b4cd0a822b70",
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-15930",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/django__django-15930.txt",
+      "sha256": "2911582e325dbbda6eb1e8b2735720d365b198ca45f26a90c3696306efe7bd73"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/django__django-15930/trajectory.json",
+      "sha256": "1484491f28d807980200e56a9578592e165807499a7bd43f7b25f6a968da010f"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-15930/extraction.json",
+      "sha256": "dcdb0a8059deb95942179e7367f966b7952decaf973df9c0a38074db835844cf"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-15930/metadata.json",
+      "sha256": "324ed46bdb9e5afd27b4fd8193a094b1db1762163ce3a55c0ad5f083bb35686a"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 13,
+  "lessons": [
+    {
+      "advice": "When embedding a condition in CASE WHEN, handle the empty-SQL representation of a match-all WHERE condition explicitly. Test backend-specific boolean rendering and preserve the distinction from a condition that matches nothing.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "WhereNode.as_sql returns an empty SQL string with an empty parameter list when empty_needed reaches zero and the node is negated.",
+          "symbol": "WhereNode.as_sql",
+          "file": "django/db/models/sql/where.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Compilation reaches empty_needed==0 with self.negated=True",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            6
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a/lesson/0/assumption/0",
+          "raw_assumption_index": 0
+        },
+        {
+          "statement": "The original When.as_sql places compiler.compile(self.condition) output directly into the condition template parameter without an empty-string fallback.",
+          "symbol": "When.as_sql",
+          "file": "django/db/models/expressions.py",
+          "predicate": "mutates",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A condition successfully compiles to SQL and parameters",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a/lesson/0/assumption/1",
+          "raw_assumption_index": 1
+        }
+      ],
+      "lesson_id": "acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a/lesson/0",
+      "raw_lesson_index": 0
+    }
+  ]
+}

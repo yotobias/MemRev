@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "Distinguish raw fixture saves from normal explicit-primary-key saves when changing the default-primary-key INSERT shortcut. A raw-only guard does not demonstrate that normal save behavior was fixed; retain separate reproduction cases.",
+      "from_failed_step": null,
+      "assumptions": [
+        {
+          "statement": "In the inspected _save_table shortcut, not force_insert, self._state.adding and a truthy pk.default distinct from NOT_PROVIDED cause force_insert=True without checking raw.",
+          "symbol": "Model._save_table",
+          "file": "django/db/models/base.py",
+          "predicate": "mutates",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Execution reaches the INSERT shortcut; default is truthy and not NOT_PROVIDED; adding=True; force_insert=False",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "The agent adds not raw to the force_insert shortcut condition.",
+          "symbol": "Model._save_table",
+          "file": "django/db/models/base.py",
+          "predicate": "other",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Execution reaches the existing default-primary-key INSERT shortcut",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            6,
+            7,
+            10
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Checkout after the one-line guard edit in message 6."
+        }
+      ]
+    }
+  ]
+}

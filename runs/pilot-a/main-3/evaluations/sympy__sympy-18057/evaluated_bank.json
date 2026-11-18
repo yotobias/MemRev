@@ -1,0 +1,164 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-18057",
+    "trajectory_sha256": "7416ba61251ce38463352fc55d223aef8eac2971fce5254d52816ae963ee7e5c",
+    "extraction_sha256": "2957669b63ae3e2744daa986d5f4e9db259684e336b7dbee7182f2880cbd441a"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "sympy__sympy-18057",
+    "repository": "sympy/sympy",
+    "source_revision": "62000f37b8821573ba00280524ffb4ac4a380875",
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-18057",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/sympy__sympy-18057.txt",
+      "sha256": "24e8b9f01adc10ff8a88d89e20c46e6ed0439d3f7892951e6eae49f49c0eea22"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/sympy__sympy-18057/trajectory.json",
+      "sha256": "7416ba61251ce38463352fc55d223aef8eac2971fce5254d52816ae963ee7e5c"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-18057/extraction.json",
+      "sha256": "2957669b63ae3e2744daa986d5f4e9db259684e336b7dbee7182f2880cbd441a"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-18057/metadata.json",
+      "sha256": "27bbafe01982a1a7a845e2c8d427dc30e1e665968c3e388b3b68e21b8f774e07"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 27,
+  "lessons": [
+    {
+      "advice": "For equality against unknown Python objects, inspect whether conversion falls back to parsing their textual representation. Test strict conversion with explicit comparison cases and report any changed test expectations separately from source behavior.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The inspected Expr.__eq__ calls sympify(other) before checking whether the result is an Expr.",
+          "symbol": "Expr.__eq__",
+          "file": "sympy/core/expr.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Other operand entering Expr.__eq__",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 8 shows the conversion followed by the Expr type guard. This is a source-code observation; it does not claim a separate exploit test was executed.",
+            "reviewer_evidence_message_indices": [
+              7,
+              8
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "After replacing sympify with _sympify in Expr.__eq__, the recorded assertions show Symbol(\"x\") is unequal to an object whose only customization is __repr__ returning \"x\".",
+          "symbol": "Expr.__eq__",
+          "file": "sympy/core/expr.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Instance of class D with __repr__ returning \"x\" and no custom conversion/equality methods",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            11,
+            12
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after the strict-conversion edit in message 11, before test-file edits.",
+          "assumption_id": "acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 11–12 show the minimal D class and the inequality assertion succeeding after the conversion edit. Later modified test expectations are not used to support this claim.",
+            "reviewer_evidence_message_indices": [
+              11,
+              12
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 8 shows the conversion followed by the Expr type guard. This is a source-code observation; it does not claim a separate exploit test was executed.",
+        "reviewer_evidence_message_indices": [
+          7,
+          8,
+          11,
+          12
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-8a3b93fc6f74f7499d285e376ce711af637325d5c6ff853a1e4efd8c4efb8adf"
+}

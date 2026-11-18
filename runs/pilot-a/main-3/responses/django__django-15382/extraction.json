@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When handling empty EXISTS subqueries, preserve the distinction between positive and negated EXISTS and keep other WHERE predicates intact. Treat backend-specific boolean SQL branches separately; the shown SQL smoke check uses SQLite.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "The original Exists.as_sql calls super().as_sql before applying NOT, with no local EmptyResultSet handler around that call.",
+          "symbol": "Exists.as_sql",
+          "file": "django/db/models/expressions.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Exists compilation with self.query.exists(using=connection.alias)",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "After the agent edit, compiling ContentType.objects.filter(~Exists(ContentType.objects.none()), app_label=\"test\") retains app_label in a WHERE conjunction with True.",
+          "symbol": "Exists.as_sql",
+          "file": "django/db/models/expressions.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Negated Exists over ContentType.objects.none() with app_label=\"test\"",
+            "config": null,
+            "env": "SQLite :memory: configuration; django.contrib.contenttypes installed"
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after the EmptyResultSet handler added in message 4."
+        }
+      ]
+    }
+  ]
+}

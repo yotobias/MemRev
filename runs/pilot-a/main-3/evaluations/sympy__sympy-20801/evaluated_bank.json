@@ -1,0 +1,164 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-20801",
+    "trajectory_sha256": "8290dfd72699547345a6f4a05240d4c3205660a9dc9bd6f55a73279b67ac9905",
+    "extraction_sha256": "23cb3669c1ebfc3ec9fc2a8e7ab1534e7720317273c495a160b0fc55d1df0fa5"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "sympy__sympy-20801",
+    "repository": "sympy/sympy",
+    "source_revision": "e11d3fed782146eebbffdc9ced0364b223b84b6c",
+    "extraction_run_id": "main-3-codex-session-20261117-sympy__sympy-20801",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/sympy__sympy-20801.txt",
+      "sha256": "488160da5e61755bb274a1c029bde5e41ff35562934d39eb666fdc77ec573097"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/sympy__sympy-20801/trajectory.json",
+      "sha256": "8290dfd72699547345a6f4a05240d4c3205660a9dc9bd6f55a73279b67ac9905"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-20801/extraction.json",
+      "sha256": "23cb3669c1ebfc3ec9fc2a8e7ab1534e7720317273c495a160b0fc55d1df0fa5"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/sympy__sympy-20801/metadata.json",
+      "sha256": "f2ff20a173b57289f55ae4b8e77707165d5772a0a0e12a3d83286caef4eb2755"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 13,
+  "lessons": [
+    {
+      "advice": "When debugging equality between numeric zero and symbolic booleans, inspect type guards before truthiness shortcuts and test both operand orders. Preserve numeric-zero compatibility with separate control cases.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "In the inspected Float.__eq__, successful sympification is followed by an if-not-self shortcut returning not other before the Boolean type guard.",
+          "symbol": "Float.__eq__",
+          "file": "sympy/core/numbers.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "other successfully sympified; self is falsey",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/lesson/0/assumption/0",
+          "raw_assumption_index": 0,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Message 5 shows the original branch order, including successful sympification and the zero shortcut. The conditional contract is stated without treating all falsey objects as numeric zeros.",
+            "reviewer_evidence_message_indices": [
+              4,
+              5
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        },
+        {
+          "statement": "After moving the Boolean guard before the zero shortcut, S(0.0)==S.false and S.false==S(0.0) both evaluate to False.",
+          "symbol": "Float.__eq__",
+          "file": "sympy/core/numbers.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "S(0.0) and S.false, compared in both operand orders",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after guard reordering in message 7.",
+          "assumption_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/lesson/0/assumption/1",
+          "raw_assumption_index": 1,
+          "evaluation": {
+            "outcome": "usable_as_extracted",
+            "issue_codes": [],
+            "reason": "Messages 7–8 show both operand-order comparisons and False outputs after reordering. This is one symmetry invariant for the specified pair, not a claim about every Boolean comparison.",
+            "reviewer_evidence_message_indices": [
+              7,
+              8
+            ],
+            "rubric": {
+              "specific_enough_to_check": "yes",
+              "single_behaviour": "yes",
+              "supported_by_cited_messages": "yes",
+              "scope_sufficient": "yes",
+              "workspace_attribution_correct": "yes",
+              "repository_behaviour": "yes"
+            }
+          }
+        }
+      ],
+      "lesson_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/lesson/0",
+      "raw_lesson_index": 0,
+      "evaluation": {
+        "outcome": "usable_as_extracted",
+        "issue_codes": [],
+        "reason": "The advice identifies the task-specific mechanism and limits conclusions to the available evidence. Message 5 shows the original branch order, including successful sympification and the zero shortcut. The conditional contract is stated without treating all falsey objects as numeric zeros.",
+        "reviewer_evidence_message_indices": [
+          4,
+          5,
+          7,
+          8
+        ]
+      }
+    }
+  ],
+  "bank_version": 1,
+  "artifact_type": "evaluated_extraction_bank",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "source_validity": "not_assessed",
+  "evaluation_id": "eval-cffe9d683ba9003c9f8edd4ca22f7ce3d353a53428b73752c841a5fc281d58fa"
+}

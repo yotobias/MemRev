@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When changing timezone SQL handling, distinguish named zones containing signs from numeric offsets and test parsing behavior in the actual Python environment. Do not assume a helper recalled from a later Django version exists at the source revision; preserve the complete submitted patch.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The original PostgreSQL _prepare_tzname_delta replaces every plus sign with minus if a plus is present; otherwise it replaces every minus with plus if a minus is present.",
+          "symbol": "DatabaseOperations._prepare_tzname_delta",
+          "file": "django/db/backends/postgresql/operations.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "tzname string containing a plus, or containing a minus and no plus",
+            "config": "PostgreSQL backend",
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "The recorded parse_time(\"10\") call returns datetime.time(10, 0).",
+          "symbol": "parse_time",
+          "file": "django/utils/dateparse.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "\"10\"",
+            "config": null,
+            "env": "Python 3.8.20 recorded in message 18"
+          },
+          "evidence_message_indices": [
+            18,
+            19,
+            20
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Intermediate checkout after timezone/backend edits; dateparse.py has not been edited in the recorded commands."
+        }
+      ]
+    }
+  ]
+}

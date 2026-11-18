@@ -1,0 +1,18 @@
+{
+  "instance_id": "sympy__sympy-16766",
+  "image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-16766:latest",
+  "base_commit": "b8fe457a02cc24b3470ff678d0099c350b7fef43",
+  "commands": 6,
+  "exit_code_mismatches": 0,
+  "patch_applies": true,
+  "patch_files": [
+    "5 0 sympy/printing/pycode.py"
+  ],
+  "replay_files": [
+    "5 0 sympy/printing/pycode.py"
+  ],
+  "tracked_diff_same": true,
+  "untracked_after_replay": [
+    "patch.txt"
+  ]
+}

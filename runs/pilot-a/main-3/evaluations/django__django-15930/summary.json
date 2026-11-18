@@ -1,0 +1,72 @@
+{
+  "original_lessons_evaluated": 1,
+  "original_assumptions_evaluated": 2,
+  "assumption_outcomes": {
+    "usable_as_extracted": 2,
+    "needs_repair": 0,
+    "uncertain": 0,
+    "context_only": 0
+  },
+  "acquisition_id": "acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a",
+  "protocol_id": "pilot-a-extraction-evaluation-v1",
+  "purpose": "pilot_a",
+  "reviewer": {
+    "id": "codex-session-20261117",
+    "type": "ai",
+    "independent": false,
+    "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+  },
+  "source_validity": "not_assessed",
+  "lesson_outcomes": {
+    "usable_as_extracted": 1,
+    "needs_clarification": 0,
+    "uncertain": 0
+  },
+  "criterion_ratings": {
+    "specific_enough_to_check": {
+      "yes": 2,
+      "no": 0,
+      "uncertain": 0
+    },
+    "single_behaviour": {
+      "yes": 2,
+      "no": 0,
+      "uncertain": 0
+    },
+    "supported_by_cited_messages": {
+      "yes": 2,
+      "no": 0,
+      "uncertain": 0
+    },
+    "scope_sufficient": {
+      "yes": 2,
+      "no": 0,
+      "uncertain": 0
+    },
+    "workspace_attribution_correct": {
+      "yes": 2,
+      "no": 0,
+      "uncertain": 0
+    },
+    "repository_behaviour": {
+      "yes": 2,
+      "no": 0,
+      "uncertain": 0
+    }
+  },
+  "assumption_issue_counts": {
+    "compound_assumption": 0,
+    "granularity_ambiguous": 0,
+    "citation_coverage_incomplete": 0,
+    "environment_provenance_incomplete": 0,
+    "dimensional_scope_unclear": 0,
+    "historical_observation": 0,
+    "environment_context": 0,
+    "procedural_context": 0,
+    "mixed_assumption_kinds": 0,
+    "advice_scope_unclear": 0,
+    "test_discrimination_unclear": 0,
+    "preservation_policy_unclear": 0
+  },
+  "evaluation_id": "eval-c767209a915430409e37867e42bf1eba0e692caab81d33339fa2758e4153fc32"
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When supporting pandas nullable label dtypes, inspect both target-type inference and label extraction. Keep missing-value handling separate from the demonstrated non-missing binary-label cases.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "unique_labels raises ValueError when the set of inferred target types still has more than one member after the binary/multiclass normalization.",
+          "symbol": "unique_labels",
+          "file": "sklearn/utils/multiclass.py",
+          "predicate": "raises",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "At least one y argument; type_of_target calls succeed; normalized type set has cardinality greater than one",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "After the helper edit, type_of_target returns \"binary\" for the demonstrated Int64 Series containing only zeros and ones with no missing values.",
+          "symbol": "type_of_target",
+          "file": "sklearn/utils/multiclass.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "pd.Series([1,0,0,1,0,1,1,0,1], dtype=\"Int64\")",
+            "config": null,
+            "env": "pandas available in the recorded task environment"
+          },
+          "evidence_message_indices": [
+            6,
+            7
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after adding _convert_pandas_nullable in message 6."
+        }
+      ]
+    }
+  ]
+}

@@ -273,3 +273,8 @@ Created `runs/pilot-a/main-3/lane-r-execution-v1.zip` with the work order, all s
 ## 2026-11-18: full Pilot A completion checklist
 
 At the user's request, prioritize completion of A before the final B delivery (V53). Added [COMPLETION_CHECKLIST.md](COMPLETION_CHECKLIST.md) with owners, live verification steps, evidence requirements and completion criteria for the smoke check, scheduled validity assessments, import, sharing, 30% regrouping and final report. It distinguishes existing offline validation from missing execution and retains the simplified first-round scope. Updated active task/status/runbook links. This is a documentation change; no new checks or research results were generated and frozen packages were not rewritten.
+
+
+## 2026-11-18 — Track the frozen main-3 artifacts
+
+Selected the existing main-3 trajectories and public acquisition/review/handoff artifacts, including both portable delivery packages, for Git tracking so teammates can obtain the batch by pulling the branch. Scratch runs, new output directories, caches and private execution evidence remain ignored. Added Git attributes to preserve the exact bytes used by manifests across platforms. Frozen artifact contents and research status are unchanged.

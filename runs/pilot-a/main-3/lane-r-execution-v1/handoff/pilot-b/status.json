@@ -1,0 +1,226 @@
+{
+  "contract_status": "proposed",
+  "fields": [
+    "lesson_id",
+    "lesson_text",
+    "task_id",
+    "repository",
+    "source_revision",
+    "trajectory_pointer"
+  ],
+  "exported": 16,
+  "excluded": 0,
+  "exclusions": [],
+  "lesson_status": [
+    {
+      "lesson_id": "acq-005d89b84cea31e690155b8b856db33a15df176c6e4747e1fb3e5e7b5df157ff/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-069a74fa77aa396b2810ca82867e3e585386283f401e2627d4193186c4f30c93/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-0f790144755df7b892962096872db56f95c386993b66405e671d0bb376c45baa/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-234a8c2609003611591ea294f8c0b3624bf346af3b24827018ae51e6627e82e0/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-3690f608318b9e94df427c91d9ab7752e5a48a0224be3bff4860131124fa48a8/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-51a096b9fd686eb2b9400de1f7c86aa4ee0e98bac4811cdf452bd6691d408583/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-5f16ea7b6c1b800fe4445dd06e3acf0bea15e7c2a88400b5b98474a28cd3f89e/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-62bf1e42e1f95530504387ba46b1ed5274ab6cc722a55ba620bcc2d001c54a46/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-662a2c357348c92c347e785b3596be6bb2dfcaab1f809ec57234469c91f9245f/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-6b0499dd571e5b91bced0054e93791b3f4a767d147c0f1dda8c35e8ce366aca4/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-784b52f307fe42d8bc313cb1ab769ecee7582faf5042a989fea963f5bc916e60/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-9f16a0be6f4d67457e764366050ecac8243d05b98ece9ab2069a0a5d4bacfaf7/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-ba678349f94bf919a73747668424bec90f95219b2b78eb994bab8c0a9bed54fa/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-c7e726c46d0369a5aa71dbbd5db2bed8c0f91f1baa9789ba69fe981fb1b5671c/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-cbab6e675defa2660e468e206d785418eda2277306704c58012ab747317a6e3a/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    },
+    {
+      "lesson_id": "acq-ea7ab93a5af32499733ac56a5b961bc8be44599409affb75bf569f664c908a3e/lesson/0",
+      "purpose": "pilot_a",
+      "reviewer": {
+        "id": "codex-session-20261117",
+        "type": "ai",
+        "independent": false,
+        "note": "Same Codex session performed extraction and evaluation; exact serving model and separate usage unavailable. No human sign-off, gold inspection or source-validity execution. Review is scoped to extraction quality and original trajectory evidence."
+      },
+      "extraction_outcome": "usable_as_extracted",
+      "source_validity": "not_certified_by_export",
+      "exclusion_reasons": []
+    }
+  ],
+  "source_sha_existence_checked": false,
+  "review_required_for_draft_export": false
+}

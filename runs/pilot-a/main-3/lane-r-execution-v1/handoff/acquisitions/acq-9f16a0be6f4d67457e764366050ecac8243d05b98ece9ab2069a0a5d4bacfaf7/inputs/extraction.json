@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "When investigating GROUP BY ambiguity with a Subquery annotation, inspect how annotation aliases are passed to get_group_by_cols and whether they collide with joined-table columns. Do not treat unrelated suite success as reproduction of the PostgreSQL issue.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "Subquery.get_group_by_cols returns [Ref(alias, self)] when alias is truthy.",
+          "symbol": "Subquery.get_group_by_cols",
+          "file": "django/db/models/expressions.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "Truthy alias",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            6
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "For an annotation whose get_group_by_cols signature includes alias, Query.set_group_by passes the annotation alias when allow_aliases is true; the shown original method has no joined-column collision check.",
+          "symbol": "Query.set_group_by",
+          "file": "django/db/models/sql/query.py",
+          "predicate": "calls",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "annotation_select contains the annotation; method signature includes alias",
+            "config": "allow_aliases=True",
+            "env": null
+          },
+          "evidence_message_indices": [
+            2,
+            3
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        }
+      ]
+    }
+  ]
+}

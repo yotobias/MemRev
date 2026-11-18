@@ -1,0 +1,109 @@
+{
+  "record_version": 1,
+  "acquisition_id": "acq-c7e726c46d0369a5aa71dbbd5db2bed8c0f91f1baa9789ba69fe981fb1b5671c",
+  "identity": {
+    "identity_version": 1,
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-14792",
+    "trajectory_sha256": "46d06a4b1c6245d30e8c78763e54b2417caf098eb8660e2c70f86b15f9e119b2",
+    "extraction_sha256": "5f84f92b9f53006a36113fa17e26b1b80673744f4d6bf55226f005146e291d90"
+  },
+  "metadata": {
+    "agent_run_id": "main-3",
+    "task_id": "django__django-14792",
+    "repository": "django/django",
+    "source_revision": "d89f976bddb49fb168334960acc8979c3de991fa",
+    "extraction_run_id": "main-3-codex-session-20261117-django__django-14792",
+    "purpose": "pilot_a",
+    "extractor": {
+      "method": "assistant_session",
+      "provider": "openai",
+      "model_id": null,
+      "reported_label": "Codex assistant session 2026-11-17; exact serving model unavailable",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost_usd": null
+    },
+    "notes": "V48/V49. Extracted by the active Codex assistant from the recorded trajectory in this research conversation. Saved prompt contains full indexed trajectory; the assistant inspected message content, commands and exposed reasoning in a deduplicated view, with repeated task instructions read once. Not an isolated API call; wider conversation and Lane R summary context were visible. Exact serving model, usage and cost unavailable. One focused primary lesson retained per task; not exhaustive extraction yield. No official fix or gold logs opened; no trajectory commands executed. Source revision is the supplied base commit, not certification that post-edit assumptions hold there."
+  },
+  "artifacts": {
+    "prompt": {
+      "path": "inputs/prompt.txt",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/prompts/django__django-14792.txt",
+      "sha256": "2a52d8fa14c0a374daad16cab4007d54f8aead39e2991a84de60b4b05c53b3df"
+    },
+    "trajectory": {
+      "path": "inputs/trajectory.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/prepared/inputs/django__django-14792/trajectory.json",
+      "sha256": "46d06a4b1c6245d30e8c78763e54b2417caf098eb8660e2c70f86b15f9e119b2"
+    },
+    "extraction": {
+      "path": "inputs/extraction.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-14792/extraction.json",
+      "sha256": "5f84f92b9f53006a36113fa17e26b1b80673744f4d6bf55226f005146e291d90"
+    },
+    "metadata": {
+      "path": "inputs/metadata.json",
+      "original_path": "/home/jlwu/Development/Research/MemRev/runs/pilot-a/main-3/responses/django__django-14792/metadata.json",
+      "sha256": "92d5771e516de70f69a1213e0bce6c4788822e3eef974ab4674c08a6e72c922f"
+    }
+  },
+  "unknown_metadata": [
+    "extractor.model_id",
+    "extractor.input_tokens",
+    "extractor.output_tokens",
+    "extractor.cost_usd"
+  ],
+  "extraction_schema_version": 2,
+  "message_count": 29,
+  "lessons": [
+    {
+      "advice": "When changing timezone SQL handling, distinguish named zones containing signs from numeric offsets and test parsing behavior in the actual Python environment. Do not assume a helper recalled from a later Django version exists at the source revision; preserve the complete submitted patch.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The original PostgreSQL _prepare_tzname_delta replaces every plus sign with minus if a plus is present; otherwise it replaces every minus with plus if a minus is present.",
+          "symbol": "DatabaseOperations._prepare_tzname_delta",
+          "file": "django/db/backends/postgresql/operations.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "tzname string containing a plus, or containing a minus and no plus",
+            "config": "PostgreSQL backend",
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits.",
+          "assumption_id": "acq-c7e726c46d0369a5aa71dbbd5db2bed8c0f91f1baa9789ba69fe981fb1b5671c/lesson/0/assumption/0",
+          "raw_assumption_index": 0
+        },
+        {
+          "statement": "The recorded parse_time(\"10\") call returns datetime.time(10, 0).",
+          "symbol": "parse_time",
+          "file": "django/utils/dateparse.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "\"10\"",
+            "config": null,
+            "env": "Python 3.8.20 recorded in message 18"
+          },
+          "evidence_message_indices": [
+            18,
+            19,
+            20
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Intermediate checkout after timezone/backend edits; dateparse.py has not been edited in the recorded commands.",
+          "assumption_id": "acq-c7e726c46d0369a5aa71dbbd5db2bed8c0f91f1baa9789ba69fe981fb1b5671c/lesson/0/assumption/1",
+          "raw_assumption_index": 1
+        }
+      ],
+      "lesson_id": "acq-c7e726c46d0369a5aa71dbbd5db2bed8c0f91f1baa9789ba69fe981fb1b5671c/lesson/0",
+      "raw_lesson_index": 0
+    }
+  ]
+}

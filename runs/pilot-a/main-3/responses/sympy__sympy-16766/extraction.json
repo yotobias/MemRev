@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "For Python Indexed printing, inspect the printer hierarchy before placing the handler in a shared base class. Check one- and multi-index expressions explicitly; the recorded smoke checks do not establish behavior for every backend.",
+      "from_failed_step": false,
+      "assumptions": [
+        {
+          "statement": "PythonCodePrinter directly inherits AbstractPythonCodePrinter.",
+          "symbol": "PythonCodePrinter",
+          "file": "sympy/printing/pycode.py",
+          "predicate": "type_is",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": null,
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "After adding AbstractPythonCodePrinter._print_Indexed, pycode(p[1, i]) produces \"p[1, i]\" for p=IndexedBase(\"p\") and i=Symbol(\"i\").",
+          "symbol": "AbstractPythonCodePrinter._print_Indexed",
+          "file": "sympy/printing/pycode.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "IndexedBase(\"p\")[1, Symbol(\"i\")]",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after the handler addition in message 7."
+        }
+      ]
+    }
+  ]
+}

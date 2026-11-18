@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "lessons": [
+    {
+      "advice": "For mpmath lambdify rational constants, inspect generated source for mpf conversion before division; verify high-precision numerical behavior separately. Use the repository test runner when pytest is unavailable.",
+      "from_failed_step": true,
+      "assumptions": [
+        {
+          "statement": "The inspected MpmathPrinter._print_Float converts e._mpf_ components to Python ints and emits a call to the module-formatted mpmath.mpf.",
+          "symbol": "MpmathPrinter._print_Float",
+          "file": "sympy/printing/pycode.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "A SymPy Float e",
+            "config": null,
+            "env": null
+          },
+          "evidence_message_indices": [
+            4,
+            5
+          ],
+          "evidence_basis": "code_observation",
+          "workspace_context": "Original checkout before agent edits."
+        },
+        {
+          "statement": "After adding _print_Rational, lambdify(x, x + S(232)/3, \"mpmath\") generates a return expression containing x + mpf(232)/mpf(3).",
+          "symbol": "MpmathPrinter._print_Rational",
+          "file": "sympy/printing/pycode.py",
+          "predicate": "returns",
+          "kind": "repo_behaviour",
+          "scope": {
+            "inputs": "x + S(232)/3",
+            "config": "lambdify modules=\"mpmath\"",
+            "env": null
+          },
+          "evidence_message_indices": [
+            7,
+            8
+          ],
+          "evidence_basis": "execution_observation",
+          "workspace_context": "Checkout after insertion of _print_Rational in message 7."
+        }
+      ]
+    }
+  ]
+}
